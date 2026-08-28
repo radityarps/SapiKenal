@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    @apply m-0 bg-[#f6f8f7] font-sans text-[#17241f] antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    @apply outline-3 outline-offset-2 outline-[#176b49]/25;
+  }
+}
+
+@layer components {
+  .page-intro {
+    @apply mt-7;
+  }
+
+  .muted {
+    @apply leading-relaxed text-[#66766f];
+  }
+
+  .notice {
+    @apply mt-4 rounded-lg border border-[#d5e5dd] bg-[#f3f8f5] px-3.5 py-3 text-[#215c42];
+  }
+
+  .panel {
+    @apply mt-4 overflow-x-auto rounded-xl border border-[#e0e7e3] bg-white p-5 shadow-sm;
+  }
+
+  .toolbar {
+    @apply flex flex-wrap items-end gap-3;
+  }
+
+  label {
+    @apply grid gap-1.5 text-xs font-bold text-[#52635b];
+  }
+
+  input,
+  select,
+  textarea {
+    @apply min-h-10 rounded-lg border border-[#cfdad4] bg-white px-3 py-2 font-sans text-sm text-[#17241f] transition;
+  }
+
+  input:hover,
+  select:hover,
+  textarea:hover {
+    @apply border-[#aebfb6];
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    @apply border-[#4d8a6c] outline-none ring-4 ring-[#18794e]/10;
+  }
+
+  textarea {
+    @apply min-h-24 resize-y;
+  }
+
+  button,
+  .button {
+    @apply min-h-10 cursor-pointer rounded-lg border-0 bg-[#176b49] px-3 py-2 font-sans text-sm font-bold text-white transition;
+  }
+
+  button:hover,
+  .button:hover {
+    @apply bg-[#125a3d];
+  }
+
+  button:active,
+  .button:active {
+    @apply translate-y-px;
+  }
+
+  button.secondary,
+  .button.secondary {
+    @apply bg-[#e8f2ed] text-[#145c3e];
+  }
+
+  button.danger,
+  .button.danger {
+    @apply bg-[#f9e9ec] text-[#8b2635];
+  }
+
+  button:disabled,
+  .button:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .password-toggle {
+    @apply absolute bottom-0 right-0 grid min-h-10 w-10 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-transparent hover:text-[#176b49];
+  }
+
+  .toast {
+    @apply fixed bottom-5 right-5 z-50 max-w-[calc(100vw-2.5rem)] rounded-lg border border-[#b8d7c6] bg-[#edf8f1] px-4 py-3 text-sm font-semibold text-[#215c42] shadow-[0_14px_34px_rgba(23,49,42,.16)];
+  }
+
+  .toast-error {
+    @apply border-[#efcbd1] bg-[#fff3f4] text-[#8b2635];
+  }
+
+  table {
+    @apply w-full border-collapse;
+  }
+
+  th,
+  td {
+    @apply whitespace-nowrap border-b border-[#e8edea] px-2.5 py-3 text-left align-top;
+  }
+
+  th {
+    @apply text-[.7rem] font-bold uppercase tracking-[.055em] text-[#68776f];
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full bg-[#e8f2ed] px-2 py-1 text-[.72rem] font-bold text-[#145c3e];
+  }
+
+  .empty {
+    @apply p-8 text-center text-[#68776f];
+  }
+
+  .error {
+    @apply mt-4 rounded-lg border border-[#f1cdd2] bg-[#fbf0f2] px-3.5 py-3 text-[#8b2635];
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-[#e9efeb];
+  }
+}

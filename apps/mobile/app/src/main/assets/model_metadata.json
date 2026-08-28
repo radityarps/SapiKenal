@@ -1,0 +1,39 @@
+{
+  "model_version": "cattle-disease-mobilenetv3-v20260725-fp32",
+  "base_model_version": "cattle-disease-mobilenetv3-v20260725-fp32",
+  "architecture": "mobilenetv3",
+  "asset": "cattle_disease.tflite",
+  "sha256": "ed9598c56b5dc5a5788c0d8376e8d6d2b80277aeca1931183f78cc968eae4bf9",
+  "size_bytes": 12381284,
+  "size_mb": 11.8077125549,
+  "class_order": ["FMD", "healthy", "LSD", "non_cattle"],
+  "class_indices": {
+    "0": "FMD",
+    "1": "healthy",
+    "2": "LSD",
+    "3": "non_cattle"
+  },
+  "tensor_contract": {
+    "input_shape": [1, 224, 224, 3],
+    "input_dtype": "float32",
+    "output_shape": [1, 4],
+    "output_dtype": "float32",
+    "input_tensor_count": 1,
+    "output_tensor_count": 1,
+    "output_values": "finite probabilities in [0, 1] with sum approximately 1"
+  },
+  "preprocessing": {
+    "input_size": [224, 224],
+    "channels": 3,
+    "color_mode": "RGB",
+    "rescale": "none (raw [0..255] float32 input due to internal MobileNetV3 Rescaling layer)",
+    "exif_orientation_correction": "applied by ClientPreprocessor before client resize when EXIF is available",
+    "resize_method": "Bitmap.createScaledBitmap filtering"
+  },
+  "parity": {
+    "status": "tensor_contract_verified",
+    "source": "apps/mobile/TFLITE_PARITY.md",
+    "note": "Accuracy and F1 parity deltas are not recorded in this repository snapshot."
+  },
+  "warning": "Image classification model only; not a clinical diagnosis or veterinarian replacement."
+}

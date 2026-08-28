@@ -1,0 +1,13 @@
+# Mobile App Environment & Model Configuration Example
+# Copy this file to local.properties (ignored by git) to configure your local build.
+
+# API Base URL for backend connection (must start with http:// or https://)
+# Emulator default: http://10.0.2.2:8000/
+# Physical device default: http://192.168.x.x:8000/
+API_BASE_URL=http://10.0.2.2:8000/
+
+# Model Configuration (TFLite artifact under app/src/main/assets/)
+MODEL_FILE_NAME=cattle_disease.tflite
+MODEL_VERSION=cattle-disease-mobilenetv3-v20260725-fp32
+MODEL_INPUT_SIZE=224
+CONFIDENCE_THRESHOLD=0.60

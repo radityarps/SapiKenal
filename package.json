@@ -1,0 +1,36 @@
+{
+  "name": "sapikenal",
+  "version": "0.1.0",
+  "description": "SapiKenal monorepo — cattle breed identification foundation",
+  "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "backend:build": "cd apps/backend && docker compose build",
+    "backend:dev": "node scripts/backend-dev.mjs",
+    "backend:test": "cd apps/backend && docker compose run --rm backend python -m pytest tests/ -v",
+    "backend:up": "cd apps/backend && docker compose up --build -d",
+    "backend:down": "cd apps/backend && docker compose down",
+    "backend:logs": "cd apps/backend && docker compose logs -f",
+    "backend:migrate": "cd apps/backend && docker compose run --rm backend alembic upgrade head",
+    "backend:seed-admin": "cd apps/backend && docker compose run --rm backend python -m scripts.seed_admin",
+    "web:dev": "pnpm --filter @sapikenal/web dev",
+    "web:build": "pnpm --filter @sapikenal/web build",
+    "web:check": "pnpm --filter @sapikenal/web check",
+    "web:test": "pnpm --filter @sapikenal/web test",
+    "mobile:build": "cd apps/mobile && bash ./gradlew assembleDebug",
+    "mobile:deploy": "cd apps/mobile && bash ./gradlew assembleDebug && cd ../.. && node scripts/run-adb.mjs install -r apps/mobile/app/build/outputs/apk/debug/app-debug.apk",
+    "mobile:run": "cd apps/mobile && bash ./gradlew assembleDebug && cd ../.. && node scripts/run-adb.mjs install -r apps/mobile/app/build/outputs/apk/debug/app-debug.apk && node scripts/run-adb.mjs shell am start -n id.sapikenal.app/.MainActivity",
+    "mobile:restart": "node scripts/run-adb.mjs shell am force-stop id.sapikenal.app && node scripts/run-adb.mjs shell am start -n id.sapikenal.app/.MainActivity",
+    "mobile:log": "node scripts/run-adb.mjs logcat | findstr SapiKenal",
+    "mobile:test": "cd apps/mobile && bash ./gradlew test",
+    "mobile:clean": "cd apps/mobile && bash ./gradlew clean",
+    "dev": "pnpm run backend:dev",
+    "test": "pnpm run backend:test && pnpm run web:test && pnpm run mobile:test",
+    "build": "pnpm run backend:build && pnpm run web:build",
+    "install:all": "pnpm run backend:build"
+  }
+}

@@ -1,0 +1,64 @@
+---
+services:
+  # FastAPI inference server
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sapikenal-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - FASTAPI_ENV=${FASTAPI_ENV:-development}
+      - DEBUG=${DEBUG:-true}
+      - DEVICE=cpu
+      - LOG_LEVEL=info
+      - PYTHONUNBUFFERED=1
+      - MODEL_PATH=${MODEL_PATH:-./model/tes1_best_v3.keras}
+      - MODEL_REGISTRY_DIR=${MODEL_REGISTRY_DIR:-./model/registry}
+      - MODEL_UPLOAD_MAX_BYTES=${MODEL_UPLOAD_MAX_BYTES:-250000000}
+      - MODEL_STARTUP_FALLBACK_ENABLED=${MODEL_STARTUP_FALLBACK_ENABLED:-false}
+      # Hot-swap MVP is intentionally single-worker even if .env is stale.
+      - WORKERS=1
+      - HISTORY_DB_PATH=./data/history.sqlite3
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/admin.sqlite3}
+      - SESSION_TTL_DAYS=${SESSION_TTL_DAYS:-7}
+      - PASSWORD_MIN_LENGTH=${PASSWORD_MIN_LENGTH:-12}
+      - WEB_ORIGIN=${WEB_ORIGIN:-http://localhost:5173}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - ADMIN_NAME=${ADMIN_NAME:-Administrator}
+      - BENCHMARK_ENABLED=${BENCHMARK_ENABLED:-false}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-1000}
+      - RATE_LIMIT_WINDOW_SECONDS=${RATE_LIMIT_WINDOW_SECONDS:-60}
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - /app/__pycache__
+    command: >
+      uvicorn main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+    networks:
+      - sapikenal-network
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "import urllib.request;
+          urllib.request.urlopen('http://localhost:8000/api/health')"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  sapikenal-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local

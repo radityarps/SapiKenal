@@ -39,10 +39,11 @@ object SapiKenalColors {
     val TextPrimary = Color(0xFF1B1C1A) // espresso-black, warm contrast
     val TextSecondary = Color(0xFF737970) // muted grayish green
 
-    // ── Semantic: Disease indicators (Agro-Humanist) ────────────────────
-    val Healthy = Color(0xFF466648) // Sage Green — SEHAT
-    val DangerPMK = Color(0xFFE2A76F) // Warm Amber/Orange — PMK
-    val WarningLSD = Color(0xFFBA1A1A) // Terracotta/Red — LSD
+    // ── Semantic: Breed indicators ─────────────────────────────────────
+    val Bali = Color(0xFF8D6E63)
+    val Brahman = Color(0xFF607D8B)
+    val Brangus = Color(0xFF37474F)
+    val Limusin = Color(0xFFE2A76F)
 
     // ── Utility ─────────────────────────────────────────────────────────
     val Outline = Color(0xFF737970)
@@ -105,9 +106,9 @@ object TropisBersihColors {
     val OnSurfaceVariant = SapiKenalColors.OnSurfaceVariant
     val TextPrimary = SapiKenalColors.TextPrimary
     val TextSecondary = SapiKenalColors.TextSecondary
-    val Success = SapiKenalColors.Healthy
-    val Danger = SapiKenalColors.DangerPMK
-    val Warning = SapiKenalColors.WarningLSD
+    val Success = SapiKenalColors.Primary
+    val Danger = SapiKenalColors.Error
+    val Warning = SapiKenalColors.Secondary
     val Outline = SapiKenalColors.Outline
     val OutlineVariant = SapiKenalColors.OutlineVariant
     val Error = SapiKenalColors.Error

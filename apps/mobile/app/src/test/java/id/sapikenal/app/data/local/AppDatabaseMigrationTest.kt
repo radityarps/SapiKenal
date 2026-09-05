@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -35,27 +36,65 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun `migration from Room schema v8 preserves records and adds v9 and v10 defaults`() {
+    fun `migration from empty legacy schema rebuilds breed history`() {
+        clearLegacyRows()
         val database =
             Room
                 .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10)
+                .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11)
                 .build()
 
         val migratedDatabase = database.openHelper.writableDatabase
         migratedDatabase
-            .query(
-                "SELECT predictedClass, scoreNonCattle, outcome, rejectionReason, syncStatus " +
-                    "FROM detection_records WHERE id = 42",
-            ).use { cursor ->
+            .query("SELECT COUNT(*) FROM detection_records")
+            .use { cursor ->
                 assertTrue(cursor.moveToFirst())
-                assertEquals("FMD", cursor.getString(0))
-                assertEquals(0f, cursor.getFloat(1), 0.001f)
-                assertEquals("ACCEPTED", cursor.getString(2))
-                assertTrue(cursor.isNull(3))
-                assertEquals("PENDING", cursor.getString(4))
+                assertEquals(0, cursor.getInt(0))
+            }
+        migratedDatabase
+            .query("PRAGMA table_info(detection_records)")
+            .use { cursor ->
+                val columns =
+                    buildList {
+                        while (cursor.moveToNext()) add(cursor.getString(1))
+                    }
+                assertTrue(columns.contains("scoresJson"))
+                assertFalse(columns.contains("scoreHealthy"))
+                assertFalse(columns.contains("scoreFmd"))
+                assertFalse(columns.contains("scoreLsd"))
+                assertFalse(columns.contains("scoreNonCattle"))
             }
         database.close()
+    }
+
+    @Test
+    fun `migration from populated legacy schema is refused without dropping rows`() {
+        val database =
+            Room
+                .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
+                .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11)
+                .build()
+
+        try {
+            database.openHelper.writableDatabase
+            throw AssertionError("Expected populated legacy migration to be refused")
+        } catch (expected: IllegalStateException) {
+            assertTrue(expected.message.orEmpty().contains("populated legacy"))
+        } finally {
+            database.close()
+        }
+        SQLiteDatabase.openDatabase(databaseFile.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
+            db.rawQuery("SELECT COUNT(*) FROM detection_records", null).use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(1, cursor.getInt(0))
+            }
+        }
+    }
+
+    private fun clearLegacyRows() {
+        SQLiteDatabase.openDatabase(databaseFile.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
+            db.execSQL("DELETE FROM detection_records")
+        }
     }
 
     private fun createSchemaV8(file: File) {
@@ -103,7 +142,7 @@ class AppDatabaseMigrationTest {
                 scoreHealthy, scoreFmd, scoreLsd, inferenceMode, isReliable,
                 processingMs, consentStatus
             ) VALUES (
-                42, 1700000000000, '/history/old.jpg', 'FMD', 'PMK', 0.92,
+                42, 1700000000000, '/history/old.jpg', 'legacy', 'Legacy result', 0.92,
                 0.03, 0.92, 0.05, 'ONLINE', 1, 120, 'ALLOWED'
             )
             """.trimIndent(),

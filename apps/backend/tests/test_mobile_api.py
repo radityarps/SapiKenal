@@ -4,9 +4,10 @@ import io
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from fastapi.testclient import TestClient
-from main import app
+from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 from PIL import Image
+
+from main import app
 
 
 def _jpeg() -> bytes:
@@ -16,20 +17,17 @@ def _jpeg() -> bytes:
 
 
 def test_predict_contract():
-    from db.base import Base
-    from db.core import engine
-
-    Base.metadata.create_all(engine)
-
     result = {
         "status": "success",
         "prediction": {
-            "outcome": "accepted",
-            "disease_class": "healthy",
-            "display_label_key": "disease.healthy",
+            "predicted_class": "bali",
             "confidence": 0.9,
-            "is_reliable": True,
-            "scores": {"FMD": 0.05, "LSD": 0.04, "healthy": 0.9, "non_cattle": 0.01},
+            "scores": {
+                "bali": 0.9,
+                "brahman": 0.05,
+                "brangus": 0.04,
+                "limusin": 0.01,
+            },
         },
         "model_info": {"version": "test"},
         "processing_time_ms": 10,
@@ -50,20 +48,17 @@ def test_predict_contract():
     assert response.json() == result
 
 
-def test_predict_rejects_non_cattle_with_structured_error():
+def test_predict_keeps_low_confidence_as_success():
     result = {
         "status": "success",
         "prediction": {
-            "outcome": "rejected",
-            "disease_class": "non_cattle",
-            "display_label_key": "validation.non_cattle",
-            "confidence": 0.96,
-            "is_reliable": False,
+            "predicted_class": "bali",
+            "confidence": 0.31,
             "scores": {
-                "FMD": 0.01,
-                "healthy": 0.02,
-                "LSD": 0.01,
-                "non_cattle": 0.96,
+                "bali": 0.31,
+                "brahman": 0.30,
+                "brangus": 0.29,
+                "limusin": 0.10,
             },
         },
         "model_info": {"version": "four-class-test"},
@@ -80,17 +75,14 @@ def test_predict_rejects_non_cattle_with_structured_error():
     ):
         response = TestClient(app).post(
             "/api/predict",
-            files={"image": ("not-cattle.jpg", _jpeg(), "image/jpeg")},
+            files={"image": ("low-confidence.jpg", _jpeg(), "image/jpeg")},
         )
 
-    assert response.status_code == 422
-    body = response.json()
-    assert body["error_code"] == "NON_CATTLE_IMAGE"
-    assert body["rejection"]["outcome"] == "rejected"
-    assert body["rejection"]["reason"] == "non_cattle"
-    assert body["rejection"]["scores"]["non_cattle"] == 0.96
+    assert response.status_code == 200
+    assert response.json() == result
     record_event.assert_called_once()
-    assert record_event.call_args.kwargs["outcome"] == "rejected"
+    assert record_event.call_args.kwargs["status"] == "success"
+    assert record_event.call_args.kwargs["predicted_class"] == "bali"
 
 
 def test_invalid_image_rejected():
@@ -119,14 +111,20 @@ def test_history_sync_roundtrip(tmp_path, monkeypatch):
     routes_mod.history_store = history_store_mod.history_store
 
     client = TestClient(app)
+    scores = {
+        "bali": 0.8,
+        "brahman": 0.1,
+        "brangus": 0.05,
+        "limusin": 0.05,
+    }
     payload = {
         "device_id": "device-12345678",
         "local_id": 7,
         "timestamp": 1710000000000,
-        "predicted_class": "FMD",
-        "display_label": "PMK",
+        "predicted_class": "bali",
+        "display_label": "Bali",
         "confidence": 0.8,
-        "scores": {"FMD": 0.8, "LSD": 0.1, "healthy": 0.1},
+        "scores": scores,
         "inference_mode": "ONLINE",
         "is_reliable": True,
         "processing_ms": 12,
@@ -135,11 +133,15 @@ def test_history_sync_roundtrip(tmp_path, monkeypatch):
     assert created.status_code == 200
     item = created.json()["item"]
     assert item["local_id"] == 7
+    assert item["scores"] == scores
+    assert "outcome" not in item
+    assert "rejection_reason" not in item
 
     listed = client.get("/api/history", params={"device_id": "device-12345678"})
     assert listed.status_code == 200
-    assert listed.json()["items"][0]["predicted_class"] == "FMD"
-    assert listed.json()["items"][0]["scores"]["non_cattle"] == 0
+    listed_item = listed.json()["items"][0]
+    assert listed_item["predicted_class"] == "bali"
+    assert listed_item["scores"] == scores
 
     deleted = client.delete(
         f"/api/history/{item['id']}", params={"device_id": "device-12345678"}
@@ -148,18 +150,38 @@ def test_history_sync_roundtrip(tmp_path, monkeypatch):
     assert db.exists()
 
 
+def test_history_rejects_legacy_disease_contract():
+    client = TestClient(app)
+    response = client.post(
+        "/api/history",
+        json={
+            "device_id": "device-legacy-123456",
+            "timestamp": 1710000000000,
+            "predicted_class": "FMD",
+            "display_label": "PMK",
+            "confidence": 0.8,
+            "scores": {"FMD": 0.8, "LSD": 0.1, "healthy": 0.1, "non_cattle": 0.0},
+            "inference_mode": "ONLINE",
+            "is_reliable": True,
+        },
+    )
+    assert response.status_code == 422
+
+
 def test_predict_does_not_persist_upload(tmp_path):
     before = set(Path(".").rglob("*.jpg"))
     svc = MagicMock()
     svc.predict.return_value = {
         "status": "success",
         "prediction": {
-            "outcome": "accepted",
-            "disease_class": "healthy",
-            "display_label_key": "disease.healthy",
+            "predicted_class": "bali",
             "confidence": 0.9,
-            "is_reliable": True,
-            "scores": {"FMD": 0.05, "LSD": 0.04, "healthy": 0.9, "non_cattle": 0.01},
+            "scores": {
+                "bali": 0.9,
+                "brahman": 0.05,
+                "brangus": 0.04,
+                "limusin": 0.01,
+            },
         },
         "model_info": {"version": "test"},
         "processing_time_ms": 10,
@@ -181,7 +203,7 @@ def test_predict_does_not_persist_upload(tmp_path):
 
 def test_labels_follow_class_names_file(tmp_path, monkeypatch):
     class_names = tmp_path / "class_names.json"
-    class_names.write_text('{"0":"FMD","1":"Healthy","2":"LSD","3":"non_cattle"}')
+    class_names.write_text('{"0":"Bali","1":"Brahman","2":"Brangus","3":"Limusin"}')
     monkeypatch.setenv("MODEL_CLASS_NAMES_PATH", str(class_names))
 
     import importlib
@@ -189,4 +211,4 @@ def test_labels_follow_class_names_file(tmp_path, monkeypatch):
     import config as config_mod
 
     importlib.reload(config_mod)
-    assert config_mod.settings.labels == ["FMD", "healthy", "LSD", "non_cattle"]
+    assert config_mod.settings.labels == ["bali", "brahman", "brangus", "limusin"]

@@ -5,9 +5,5 @@ sealed interface ClassifyResponse {
         val result: DetectionResult,
     ) : ClassifyResponse
 
-    data class Rejected(
-        val result: DetectionResult,
-    ) : ClassifyResponse
-
     data object ConsentRequired : ClassifyResponse
 }

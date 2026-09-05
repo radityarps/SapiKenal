@@ -3,7 +3,13 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import (  # pyright: ignore[reportMissingImports]
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+)
 
 
 class PageResponse(BaseModel):
@@ -51,18 +57,16 @@ class PredictionResponse(BaseModel):
     device_ref: str
     user_id: str | None
     timestamp: int
-    predicted_class: str
+    predicted_class: str | None
     display_label: str
     confidence: float
     scores: dict[str, float] = Field(default_factory=dict)
-    outcome: Literal["accepted", "rejected", "failed"] = "accepted"
-    rejection_reason: str | None = None
     is_reliable: bool
     inference_mode: str
     processing_ms: int | None
     app_version: str | None
     model_version: str | None
-    status: str = "success"
+    status: Literal["success", "failed"]
     error_code: str | None = None
 
 
@@ -72,29 +76,29 @@ class DashboardPeriod(BaseModel):
     end_timestamp: int
 
 
-class DiseaseContentRequest(BaseModel):
+class BreedProfileRequest(BaseModel):
     slug: str = Field(
         min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
     )
     model_class: str | None = Field(default=None, max_length=32)
     display_name: str = Field(min_length=1, max_length=120)
     summary: str = Field(min_length=1, max_length=500)
-    description: str = Field(min_length=1, max_length=10_000)
-    handling_advice: str = Field(min_length=1, max_length=10_000)
+    strengths: str = Field(min_length=1, max_length=10_000)
+    limitations: str = Field(min_length=1, max_length=10_000)
     disclaimer: str = Field(min_length=1, max_length=1_000)
     locale: str = Field(default="id-ID", min_length=2, max_length=16)
 
 
-class DiseaseContentPatchRequest(BaseModel):
+class BreedProfilePatchRequest(BaseModel):
     model_class: str | None = Field(default=None, max_length=32)
     display_name: str | None = Field(default=None, min_length=1, max_length=120)
     summary: str | None = Field(default=None, min_length=1, max_length=500)
-    description: str | None = Field(default=None, min_length=1, max_length=10_000)
-    handling_advice: str | None = Field(default=None, min_length=1, max_length=10_000)
-    disclaimer: str | None = Field(default=None, min_length=1, max_length=1_000)
+    strengths: str | None = Field(default=None, min_length=1, max_length=10_000)
+    limitations: str | None = Field(default=None, min_length=1, max_length=10_000)
+    disclaimer: str | None = Field(default=None, max_length=1_000)
 
 
-class DiseaseRevisionResponse(BaseModel):
+class BreedProfileRevisionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
@@ -102,20 +106,20 @@ class DiseaseRevisionResponse(BaseModel):
     model_class: str | None
     display_name: str
     summary: str
-    description: str
-    handling_advice: str
+    strengths: str
+    limitations: str
     disclaimer: str
     status: str
     created_at: datetime
     updated_at: datetime
 
 
-class DiseaseContentResponse(BaseModel):
+class BreedProfileResponse(BaseModel):
     id: str
     slug: str
     locale: str
     status: str
-    revision: DiseaseRevisionResponse
+    revision: BreedProfileRevisionResponse
     created_at: datetime
     updated_at: datetime
 

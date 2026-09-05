@@ -21,12 +21,12 @@ import javax.inject.Singleton
  * The text content is built by [ReportContentBuilder] (a pure, testable function).
  * This class only handles the Android-specific PDF rendering.
  *
- * Includes: image, timestamp, disease class, confidence, scores, inference mode,
+ * Includes: image, timestamp, breed class, confidence, scores, inference mode,
  * advice, disclaimer, app version, model version, preprocessing summary,
  * consent status, and coarse location (if available).
  *
  * Excludes: IMEI, serial number, account ID, precise location.
- * Wording avoids diagnosis/certificate claims — uses "Classification Report".
+ * Wording states breed-identification and object-validation limitations.
  */
 @Singleton
 class PdfReportGenerator
@@ -241,16 +241,16 @@ class PdfReportGenerator
                 technicalInformation = context.getString(R.string.report_technical_information),
                 device = context.getString(R.string.report_device),
                 disclaimer = context.getString(R.string.report_disclaimer),
-                notClinicalDiagnosis = context.getString(R.string.report_not_clinical_diagnosis),
-                notOfficialDocument = context.getString(R.string.report_not_official_document),
-                consultVeterinarian = context.getString(R.string.report_consult_veterinarian),
+                objectValidationLimitation = context.getString(R.string.report_not_clinical_diagnosis),
+                identityDocumentLimitation = context.getString(R.string.report_not_official_document),
+                supportedBreedsLimitation = context.getString(R.string.report_consult_veterinarian),
                 generatedBy = context.getString(R.string.report_generated_by),
                 classLabels =
                     mapOf(
-                        "fmd" to context.getString(R.string.result_disease_fmd),
-                        "healthy" to context.getString(R.string.result_disease_sehat),
-                        "sehat" to context.getString(R.string.result_disease_sehat),
-                        "lsd" to context.getString(R.string.result_disease_lsd),
+                        "bali" to context.getString(R.string.result_breed_bali),
+                        "brahman" to context.getString(R.string.result_breed_brahman),
+                        "brangus" to context.getString(R.string.result_breed_brangus),
+                        "limusin" to context.getString(R.string.result_breed_limusin),
                     ),
             )
     }

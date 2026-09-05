@@ -8,7 +8,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const filters = {
 		search: url.searchParams.get("search") || "",
 		predicted_class: url.searchParams.get("predicted_class") || "",
-		outcome: url.searchParams.get("outcome") || "",
 		inference_mode: url.searchParams.get("inference_mode") || "",
 		reliable: url.searchParams.get("reliable") || "",
 		date_from: url.searchParams.get("date_from") || "",
@@ -21,8 +20,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	if (filters.search) query.set("search", filters.search);
 	if (filters.predicted_class)
 		query.set("predicted_class", filters.predicted_class);
-	if (filters.outcome)
-		query.set("outcome", filters.outcome);
 	if (filters.inference_mode)
 		query.set("inference_mode", filters.inference_mode);
 	if (filters.reliable) query.set("reliable", filters.reliable);

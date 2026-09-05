@@ -14,7 +14,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.abs
 
 @Singleton
 open class OfflineInferenceEngine
@@ -31,15 +30,15 @@ open class OfflineInferenceEngine
             private val EXPECTED_INPUT_SHAPE = intArrayOf(1, 224, 224, 3)
             private val EXPECTED_OUTPUT_SHAPE = intArrayOf(1, 4)
 
-            // Canonical labels matching backend class_names.json: {"0": "FMD", "1": "Healthy", "2": "LSD", "3": "non_cattle"}
-            private val LABELS = listOf("FMD", "healthy", "LSD", "non_cattle")
+            // Canonical labels matching backend model/class_names.json.
+            val CANONICAL_LABELS = listOf("bali", "brahman", "brangus", "limusin")
+            private val LABELS = CANONICAL_LABELS
             private val LABEL_DISPLAY =
                 mapOf(
-                    "FMD" to "Penyakit Mulut dan Kuku (FMD)",
-                    "LSD" to "Penyakit Lumpy Skin (LSD)",
-                    "healthy" to "Sapi Sehat",
-                    "Healthy" to "Sapi Sehat",
-                    "non_cattle" to "Objek bukan sapi",
+                    "bali" to "Bali",
+                    "brahman" to "Brahman",
+                    "brangus" to "Brangus",
+                    "limusin" to "Limusin",
                 )
         }
 
@@ -92,10 +91,13 @@ open class OfflineInferenceEngine
         }
 
         private fun validateScores(scores: FloatArray) {
-            if (scores.size != LABELS.size || scores.any { !it.isFinite() || it < 0f || it > 1f }) {
+            if (
+                scores.size != LABELS.size ||
+                scores.any { !it.isFinite() || it < 0f || it > 1f }
+            ) {
                 throw IllegalStateException("TFLite output must contain four finite probabilities in [0, 1]")
             }
-            if (abs(scores.sum() - 1f) > 0.01f) {
+            if (scores.sum() !in 0.99f..1.01f) {
                 throw IllegalStateException("TFLite output probabilities must sum to 1")
             }
         }
@@ -109,25 +111,20 @@ open class OfflineInferenceEngine
                 val scores = output[0]
                 validateScores(scores)
                 val maxIdx = scores.indices.maxByOrNull { scores[it] } ?: 0
-                val label = LABELS.getOrElse(maxIdx) { "unknown" }
-                val isRejected = label == "non_cattle"
+                val label =
+                    LABELS.getOrElse(maxIdx) { error("Unknown model class index: $maxIdx") }
 
                 DetectionResult(
                     label = label,
                     displayLabel = LABEL_DISPLAY[label] ?: label,
                     confidence = scores[maxIdx],
-                    isReliable = if (isRejected) false else scores[maxIdx] >= BuildConfig.CONFIDENCE_THRESHOLD,
+                    isReliable = scores[maxIdx] >= BuildConfig.CONFIDENCE_THRESHOLD,
                     allScores =
-                        mapOf(
-                            "FMD" to scores[0],
-                            "healthy" to scores[1],
-                            "LSD" to scores[2],
-                            "non_cattle" to scores[3],
-                        ),
+                        LABELS
+                            .mapIndexed { index, className -> className to scores[index] }
+                            .toMap(),
                     inferenceMode = InferenceMode.OFFLINE,
                     modelVersion = MODEL_VERSION,
-                    outcome = if (isRejected) "REJECTED" else "ACCEPTED",
-                    rejectionReason = if (isRejected) "non_cattle" else null,
                 )
             }
     }

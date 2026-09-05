@@ -55,9 +55,9 @@ class HistorySyncRunnerTest {
         }
 
     @Test
-    fun `allowed consent uploads rejected metadata and marks it synced`() =
+    fun `allowed consent uploads breed scores and marks it synced`() =
         runTest {
-            val entity = rejectedEntity()
+            val entity = breedEntity()
             whenever(dao.findPendingSync()).thenReturn(listOf(entity))
             val api = RecordingHistoryApi()
             val runner = HistorySyncRunner(dao, settings, api, deviceIdProvider)
@@ -67,19 +67,17 @@ class HistorySyncRunnerTest {
             val request = api.requests.single()
             assertEquals("device-12345678", request.deviceId)
             assertEquals(17L, request.localId)
-            assertEquals("non_cattle", request.predictedClass)
-            assertEquals("rejected", request.outcome)
-            assertEquals("non_cattle", request.rejectionReason)
+            assertEquals("limusin", request.predictedClass)
             assertEquals("offline", request.inferenceMode)
             assertEquals(4, request.scores.size)
-            assertEquals(0.96f, request.scores["non_cattle"] ?: 0f, 0.001f)
+            assertEquals(0.96f, request.scores["limusin"] ?: 0f, 0.001f)
             verify(dao).markSynced(17L)
         }
 
     @Test
     fun `upload failure requests WorkManager retry and keeps row pending`() =
         runTest {
-            whenever(dao.findPendingSync()).thenReturn(listOf(rejectedEntity()))
+            whenever(dao.findPendingSync()).thenReturn(listOf(breedEntity()))
             val api = RecordingHistoryApi(failure = IOException("offline"))
             val runner = HistorySyncRunner(dao, settings, api, deviceIdProvider)
 
@@ -87,26 +85,21 @@ class HistorySyncRunnerTest {
             verify(dao, never()).markSynced(any())
         }
 
-    private fun rejectedEntity() =
+    private fun breedEntity() =
         DetectionEntity(
             id = 17L,
             timestamp = 1_710_000_000_000,
-            imagePath = "/history/rejected.jpg",
-            predictedClass = "non_cattle",
-            displayLabel = "Objek bukan sapi",
+            imagePath = "/history/limusin.jpg",
+            predictedClass = "limusin",
+            displayLabel = "Limusin",
             confidence = 0.96f,
-            scoreHealthy = 0.02f,
-            scoreFmd = 0.01f,
-            scoreLsd = 0.01f,
-            scoreNonCattle = 0.96f,
+            scoresJson = "{\"bali\":0.01,\"brahman\":0.02,\"brangus\":0.01,\"limusin\":0.96}",
             inferenceMode = "OFFLINE",
-            isReliable = false,
+            isReliable = true,
             processingMs = 80,
             consentStatus = "ALLOWED",
             appVersion = "0.1.0",
             modelVersion = "four-class-v1",
-            outcome = "REJECTED",
-            rejectionReason = "non_cattle",
         )
 
     private class RecordingHistoryApi(

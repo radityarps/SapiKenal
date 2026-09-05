@@ -26,6 +26,8 @@ const environment = {
 	FASTAPI_ENV: "development",
 	DEBUG: "true",
 	DATABASE_URL: process.env.DATABASE_URL || "sqlite:///./data/admin.sqlite3",
+	ALLOW_DEV_DB_RESET: "true",
+	MODEL_STARTUP_FALLBACK_ENABLED: "true",
 };
 
 if (!environment.DATABASE_URL.startsWith("sqlite:")) {

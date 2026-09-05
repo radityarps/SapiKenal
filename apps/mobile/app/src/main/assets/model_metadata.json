@@ -1,17 +1,21 @@
 {
-  "model_version": "cattle-disease-mobilenetv3-v20260725-fp32",
-  "base_model_version": "cattle-disease-mobilenetv3-v20260725-fp32",
+  "model_version": "sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32",
   "architecture": "mobilenetv3",
-  "asset": "cattle_disease.tflite",
-  "sha256": "ed9598c56b5dc5a5788c0d8376e8d6d2b80277aeca1931183f78cc968eae4bf9",
+  "asset": "jenis_fp32.tflite",
+  "sha256": "7b71a5a923ae69cf00b390712381c8d437d31e105e1370b0dc2653ba2271a664",
   "size_bytes": 12381284,
   "size_mb": 11.8077125549,
-  "class_order": ["FMD", "healthy", "LSD", "non_cattle"],
+  "backend_artifact": {
+    "path": "apps/backend/model/best.keras",
+    "sha256": "873c54eac9b4cf127ad29486ba6de3d4d0d16d415a3431aa7baa7e46d455434b",
+    "size_bytes": 14156083
+  },
+  "class_order": ["bali", "brahman", "brangus", "limusin"],
   "class_indices": {
-    "0": "FMD",
-    "1": "healthy",
-    "2": "LSD",
-    "3": "non_cattle"
+    "0": "bali",
+    "1": "brahman",
+    "2": "brangus",
+    "3": "limusin"
   },
   "tensor_contract": {
     "input_shape": [1, 224, 224, 3],
@@ -26,14 +30,20 @@
     "input_size": [224, 224],
     "channels": 3,
     "color_mode": "RGB",
-    "rescale": "none (raw [0..255] float32 input due to internal MobileNetV3 Rescaling layer)",
-    "exif_orientation_correction": "applied by ClientPreprocessor before client resize when EXIF is available",
-    "resize_method": "Bitmap.createScaledBitmap filtering"
+    "input_dtype": "float32",
+    "input_range": [0, 255],
+    "rescale": "none",
+    "model_internal_rescaling": {
+      "scale": 0.00784313725490196,
+      "offset": -1.0
+    },
+    "exif_orientation_correction": "applied by ClientPreprocessor before client resize and JPEG compression",
+    "resize_method": "bilinear"
   },
   "parity": {
     "status": "tensor_contract_verified",
     "source": "apps/mobile/TFLITE_PARITY.md",
-    "note": "Accuracy and F1 parity deltas are not recorded in this repository snapshot."
+    "note": "Numerical Keras/TFLite parity requires an agreed image corpus and is not claimed by issue 001."
   },
-  "warning": "Image classification model only; not a clinical diagnosis or veterinarian replacement."
+  "warning": "Image classification model only; output is not validation that an image contains a cow."
 }

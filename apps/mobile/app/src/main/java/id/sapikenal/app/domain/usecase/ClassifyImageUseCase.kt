@@ -55,7 +55,6 @@ class ClassifyImageUseCase
             val targetResult =
                 when (response) {
                     is ClassifyResponse.Success -> response.result
-                    is ClassifyResponse.Rejected -> response.result
                     is ClassifyResponse.ConsentRequired -> return response
                 }
 
@@ -90,11 +89,7 @@ class ClassifyImageUseCase
                 )
             val savedResult = resultWithMetadata.copy(id = savedId)
 
-            return if (response is ClassifyResponse.Rejected) {
-                ClassifyResponse.Rejected(savedResult)
-            } else {
-                ClassifyResponse.Success(savedResult)
-            }
+            return ClassifyResponse.Success(savedResult)
         }
 
         companion object {

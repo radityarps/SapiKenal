@@ -276,7 +276,7 @@ fun SettingsRoute(
             PreferenceRow(
                 title = stringResource(R.string.settings_clear_history),
                 onClick = { showClearHistoryDialog = true },
-                titleColor = SapiKenalColors.DangerPMK,
+                titleColor = SapiKenalColors.Error,
             )
 
             // Purge deleted records
@@ -284,7 +284,7 @@ fun SettingsRoute(
                 title = stringResource(R.string.settings_purge_deleted),
                 value = stringResource(R.string.settings_purge_deleted_description),
                 onClick = { showPurgeDialog = true },
-                titleColor = SapiKenalColors.DangerPMK,
+                titleColor = SapiKenalColors.Error,
             )
 
             // Reset onboarding
@@ -666,12 +666,12 @@ private fun LocationRow(
 
                     hasPermission -> {
                         statusText = stringResource(R.string.settings_location_status_granted)
-                        statusColor = SapiKenalColors.Healthy
+                        statusColor = SapiKenalColors.Primary
                     }
 
                     else -> {
                         statusText = stringResource(R.string.settings_location_status_denied)
-                        statusColor = SapiKenalColors.WarningLSD
+                        statusColor = SapiKenalColors.Secondary
                     }
                 }
                 Text(

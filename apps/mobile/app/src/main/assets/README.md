@@ -1,27 +1,36 @@
-# Assets
+# Model assets
 
-The offline inference model lives in this folder.
+SapiKenal's offline inference model is `jenis_fp32.tflite`. The matching
+contract metadata is in `model_metadata.json`.
 
-Expected files:
+| Field | Value |
+| --- | --- |
+| Version | `sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32` |
+| Architecture | MobileNetV3 four-class image classifier |
+| Class order | `bali`, `brahman`, `brangus`, `limusin` |
+| Input | RGB `224 × 224`, Float32 values in `[0, 255]` |
+| Output | Four Float32 probabilities in the same class order |
+| Size | 12,381,284 bytes |
+| SHA-256 | `7b71a5a923ae69cf00b390712381c8d437d31e105e1370b0dc2653ba2271a664` |
 
-- `cattle_disease.tflite` — selected MobileNetV3 Float32 TFLite artifact.
-- `model_metadata.json` — model version, class order, preprocessing, size, and checksum.
+The model contains an internal rescaling operation
+`(input / 127.5) - 1.0`; therefore `ModelPreprocessor` must pass raw pixel
+values and must not apply `/255` scaling. Input resizing uses bilinear
+filtering. `ClientPreprocessor` corrects available EXIF orientation before its
+client resize and JPEG compression.
 
-Current model:
+The backend counterpart is `apps/backend/model/best.keras` with the same
+version, class order, tensor contract, preprocessing, and documented checksum.
+The project assigns this contract version because authoritative training/export
+version metadata is unavailable; the checksums identify the exact artifacts.
 
-- Version: `cattle-disease-mobilenetv3-v20260725-fp32`
-- Architecture: MobileNetV3 four-class classifier.
-- Class order: `0 = FMD`, `1 = healthy`, `2 = LSD`, `3 = non_cattle`.
-- Tensor input: `[1, 224, 224, 3]`, RGB, Float32 values in `[0, 255]`.
-- Tensor output: `[1, 4]` Float32 probabilities in the same class order.
-- Tensor preprocessing: no `/255` scaling because the model contains the MobileNetV3 internal rescaling layer.
-- Client preprocessing: `ClientPreprocessor` applies available EXIF orientation before its client resize and JPEG stage.
-- Asset size: `12,381,284` bytes.
-- SHA-256: `ed9598c56b5dc5a5788c0d8376e8d6d2b80277aeca1931183f78cc968eae4bf9`.
+When replacing this asset, update `model_metadata.json`, `BuildConfig.MODEL_FILE_NAME`,
+`BuildConfig.MODEL_VERSION`, the backend model contract, and the verification
+output together. Run from the repository root:
 
-Notes:
+```bash
+python scripts/verify_model_contract.py
+```
 
-- Keep the exact `cattle_disease.tflite` filename because the application loads it through `BuildConfig.MODEL_FILE_NAME`.
-- The Float32 artifact was produced from the final `tes1_best_v3.keras` training model and renamed for Android asset loading.
-- `model_fp16 (1).tflite` is the alternative Float16 conversion artifact and is not loaded by the application.
-- When replacing the offline model, update `model_metadata.json`, `MODEL_VERSION`, the class order, and preprocessing configuration together.
+The verifier uses only Python's standard library and rejects mismatched class
+order, tensor contract, preprocessing metadata, model path, size, or checksum.

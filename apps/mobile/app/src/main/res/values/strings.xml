@@ -15,21 +15,21 @@
 
     <!-- Splash -->
     <string name="splash_loading">Memuat model…</string>
-    <string name="splash_subtitle">Deteksi Penyakit Sapi</string>
+    <string name="splash_subtitle">Identifikasi Jenis Sapi</string>
 
     <!-- Onboarding -->
     <string name="onboarding_skip">Lewati</string>
     <string name="onboarding_next">Lanjut</string>
     <string name="onboarding_start">Mulai</string>
-    <string name="onboarding_title_1">Deteksi Penyakit Sapi dengan AI</string>
-    <string name="onboarding_body_1">Gunakan kamera untuk mendeteksi PMK dan Lato-Lato pada sapi secara instan.</string>
+    <string name="onboarding_title_1">Identifikasi Jenis Sapi dengan AI</string>
+    <string name="onboarding_body_1">Gunakan kamera untuk mengidentifikasi jenis sapi secara instan.</string>
     <string name="onboarding_title_2">Mode Offline Tersedia</string>
-    <string name="onboarding_body_2">Deteksi tetap berjalan tanpa internet menggunakan model AI di perangkat Anda.</string>
+    <string name="onboarding_body_2">Identifikasi tetap berjalan tanpa internet menggunakan model AI di perangkat Anda.</string>
     <string name="onboarding_title_3">Riwayat &amp; Panduan Lengkap</string>
-    <string name="onboarding_body_3">Simpan hasil pemeriksaan dan pelajari cara penanganan penyakit.</string>
+    <string name="onboarding_body_3">Simpan hasil identifikasi dan pelajari berbagai jenis sapi.</string>
 
     <!-- Camera -->
-    <string name="camera_guidance">Arahkan ke area gejala. Dekatkan kamera hingga lesi pada mulut, kuku, atau kulit terlihat jelas.</string>
+    <string name="camera_guidance">Arahkan ke sapi. Pastikan tubuh dan ciri jenis sapi terlihat jelas di dalam bingkai.</string>
     <string name="camera_capture">Ambil Gambar</string>
     <string name="camera_gallery">Pilih dari Galeri</string>
     <string name="camera_flash_auto">Flash Otomatis</string>
@@ -40,7 +40,7 @@
     <string name="camera_flash_toggle">Ubah Flash</string>
     <string name="camera_grid_toggle">Ubah Grid</string>
     <string name="camera_permission_title">Izin Kamera Diperlukan</string>
-    <string name="camera_permission_desc">SapiKenal memerlukan akses kamera untuk mendeteksi penyakit sapi.</string>
+    <string name="camera_permission_desc">SapiKenal memerlukan akses kamera untuk mengidentifikasi jenis sapi.</string>
     <string name="camera_permission_grant">Izinkan</string>
     <string name="camera_permission_denied">Izin kamera ditolak. Buka pengaturan untuk mengaktifkan.</string>
     <string name="camera_processing">Memproses gambar…</string>
@@ -66,10 +66,10 @@
     <string name="result_btn_export_pdf">Ekspor PDF</string>
     <string name="result_pdf_exported">Laporan PDF berhasil dibuat</string>
     <string name="result_pdf_failed">Gagal membuat laporan PDF</string>
-    <string name="result_btn_retake">Ulangi</string>
-    <string name="result_disease_sehat">Sehat</string>
-    <string name="result_disease_fmd">PMK</string>
-    <string name="result_disease_lsd">Lato-Lato</string>
+    <string name="result_breed_bali">Bali</string>
+    <string name="result_breed_brahman">Brahman</string>
+    <string name="result_breed_brangus">Brangus</string>
+    <string name="result_breed_limusin">Limusin</string>
     <string name="result_unknown">Tidak Diketahui</string>
     <string name="result_scan_image">Gambar scan</string>
     <string name="result_scanned_at">Waktu scan: %1$s</string>
@@ -79,25 +79,15 @@
     <string name="result_share_mode">Mode inferensi: %1$s</string>
     <string name="result_share_class_scores">Skor kelas:</string>
     <string name="result_share_score_item">- %1$s: %2$d%%</string>
-    <string name="result_share_footer">Dibagikan dari aplikasi SapiKenal — Ini adalah hasil klasifikasi citra, bukan diagnosis klinis.</string>
+    <string name="result_share_footer">Dibagikan dari aplikasi SapiKenal — Ini adalah hasil identifikasi jenis sapi dari klasifikasi citra; aplikasi tidak memvalidasi objek pada citra.</string>
     <string name="result_share_chooser">Bagikan via</string>
-    <string name="result_advice_sehat">Sapi sehat. Lanjutkan pemantauan rutin.</string>
-    <string name="result_advice_fmd">Saran pendukung:\n• Berikan minuman gula Jawa, kunyit, atau temulawak untuk membantu keluhan sariawan.\n• Berikan lebih banyak konsentrat atau pakan yang sudah dilayukan agar tidak mudah kembung.\n• Semprotkan larutan asam sitrat atau sitrun yang dicampur air pada hidung, mulut, wadah pakan, dan pakan.\n• Berikan sedikit garam krosok pada area mulut untuk membantu meningkatkan nafsu makan.\n\nSaran ini bukan pengganti pemeriksaan dan penanganan dokter hewan.</string>
-    <string name="result_advice_lsd">Pisahkan dari ternak lain\nHubungi dokter hewan\nPeriksa ternak lain</string>
-    <string name="result_confidence_high">Tinggi</string>
-    <string name="result_confidence_medium">Sedang</string>
-    <string name="result_confidence_low">Rendah</string>
-    <string name="result_warning_medium">Hasil dengan keyakinan sedang. Pertimbangkan pemeriksaan ulang untuk hasil yang lebih akurat.</string>
-    <string name="result_warning_low">Hasil tidak dapat diandalkan. Silakan ulangi pemindaian dengan kondisi foto yang lebih baik.</string>
-    <string name="result_unreliable_title">⚠️ Hasil Tidak Dapat Diandalkan</string>
-    <string name="result_unreliable_body">Keyakinan model terlalu rendah untuk menampilkan kelas prediksi secara meyakinkan. Silakan ambil ulang foto dengan pencahayaan yang baik dan fokus yang jelas.</string>
-    <string name="result_btn_retake_low">Foto Ulang (Disarankan)</string>
+    <string name="result_advice_breed">Gunakan profil jenis ini sebagai informasi pendukung. Perhatikan kondisi ternak, pakan, dan lingkungan secara menyeluruh.</string>
     <string name="result_saved">Hasil disimpan</string>
     <string name="result_saved_note_title">Catatan Tersimpan</string>
     <string name="result_all_scores">Semua Skor</string>
-    <string name="result_advice_title">⚠️ Saran Penanganan</string>
+    <string name="result_advice_title">Profil Jenis</string>
     <string name="result_learn_more">Pelajari Selengkapnya</string>
-    <string name="result_disclaimer">Ini adalah hasil klasifikasi citra dari model AI, bukan diagnosis klinis. Konsultasikan dengan dokter hewan untuk kepastian.</string>
+    <string name="result_disclaimer">Ini adalah hasil klasifikasi citra dari model AI. Hasil ini bukan bukti identitas individual sapi dan bukan rekomendasi mutlak.</string>
     <string name="result_metadata_title">Informasi Teknis</string>
     <string name="result_metadata_app_version">Versi Aplikasi: %1$s</string>
     <string name="result_metadata_model_version">Versi Model: %1$s</string>
@@ -112,7 +102,7 @@
     <string name="result_consent_allowed">Diizinkan</string>
     <string name="result_consent_denied">Ditolak</string>
     <string name="result_consent_undecided">Belum Ditentukan</string>
-    <string name="result_accessibility_summary">Kelas prediksi: %1$s, keyakinan %2$d persen, level %3$s, mode %4$s</string>
+    <string name="result_accessibility_summary">Kelas prediksi: %1$s, keyakinan %2$d persen, mode %3$s</string>
 
     <!-- PDF report -->
     <string name="report_date">Tanggal</string>
@@ -136,10 +126,10 @@
     <string name="report_device">Perangkat</string>
     <string name="report_disclaimer">PENAFIAN</string>
     <string name="report_title">SapiKenal — Laporan Klasifikasi</string>
-    <string name="report_subtitle">Hasil klasifikasi citra dari model AI, bukan diagnosis klinis.</string>
-    <string name="report_not_clinical_diagnosis">Laporan ini berisi hasil klasifikasi citra dari model AI (MobileNetV3).</string>
-    <string name="report_not_official_document">Laporan ini BUKAN diagnosis dokter hewan, sertifikat, atau dokumen resmi.</string>
-    <string name="report_consult_veterinarian">Konsultasikan dengan dokter hewan untuk konfirmasi dan penanganan.</string>
+    <string name="report_subtitle">Hasil identifikasi jenis sapi dari model AI.</string>
+    <string name="report_not_clinical_diagnosis">Laporan ini berisi hasil identifikasi jenis sapi dari klasifikasi citra, bukan validasi bahwa objek pada citra adalah sapi.</string>
+    <string name="report_not_official_document">Laporan ini bukan bukti identitas individual sapi atau dokumen resmi.</string>
+    <string name="report_consult_veterinarian">Hasil berlaku sebagai informasi pendukung; aplikasi tidak memvalidasi objek atau memberi penilaian di luar empat jenis yang didukung.</string>
     <string name="report_generated_by">Dibuat oleh SapiKenal</string>
 
     <!-- History -->
@@ -148,9 +138,10 @@
     <string name="history_empty_filter">Tidak ada hasil dengan filter ini</string>
     <string name="history_clear_filter">Hapus Filter</string>
     <string name="history_filter_all">Semua</string>
-    <string name="history_filter_sehat">Sehat</string>
-    <string name="history_filter_fmd">PMK</string>
-    <string name="history_filter_lsd">Lato-Lato</string>
+    <string name="history_filter_bali">Bali</string>
+    <string name="history_filter_brahman">Brahman</string>
+    <string name="history_filter_brangus">Brangus</string>
+    <string name="history_filter_limusin">Limusin</string>
     <string name="history_filter_online">Online</string>
     <string name="history_filter_offline">Offline</string>
     <string name="history_delete_title">Hapus Pemeriksaan</string>
@@ -173,13 +164,14 @@
     <string name="guide_action_filter">Filter</string>
     <string name="guide_action_clear">Hapus</string>
     <string name="guide_tab_app">Penggunaan</string>
-    <string name="guide_tab_fmd">PMK</string>
-    <string name="guide_tab_lsd">LSD</string>
-    <string name="guide_tab_healthy">Sapi Sehat</string>
+    <string name="guide_tab_bali">Bali</string>
+    <string name="guide_tab_brahman">Brahman</string>
+    <string name="guide_tab_brangus">Brangus</string>
+    <string name="guide_tab_limusin">Limusin</string>
 
     <!-- Guide: App Usage -->
     <string name="guide_app_title_1">Memulai Scan Pertama</string>
-    <string name="guide_app_summary_1">Panduan lengkap menggunakan fitur scan untuk mendeteksi penyakit pada sapi Anda.</string>
+    <string name="guide_app_summary_1">Panduan lengkap menggunakan fitur scan untuk mengidentifikasi jenis sapi Anda.</string>
     <string name="guide_app_body_1">Cara Melakukan Scan\n\nBuka aplikasi SapiKenal dan pastikan Anda berada di tab Periksa. Arahkan kamera ke sapi yang ingin diperiksa.\n\nTips Mengambil Foto yang Baik\n\n• Prioritaskan foto jarak dekat pada area yang menunjukkan gejala (mulut, kuku, atau kulit)\n• Pastikan area gejala memenuhi sebagian besar bingkai dan terlihat jelas\n• Pastikan pencahayaan cukup dan hindari bayangan pada area gejala\n• Posisikan kamera sejajar dengan area gejala, bukan dari atas\n• Hindari gambar buram, terlalu jauh, atau terhalang objek lain\n\nSetelah Mengambil Foto\n\nAplikasi akan memproses gambar dan menampilkan hasil klasifikasi dalam beberapa detik. Hasil mencakup kelas prediksi, tingkat kepercayaan (confidence score), dan saran penanganan.\n\nAnda juga dapat memilih gambar dari galeri dengan menekan ikon galeri di bagian bawah layar kamera.</string>
 
     <string name="guide_app_title_2">Mode Online vs Offline</string>
@@ -188,55 +180,64 @@
 
     <string name="guide_app_title_3">Memahami Hasil Klasifikasi</string>
     <string name="guide_app_summary_3">Cara membaca confidence score dan memahami tingkat kepercayaan hasil deteksi.</string>
-    <string name="guide_app_body_3" formatted="false">Confidence Score\n\nSetiap hasil klasifikasi disertai confidence score (skor kepercayaan) dalam bentuk persentase. Skor ini menunjukkan seberapa yakin model terhadap kelas prediksi.\n\nTingkat Kepercayaan\n\n• Tinggi (≥80%): Model sangat yakin dengan hasil deteksi. Hasil dapat menjadi bahan pertimbangan bersama pemeriksaan dokter hewan.\n• Sedang (60–79%): Model cukup yakin, namun disarankan untuk melakukan scan ulang dengan foto yang lebih jelas atau dari sudut berbeda.\n• Rendah (&lt;60%): Model kurang yakin. Lakukan scan ulang dengan kondisi foto yang lebih baik. Jika hasil tetap rendah, segera konsultasikan dengan dokter hewan.\n\nSkor Per Kelas\n\nSelain kelas utama, aplikasi menampilkan skor untuk setiap kelas (Sehat, PMK, LSD). Ini membantu Anda melihat distribusi skor keluaran model.\n\nKapan Harus Scan Ulang?\n\n• Confidence score di bawah 60%\n• Foto yang diambil buram atau pencahayaan kurang\n• Hasil tidak sesuai dengan gejala yang terlihat secara visual\n\nPenting: Hasil dari aplikasi ini adalah alat bantu klasifikasi citra, bukan pengganti pemeriksaan dokter hewan profesional.</string>
+    <string name="guide_app_body_3" formatted="false">Confidence Score\n\nSetiap hasil klasifikasi disertai confidence score (skor kepercayaan) dalam bentuk persentase. Skor ini menunjukkan seberapa yakin model terhadap kelas prediksi.\n\nTingkat Kepercayaan\n\n• Tinggi (≥80%): Model sangat yakin dengan hasil deteksi. Hasil dapat menjadi bahan pertimbangan bersama pemeriksaan dokter hewan.\n• Sedang (60–79%): Model cukup yakin, namun disarankan untuk melakukan scan ulang dengan foto yang lebih jelas atau dari sudut berbeda.\n• Rendah (&lt;60%): Model kurang yakin. Lakukan scan ulang dengan kondisi foto yang lebih baik. Jika hasil tetap rendah, segera konsultasikan dengan dokter hewan.\n\nSkor Per Kelas\n\nSelain kelas utama, aplikasi menampilkan skor untuk setiap kelas (Bali, Brahman, Brangus, Limusin). Ini membantu Anda melihat distribusi skor keluaran model.\n\nKapan Harus Scan Ulang?\n\n• Confidence score di bawah 60%\n• Foto yang diambil buram atau pencahayaan kurang\n• Hasil tidak sesuai dengan gejala yang terlihat secara visual\n\nPenting: Hasil dari aplikasi ini adalah alat bantu klasifikasi citra, bukan pengganti pemeriksaan dokter hewan profesional.</string>
 
-    <!-- Guide: PMK / FMD -->
-    <string name="guide_fmd_title_1">Mengenal PMK</string>
-    <string name="guide_fmd_summary_1">Informasi dasar tentang Penyakit Mulut dan Kuku, penyebab, dan dampaknya pada ternak.</string>
-    <string name="guide_fmd_body_1" formatted="false">Apa Itu PMK?\n\nPenyakit Mulut dan Kuku (PMK) atau Foot and Mouth Disease (FMD) adalah penyakit hewan menular yang bersifat akut, disebabkan oleh virus dari genus Aphthovirus, famili Picornaviridae. Penyakit ini menyerang semua hewan berkuku belah/genap seperti sapi, kerbau, domba, kambing, dan babi.\n\nDampak Ekonomi\n\nPMK menimbulkan kerugian ekonomi yang sangat besar karena:\n• Penurunan berat badan permanen pada ternak\n• Penurunan produksi susu hingga 50–80%\n• Penurunan fertilitas dan gangguan reproduksi\n• Kematian tinggi pada hewan muda\n• Hambatan perdagangan ternak nasional dan internasional\n\nKarakteristik Virus\n\n• Masa inkubasi: 2–14 hari\n• Morbiditas (angka kesakitan): dapat mencapai 100% pada populasi rentan\n• Mortalitas: umumnya rendah pada hewan dewasa (&lt;5%), namun tinggi pada anak sapi (hingga 50%)\n• Virus dapat bertahan di lingkungan, tulang, dan produk susu\n\nSumber: Kementerian Pertanian RI, WOAH (World Organisation for Animal Health)</string>
+    <!-- Guide: Bali -->
+    <string name="guide_bali_title_1">Identifikasi Sapi Bali</string>
+    <string name="guide_bali_summary_1">Ciri visual yang membantu membedakan sapi Bali pada citra.</string>
+    <string name="guide_bali_body_1" formatted="false">Sapi Bali merupakan jenis sapi lokal Indonesia yang umumnya dikenali dari tubuh yang kompak, warna bulu khas, dan garis gelap di sepanjang punggung. Warna dan bentuk tubuh dapat berbeda menurut umur, jenis kelamin, dan pemeliharaan.\n\nUntuk citra yang bermanfaat, ambil sisi tubuh sapi secara utuh dengan pencahayaan merata. Gunakan panduan ini bersama skor model; citra saja bukan sertifikat silsilah.</string>
 
-    <string name="guide_fmd_title_2">Gejala Klinis PMK</string>
-    <string name="guide_fmd_summary_2">Tanda-tanda klinis PMK pada sapi.</string>
-    <string name="guide_fmd_body_2">• Demam tinggi (40–41°C)\n• Nafsu makan menurun drastis\n• Produksi susu turun mendadak\n• Sapi tampak lesu dan enggan bergerak\n\n• Muncul lepuh/vesikel berisi cairan jernih di:\n  - Lidah, gusi, dan langit-langit mulut\n  - Bibir dan nostril (lubang hidung)\n  - Kulit di antara kuku dan di atas kuku\n  - Puting susu\n• Air liur berlebihan (hipersalivasi) dan berbusa\n• Sapi mengunyah dengan suara khas (mlecek-mlecek)\n• Pincang karena lesi di kuku\n\n• Vesikel pecah membentuk erosi/luka terbuka\n• Lesi di mulut menyebabkan kesulitan makan\n• Lesi di kuku menyebabkan kepincangan\n• Risiko infeksi sekunder oleh bakteri\n\nTanda pada Anak Sapi\n\n• Kematian mendadak tanpa gejala lepuh (miokarditis)\n• Angka kematian lebih tinggi dibanding sapi dewasa\n\nSumber: Dinas Pertanian dan Ketahanan Pangan, Agropustaka APVI</string>
+    <string name="guide_bali_title_2">Warna Bulu dan Bentuk Sapi Bali</string>
+    <string name="guide_bali_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
+    <string name="guide_bali_body_2">Perhatikan gabungan ciri, bukan satu ciri saja:\n• Proporsi tubuh kompak dengan kerangka sedang\n• Warna bulu dapat berkisar dari cokelat kemerahan hingga cokelat gelap menurut umur dan jenis kelamin\n• Garis punggung dan kaki bagian bawah yang lebih gelap merupakan petunjuk visual umum\n• Bagian pantat yang lebih terang dapat terlihat pada beberapa sapi\n\nJaga kamera sejajar dengan sapi dan hindari kaki terpotong, bayangan kuat, atau objek yang menghalangi.</string>
 
-    <string name="guide_fmd_title_3">Penularan dan Pencegahan PMK</string>
-    <string name="guide_fmd_summary_3">Jalur penularan virus PMK dan langkah-langkah biosekuriti untuk mencegah penyebaran.</string>
-    <string name="guide_fmd_body_3">Jalur Penularan\n\nVirus PMK menyebar melalui:\n• Kontak langsung dengan hewan terinfeksi\n• Udara (aerosol) — virus dapat menyebar hingga 60 km melalui angin\n• Peralatan kandang yang terkontaminasi\n• Kendaraan pengangkut ternak\n• Produk hewan (daging, susu, kulit)\n• Manusia (pakaian, sepatu) yang kontak dengan hewan sakit\n\nVirus masuk ke tubuh melalui mulut atau hidung, berkembang di nasofaring, lalu menyebar melalui darah ke seluruh tubuh.\n\nLangkah Pencegahan\n\n1. Vaksinasi\n• Lakukan vaksinasi rutin sesuai program pemerintah\n• Vaksinasi ulang setiap 6 bulan\n• Pastikan seluruh ternak dalam populasi divaksin\n\n2. Biosekuriti Kandang\n• Batasi akses orang dan kendaraan ke area kandang\n• Sediakan bak desinfektan di pintu masuk kandang\n• Gunakan pakaian dan alas kaki khusus kandang\n• Bersihkan dan desinfeksi peralatan secara rutin\n\n3. Karantina\n• Karantina ternak baru selama minimal 14 hari\n• Amati gejala klinis selama masa karantina\n• Jangan campurkan ternak baru dengan populasi lama sebelum masa karantina selesai\n\n4. Pengawasan Lalu Lintas\n• Hindari membeli ternak dari daerah wabah\n• Periksa surat kesehatan hewan saat membeli ternak\n• Laporkan ke dinas peternakan jika ada ternak mencurigakan di pasar\n\nSumber: Medion, Kementerian Pertanian RI</string>
+    <string name="guide_bali_title_3">Membandingkan Sapi Bali pada Citra</string>
+    <string name="guide_bali_summary_3">Daftar periksa praktis untuk perbandingan berbasis citra yang konsisten.</string>
+    <string name="guide_bali_body_3">Sebelum membandingkan citra, periksa ciri yang sama pada setiap kandidat:\n• Sudut samping dengan tubuh terlihat utuh\n• Postur netral di permukaan yang rata\n• Pencahayaan merata tanpa perubahan warna yang kuat\n• Detail cukup untuk meninjau warna bulu dan garis punggung\n\nTinjau skor Bali bersama tiga skor kelas lainnya. Jika skor berdekatan, anggap hasil belum pasti dan ambil sudut lain.</string>
 
-    <string name="guide_fmd_title_4">Penanganan Pertama PMK</string>
-    <string name="guide_fmd_summary_4">Langkah-langkah yang harus dilakukan segera saat sapi menunjukkan gejala PMK.</string>
-    <string name="guide_fmd_body_4" formatted="false">Langkah Segera\n\n1. Isolasi\n• Pisahkan segera ternak yang menunjukkan gejala dari ternak sehat\n• Tempatkan di kandang karantina terpisah\n• Gunakan peralatan terpisah untuk ternak sakit\n\n2. Lapor\n• Segera laporkan ke dinas peternakan dan kesehatan hewan setempat\n• Hubungi dokter hewan terdekat\n• Catat jumlah ternak yang menunjukkan gejala\n\n3. Perawatan Lesi\n• Bersihkan lesi di mulut dengan larutan antiseptik ringan\n• Oleskan obat luka pada lesi di kuku\n• Berikan pakan lunak yang mudah dimakan (rumput halus, konsentrat basah)\n\n4. Terapi Suportif\n• Berikan multivitamin dan mineral untuk menjaga daya tahan tubuh\n• Pastikan ketersediaan air minum bersih yang cukup\n• Berikan antibiotik jika ada infeksi sekunder (atas resep dokter hewan)\n\nDesinfeksi Kandang\n\n• Bersihkan kandang dari kotoran dan sisa pakan\n• Semprot dengan desinfektan (natrium karbonat 4% atau asam sitrat 0.2%)\n• Desinfeksi peralatan, kendaraan, dan alas kaki\n• Ulangi desinfeksi setiap hari selama masa wabah\n\nKapan Hubungi Dokter Hewan?\n\n• Saat gejala terlihat\n• Jika ada kematian mendadak pada anak sapi\n• Jika lesi tidak membaik setelah 7 hari perawatan\n• Jika ternak menolak makan lebih dari 3 hari\n\nSumber: Medion, Dinas Pertanian Kabupaten Kendal</string>
+    <string name="guide_bali_title_4">Menggunakan Profil Sapi Bali dengan Tepat</string>
+    <string name="guide_bali_summary_4">Cara menggabungkan profil, kualitas citra, dan tingkat keyakinan model.</string>
+    <string name="guide_bali_body_4">Gunakan profil sebagai informasi pendukung untuk identifikasi jenis sapi. Konfirmasikan keputusan penting dengan catatan ternak atau tenaga profesional yang berkualifikasi.\n\nCitra yang jelas tetap dapat menghasilkan klasifikasi yang belum pasti. Ambil ulang foto jika sapi terlalu kecil, buram, kurang cahaya, atau sebagian tertutup. Jangan menganggap hasil model sebagai bukti silsilah atau registrasi.</string>
 
-    <!-- Guide: LSD -->
-    <string name="guide_lsd_title_1">Mengenal LSD</string>
-    <string name="guide_lsd_summary_1">Informasi dasar tentang Lumpy Skin Disease, penyebab, dan penyebarannya di Indonesia.</string>
-    <string name="guide_lsd_body_1">Apa Itu LSD?\n\nLumpy Skin Disease (LSD) atau Penyakit Kulit Berbenjol adalah penyakit virus yang menyerang sapi dan kerbau, disebabkan oleh Lumpy Skin Disease Virus (LSDV) dari famili Poxviridae, genus Capripoxvirus.\n\nPenyebaran di Indonesia\n\nLSD merupakan penyakit eksotik yang awalnya endemik di Afrika. Sejak 2012, penyakit ini menyebar ke Timur Tengah, Eropa Tenggara, dan Asia. Di Indonesia, kasus LSD mulai dilaporkan dan menjadi perhatian serius bagi peternak.\n\nDampak pada Ternak\n\n• Penurunan produksi susu yang signifikan\n• Gangguan reproduksi (infertilitas) pada sapi jantan dan betina\n• Kerusakan kulit permanen yang menurunkan nilai jual\n• Penurunan berat badan\n• Kematian dapat terjadi akibat infeksi sekunder\n\nKarakteristik Virus\n\n• Masa inkubasi: 4–28 hari\n• Morbiditas: 5–45% tergantung populasi dan vektor\n• Virus dapat bertahan di keropeng kulit hingga 35 hari\n• Semua umur dan ras sapi rentan, terutama Bos taurus (Friesian, Jersey)\n\nSumber: Repository Pertanian RI, WOAH, BBPKH Cinagara</string>
+    <!-- Guide: Brahman -->
+    <string name="guide_brahman_title_1">Identifikasi Sapi Brahman</string>
+    <string name="guide_brahman_summary_1">Ciri visual yang membantu membedakan sapi Brahman pada citra.</string>
+    <string name="guide_brahman_body_1" formatted="false">Sapi Brahman dikenal dengan punuk bahu yang menonjol, kulit yang longgar, dan telinga yang panjang. Warna bulunya umumnya berkisar dari abu-abu terang hingga merah, dan tampilan setiap sapi dapat berbeda menurut umur serta pemeliharaan.\n\nUntuk citra yang bermanfaat, ambil sisi tubuh sapi secara utuh dan sertakan bahu, kepala, serta telinga. Gunakan profil bersama skor model; hasil citra bukan bukti silsilah.</string>
 
-    <string name="guide_lsd_title_2">Gejala Klinis LSD</string>
-    <string name="guide_lsd_summary_2">Tanda-tanda klinis LSD pada sapi.</string>
-    <string name="guide_lsd_body_2">Tanda Klinis\n\n• Demam tinggi (40–41°C) selama beberapa hari\n• Pembengkakan kelenjar limfe (terutama di leher dan paha)\n• Mata dan hidung berair\n• Nafsu makan menurun\n• Produksi susu turun mendadak\n\nGejala Utama — Nodul Kulit\n\n• Muncul benjolan/nodul keras di kulit berdiameter 2–5 cm\n• Nodul menyebar di seluruh tubuh: kepala, leher, punggung, kaki, ambing, dan skrotum\n• Nodul berbentuk bulat, keras, dan melibatkan seluruh lapisan kulit\n• Jumlah nodul bervariasi: dari beberapa hingga ratusan\n• Nodul dapat berkembang menjadi luka terbuka (ulkus)\n\nTanda yang Dapat Menyertai\n\n• Infeksi sekunder bakteri pada luka terbuka\n• Pembengkakan kaki (edema)\n• Radang paru-paru (pneumonia)\n• Gangguan reproduksi: aborsi, infertilitas sementara atau permanen\n• Mastitis pada sapi perah\n\nPerbedaan dengan Penyakit Kulit Lain\n\n• Nodul LSD melibatkan seluruh lapisan kulit (bukan hanya permukaan)\n• Distribusi nodul merata di seluruh tubuh\n• Disertai demam dan pembengkakan kelenjar limfe\n• Berbeda dengan gigitan serangga biasa yang hanya di permukaan\n\nSumber: BBPKH Cinagara, Dinas Peternakan Kabupaten Bogor</string>
+    <string name="guide_brahman_title_2">Warna Bulu dan Bentuk Sapi Brahman</string>
+    <string name="guide_brahman_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
+    <string name="guide_brahman_body_2">Tinjau gabungan ciri yang terlihat:\n• Punuk yang jelas di atas bahu\n• Kulit longgar di bawah leher dan sepanjang tubuh\n• Telinga panjang yang menggantung dan wajah yang relatif panjang\n• Variasi warna bulu abu-abu terang, perak, atau merah\n\nJaga kamera sejajar dengan sapi. Hindari telinga terpotong, bayangan kuat, dan pose yang menyembunyikan profil bahu.</string>
 
-    <string name="guide_lsd_title_3">Penularan dan Pencegahan LSD</string>
-    <string name="guide_lsd_summary_3">Jalur penularan LSD melalui vektor serangga dan langkah pencegahan efektif.</string>
-    <string name="guide_lsd_body_3">Jalur Penularan\n\nPenularan utama LSD melalui vektor serangga penghisap darah:\n• Nyamuk (Aedes, Culex)\n• Lalat penghisap darah (Stomoxys, Tabanus)\n• Caplak/kutu (Rhipicephalus, Amblyomma)\n\nPenularan lain:\n• Kontak langsung dengan lesi kulit hewan terinfeksi\n• Ekskresi melalui air liur, leleran hidung, darah, semen, dan susu\n• Peralatan yang terkontaminasi (jarum suntik, alat potong)\n• Pakan dan air minum yang tercemar\n\nPencegahan\n\n1. Pengendalian Vektor\n• Pasang perangkap lalat di sekitar kandang\n• Gunakan insektisida yang aman untuk ternak\n• Bersihkan genangan air di sekitar kandang (tempat berkembang biak nyamuk)\n• Gunakan kelambu atau tirai pada kandang jika memungkinkan\n• Semprot kandang dengan insektisida secara berkala\n\n2. Vaksinasi\n• Vaksinasi merupakan cara paling efektif mencegah LSD\n• Gunakan vaksin homolog (LSDV) atau heterolog (Sheeppox/Goatpox)\n• Vaksinasi seluruh populasi sapi di daerah berisiko\n\n3. Biosekuriti\n• Karantina ternak baru minimal 28 hari\n• Hindari penggunaan jarum suntik bersama\n• Pisahkan ternak sakit dari ternak sehat\n• Batasi pergerakan ternak dari daerah tertular\n\nSumber: Repository Pertanian RI, Pustaka BPPSDMP</string>
+    <string name="guide_brahman_title_3">Membandingkan Sapi Brahman pada Citra</string>
+    <string name="guide_brahman_summary_3">Daftar periksa praktis untuk perbandingan berbasis citra yang konsisten.</string>
+    <string name="guide_brahman_body_3">Gunakan bingkai yang konsisten saat membandingkan citra:\n• Tampilkan tubuh utuh dari samping atau sudut tiga perempat\n• Pastikan kepala dan punuk bahu terlihat\n• Gunakan pencahayaan merata dan latar netral\n• Bandingkan ciri yang sama pada setiap kandidat\n\nTinjau skor Brahman bersama tiga skor kelas lainnya. Skor yang berdekatan menunjukkan bahwa foto lain yang lebih jelas mungkin membantu.</string>
 
-    <string name="guide_lsd_title_4">Penanganan Pertama LSD</string>
-    <string name="guide_lsd_summary_4">Tindakan yang harus dilakukan saat sapi menunjukkan gejala LSD.</string>
-    <string name="guide_lsd_body_4">Langkah Segera\n\n1. Isolasi\n• Pisahkan segera sapi yang menunjukkan nodul kulit dari ternak sehat\n• Tempatkan di kandang terpisah yang terlindung dari serangga\n• Gunakan peralatan terpisah (ember, sikat, tali)\n\n2. Lapor\n• Laporkan ke dinas peternakan dan kesehatan hewan setempat\n• Hubungi dokter hewan untuk pemeriksaan dan konfirmasi diagnosis\n• Catat jumlah ternak yang menunjukkan gejala dan tanggal munculnya\n\n3. Perawatan Lesi Kulit\n• Bersihkan nodul yang pecah dengan larutan antiseptik (povidone iodine)\n• Oleskan salep antibiotik untuk mencegah infeksi sekunder\n• Jaga kebersihan kandang agar luka tidak terinfeksi\n• Lindungi luka dari lalat dengan repellent\n\n4. Terapi Suportif\n• Berikan antiinflamasi untuk mengurangi demam dan nyeri (atas resep dokter hewan)\n• Berikan antibiotik sistemik jika ada infeksi sekunder\n• Pastikan nutrisi tercukupi dengan pakan berkualitas\n• Berikan vitamin dan mineral tambahan\n\n5. Pengendalian Vektor di Kandang Isolasi\n• Semprot kandang isolasi dengan insektisida\n• Pasang perangkap lalat\n• Bersihkan kotoran secara rutin\n\nKapan Hubungi Dokter Hewan?\n\n• Saat nodul kulit terlihat\n• Jika sapi mengalami kesulitan bernapas\n• Jika terjadi pembengkakan di kaki\n• Jika sapi bunting menunjukkan tanda-tanda aborsi\n• Jika nodul menyebar cepat ke banyak ternak\n\nSumber: Dinas Peternakan Kabupaten Bogor, Repository Pertanian RI</string>
+    <string name="guide_brahman_title_4">Menggunakan Profil Sapi Brahman dengan Tepat</string>
+    <string name="guide_brahman_summary_4">Cara menggabungkan profil, kualitas citra, dan tingkat keyakinan model.</string>
+    <string name="guide_brahman_body_4">Gunakan profil ini sebagai informasi pendukung untuk identifikasi jenis sapi. Konfirmasikan keputusan penting dengan catatan ternak atau tenaga profesional yang berkualifikasi.\n\nAmbil ulang foto jika sapi terlalu kecil, buram, kurang cahaya, atau sebagian tertutup. Jangan menganggap hasil model sebagai bukti silsilah atau registrasi.</string>
 
-    <!-- Guide: Sapi Sehat -->
-    <string name="guide_healthy_title_1">Ciri-Ciri Sapi Sehat</string>
-    <string name="guide_healthy_summary_1">Tanda-tanda visual sapi sehat sebagai baseline perbandingan klasifikasi penyakit.</string>
-    <string name="guide_healthy_body_1">Penampilan Umum\n\n• Tubuh proporsional dengan kondisi badan baik (tidak terlalu kurus atau gemuk)\n• Bulu mengkilap, bersih, dan rata\n• Kulit elastis, bersih, tanpa lesi, benjolan, atau keropeng\n• Mata cerah, jernih, dan responsif\n• Hidung lembab tanpa leleran berlebih\n\nPerilaku\n\n• Aktif dan responsif terhadap lingkungan\n• Nafsu makan baik dan memamah biak secara teratur\n• Berdiri tegak dengan keempat kaki menapak rata\n• Bergerak normal tanpa pincang\n• Berinteraksi normal dengan ternak lain\n\nTanda Vital Normal\n\n• Suhu tubuh: 38–39.5°C\n• Frekuensi napas: 15–30 kali per menit\n• Denyut jantung: 40–80 kali per menit\n• Ruminasi (memamah biak): 40–70 kali per menit\n\nProduksi\n\n• Produksi susu stabil sesuai periode laktasi\n• Pertambahan berat badan sesuai target\n• Siklus reproduksi teratur\n\nPerubahan yang Perlu Diperhatikan\n\nPerhatikan apabila Anda melihat:\n• Penurunan nafsu makan mendadak\n• Demam (suhu di atas 39.5°C)\n• Perubahan pada kulit (benjolan, lesi, kerontokan bulu)\n• Kepincangan atau enggan berdiri\n• Air liur berlebihan\n• Penurunan produksi susu mendadak\n\nGunakan fitur scan SapiKenal secara berkala untuk memantau kondisi ternak.</string>
+    <!-- Guide: Brangus -->
+    <string name="guide_brangus_title_1">Identifikasi Sapi Brangus</string>
+    <string name="guide_brangus_summary_1">Ciri visual yang membantu membedakan sapi Brangus pada citra.</string>
+    <string name="guide_brangus_body_1">Sapi Brangus umumnya memiliki bulu hitam, tubuh berotot, dan ciri bentuk yang menggabungkan karakter sapi Brahman serta Angus. Variasi individu tetap mungkin terjadi menurut umur, jenis kelamin, dan pemeliharaan.\n\nAmbil citra sisi tubuh secara utuh dengan pencahayaan merata. Gunakan profil ini bersama skor model; hasil citra bukan bukti silsilah.</string>
 
-    <string name="guide_healthy_title_2">Pencegahan Umum dan Biosekuriti</string>
-    <string name="guide_healthy_summary_2">Rutinitas harian dan langkah biosekuriti untuk menjaga kesehatan ternak.</string>
-    <string name="guide_healthy_body_2">Manajemen Kandang\n\n• Bersihkan kandang dari kotoran minimal 2 kali sehari\n• Pastikan ventilasi kandang baik untuk sirkulasi udara\n• Sediakan tempat pakan dan minum yang bersih\n• Jaga kepadatan kandang tidak berlebihan\n• Pastikan lantai kandang tidak licin dan mudah dibersihkan\n\nNutrisi\n\n• Berikan pakan hijauan berkualitas (rumput segar, leguminosa)\n• Tambahkan konsentrat sesuai kebutuhan produksi\n• Sediakan mineral block atau campuran mineral\n• Pastikan air minum bersih tersedia sepanjang waktu\n• Sesuaikan porsi pakan dengan kondisi (bunting, laktasi, pertumbuhan)\n\nProgram Vaksinasi\n\n• Ikuti program vaksinasi dari dinas peternakan setempat\n• Vaksin PMK: setiap 6 bulan\n• Vaksin LSD: sesuai rekomendasi daerah\n• Vaksin Antraks, SE, Brucellosis: sesuai jadwal\n• Catat semua vaksinasi dalam kartu kesehatan ternak\n\nPengendalian Vektor\n\n• Bersihkan genangan air di sekitar kandang\n• Pasang perangkap lalat\n• Gunakan insektisida yang aman secara berkala\n• Potong rumput liar di sekitar kandang\n• Kelola limbah kandang dengan baik\n\nBiosekuriti Harian\n\n• Batasi akses pengunjung ke area kandang\n• Sediakan alas kaki khusus dan bak desinfektan\n• Cuci tangan sebelum dan sesudah menangani ternak\n• Gunakan peralatan terpisah untuk ternak sakit\n• Karantina ternak baru minimal 14 hari\n\nPemeriksaan Rutin\n\n• Periksa kondisi ternak setiap pagi dan sore\n• Ukur suhu tubuh jika ternak tampak lesu\n• Gunakan SapiKenal untuk scan berkala\n• Jadwalkan pemeriksaan dokter hewan minimal 2 kali setahun\n• Catat semua kejadian kesehatan dalam buku recording\n\nSumber: Kementerian Pertanian RI, Dinas Peternakan</string>
+    <string name="guide_brangus_title_2">Warna Bulu dan Bentuk Sapi Brangus</string>
+    <string name="guide_brangus_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
+    <string name="guide_brangus_body_2">Perhatikan gabungan ciri berikut:\n• Bulu hitam atau sangat gelap pada banyak individu\n• Tubuh berotot dengan punggung dan bagian belakang yang kuat\n• Telinga dapat menunjukkan karakter yang lebih panjang daripada sapi Angus\n• Kulit dan bentuk bahu dapat memperlihatkan pengaruh sapi Brahman\n\nHindari pencahayaan yang membuat bulu gelap kehilangan detail. Sertakan kepala, bahu, dan kaki dalam bingkai bila memungkinkan.</string>
+
+    <!-- Guide: Limusin -->
+    <string name="guide_limusin_title_1">Identifikasi Sapi Limusin</string>
+    <string name="guide_limusin_summary_1">Ciri visual yang membantu membedakan sapi Limusin pada citra.</string>
+    <string name="guide_limusin_body_1">Sapi Limusin umumnya memiliki warna bulu merah keemasan hingga cokelat kemerahan, tubuh berotot, dan bagian belakang yang kuat. Tampilan individu dapat berbeda menurut umur, jenis kelamin, dan pemeliharaan.\n\nAmbil citra sisi tubuh secara utuh dengan pencahayaan merata. Gunakan profil ini bersama skor model; hasil citra bukan bukti silsilah.</string>
+
+    <string name="guide_limusin_title_2">Warna Bulu dan Bentuk Sapi Limusin</string>
+    <string name="guide_limusin_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
+    <string name="guide_limusin_body_2">Perhatikan gabungan ciri berikut:\n• Warna bulu merah keemasan atau cokelat kemerahan yang khas\n• Tubuh berotot dengan dada dan bagian belakang yang berkembang\n• Moncong dan area sekitar mata dapat tampak lebih terang\n• Kaki relatif kuat dengan postur yang seimbang\n\nGunakan sudut samping atau tiga perempat dengan kepala, bahu, dan kaki terlihat. Ambil ulang foto jika warna atau bentuk tertutup bayangan.</string>
 
     <!-- About -->
     <string name="about_title">Tentang</string>
     <string name="about_logo_placeholder">🐄</string>
-    <string name="about_desc">SapiKenal adalah aplikasi deteksi penyakit sapi berbasis kecerdasan buatan untuk membantu peternak mengidentifikasi Penyakit Mulut dan Kuku (PMK) serta Lumpy Skin Disease (Lato-Lato) pada sapi secara cepat dan akurat.</string>
+    <string name="about_desc">SapiKenal adalah aplikasi identifikasi jenis sapi berbasis kecerdasan buatan untuk membantu peternak mengklasifikasikan Bali, Brahman, Brangus, dan Limusin dari citra.</string>
     <string name="about_team_title">Tim Pengembang</string>
     <string name="about_team_member_1">Raditya Rafif Pratama Sasmita</string>
     <string name="about_team_member_2">Noval Putra Ramadhan</string>
@@ -323,16 +324,4 @@
     <string name="quality_error_load">Gagal memuat gambar</string>
     <string name="quality_error_check">Pemeriksaan kualitas gagal</string>
 
-    <!-- Non-Cattle Rejection -->
-    <string name="rejection_non_cattle_title">Objek bukan sapi</string>
-    <string name="rejection_non_cattle_desc">Foto tidak terdeteksi sebagai sapi. Ambil ulang foto dengan tubuh atau bagian sapi terlihat jelas.</string>
-    <string name="rejection_btn_retake">Ambil Ulang Foto</string>
-    <string name="rejection_btn_gallery">Pilih Gambar Lain</string>
-    <string name="rejection_btn_back">Kembali</string>
-    <string name="rejection_status_badge">Ditolak</string>
-    <string name="rejection_confidence_label">Keyakinan Penolakan: %1$d%%</string>
-    <string name="history_filter_non_cattle">Objek Bukan Sapi</string>
-    <string name="history_item_rejected">Percobaan ditolak · %1$s</string>
-    <string name="result_disease_non_cattle">Objek bukan sapi</string>
-    <string name="result_btn_try_again">Coba Lagi</string>
 </resources>

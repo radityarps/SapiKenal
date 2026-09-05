@@ -3,10 +3,11 @@ from __future__ import annotations
 import io
 from unittest.mock import MagicMock, patch
 
-import numpy as np
-from fastapi.testclient import TestClient
-from main import app
+import numpy as np  # pyright: ignore[reportMissingImports]
+from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 from PIL import Image
+
+from main import app
 from preprocessing.model_preprocessor import ModelPreprocessor
 
 
@@ -14,16 +15,13 @@ def _success_response():
     return {
         "status": "success",
         "prediction": {
-            "outcome": "accepted",
-            "disease_class": "healthy",
-            "display_label_key": "disease.healthy",
+            "predicted_class": "bali",
             "confidence": 0.9,
-            "is_reliable": True,
             "scores": {
-                "FMD": 0.05,
-                "LSD": 0.04,
-                "healthy": 0.9,
-                "non_cattle": 0.01,
+                "bali": 0.9,
+                "brahman": 0.05,
+                "brangus": 0.04,
+                "limusin": 0.01,
             },
         },
         "model_info": {"version": "test"},

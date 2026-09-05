@@ -9,6 +9,7 @@ import id.sapikenal.app.data.remote.api.InferenceApiService
 import id.sapikenal.app.data.remote.dto.HistorySyncRequestDto
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,14 +60,10 @@ class HistorySyncRunner
                 displayLabel = displayLabel,
                 confidence = confidence,
                 scores =
-                    mapOf(
-                        "FMD" to scoreFmd,
-                        "healthy" to scoreHealthy,
-                        "LSD" to scoreLsd,
-                        "non_cattle" to scoreNonCattle,
-                    ),
-                outcome = outcome.lowercase(),
-                rejectionReason = rejectionReason?.lowercase(),
+                    run {
+                        val json = JSONObject(scoresJson)
+                        SCORE_KEYS.associateWith { key -> json.getDouble(key).toFloat() }
+                    },
                 inferenceMode = inferenceMode.lowercase(),
                 isReliable = isReliable,
                 processingMs = processingMs,
@@ -81,4 +78,8 @@ class HistorySyncRunner
                 longitude = longitude,
                 locationSource = locationSource?.lowercase(),
             )
+
+        private companion object {
+            val SCORE_KEYS = listOf("bali", "brahman", "brangus", "limusin")
+        }
     }

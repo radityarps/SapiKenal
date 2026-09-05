@@ -170,16 +170,7 @@ fun SapiKenalNavHost() {
                 detectionId = if (detectionId >= 0) detectionId else null,
                 fromHistory = fromHistory,
                 appVersion = BuildConfig.VERSION_NAME,
-                navigationViewModel = navigationViewModel,
                 onBack = { rootNavController.popBackStack() },
-                onRetake = {
-                    // If this is an update scenario (viewing existing scan), set updateDetectionId
-                    if (detectionId >= 0) {
-                        navigationViewModel.setUpdateDetectionId(detectionId)
-                    }
-                    rootNavController.popBackStack()
-                    navigationViewModel.triggerNavigateToCamera()
-                },
                 onNavigateToGuide = { articleId ->
                     rootNavController.navigate(Routes.GuideDetail.replace("{articleId}", articleId))
                 },

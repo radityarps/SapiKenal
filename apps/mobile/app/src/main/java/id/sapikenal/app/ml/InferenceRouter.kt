@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import id.sapikenal.app.di.OfflineClassifier
 import id.sapikenal.app.di.OnlineClassifier
+import id.sapikenal.app.domain.model.ClassifyFailure
 import id.sapikenal.app.domain.model.ClassifyResponse
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
@@ -85,7 +86,7 @@ class InferenceRouter
                     Log.d("SapiKenal", "InferenceRouter: routing to ONLINE (consent ALLOWED)")
                     try {
                         onlineClient.classify(jpegBytes)
-                    } catch (e: Exception) {
+                    } catch (e: ClassifyFailure) {
                         Log.e("SapiKenal", "InferenceRouter: online failed, falling back to offline", e)
                         offlineEngine
                             .classify(jpegBytes)
@@ -97,17 +98,12 @@ class InferenceRouter
                     offlineEngine.classify(jpegBytes)
                 }
 
-            val finalResult = result.copy(consentStatus = consentStatus)
-            return if (finalResult.outcome == "REJECTED" || finalResult.label == "non_cattle") {
-                ClassifyResponse.Rejected(finalResult)
-            } else {
-                ClassifyResponse.Success(finalResult)
-            }
+            return ClassifyResponse.Success(result.copy(consentStatus = consentStatus))
         }
 
         /**
-         * Legacy classify method for backward compatibility during migration.
-         * Assumes consent is ALLOWED (old callers did not have consent gating).
+         * Compatibility overload for callers that do not need consent-aware routing.
+         * Assumes consent is ALLOWED.
          */
         suspend fun classify(imageUri: Uri): DetectionResult {
             Log.d("SapiKenal", "InferenceRouter: classify() started, uri=$imageUri")

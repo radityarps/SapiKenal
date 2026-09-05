@@ -7,7 +7,7 @@
 API_BASE_URL=http://10.0.2.2:8000/
 
 # Model Configuration (TFLite artifact under app/src/main/assets/)
-MODEL_FILE_NAME=cattle_disease.tflite
-MODEL_VERSION=cattle-disease-mobilenetv3-v20260725-fp32
+MODEL_FILE_NAME=jenis_fp32.tflite
+MODEL_VERSION=sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32
 MODEL_INPUT_SIZE=224
 CONFIDENCE_THRESHOLD=0.60

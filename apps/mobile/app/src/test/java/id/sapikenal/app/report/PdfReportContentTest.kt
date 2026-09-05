@@ -21,11 +21,11 @@ class PdfReportContentTest {
         DetectionResult(
             id = 1L,
             imagePath = "/images/test.jpg",
-            label = "FMD",
-            displayLabel = "Penyakit Mulut dan Kuku (FMD)",
+            label = "brangus",
+            displayLabel = "Brangus",
             confidence = 0.92f,
             isReliable = true,
-            allScores = mapOf("FMD" to 0.92f, "LSD" to 0.05f, "healthy" to 0.03f),
+            allScores = mapOf("bali" to 0.03f, "brahman" to 0.02f, "brangus" to 0.92f, "limusin" to 0.03f),
             inferenceMode = InferenceMode.ONLINE,
             consentStatus = ConsentStatus.ALLOWED,
             timestamp = 1700000000000L,
@@ -53,9 +53,9 @@ class PdfReportContentTest {
     // ── Required fields present ───────────────────────────────────────
 
     @Test
-    fun `report includes disease class`() {
+    fun `report includes breed class`() {
         val content = buildContent()
-        assertTrue(content.contains("Predicted Class: FMD"))
+        assertTrue(content.contains("Predicted Class: Brangus"))
     }
 
     @Test
@@ -73,9 +73,9 @@ class PdfReportContentTest {
     @Test
     fun `report includes class scores`() {
         val content = buildContent()
-        assertTrue(content.contains("FMD: 92%"))
-        assertTrue(content.contains("LSD: 5%"))
-        assertTrue(content.contains("Healthy: 3%"))
+        assertTrue(content.contains("Brangus: 92%"))
+        assertTrue(content.contains("Bali: 3%"))
+        assertTrue(content.contains("Brahman: 2%"))
     }
 
     @Test
@@ -109,10 +109,13 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes disclaimer`() {
+    fun `report includes breed identification limitations`() {
         val content = buildContent()
-        assertTrue(content.contains("NOT a veterinary diagnosis"))
-        assertTrue(content.contains("certificate"))
+        assertTrue(content.contains("cattle breed identification result"))
+        assertTrue(content.contains("not validation that the image contains cattle"))
+        assertTrue(content.contains("four supported breeds"))
+        assertFalse(content.contains("diagnosis"))
+        assertFalse(content.contains("treatment"))
     }
 
     // ── Excluded fields ───────────────────────────────────────────────
@@ -151,9 +154,9 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report states it is not a certificate`() {
+    fun `report states it is not an official identity document`() {
         val content = buildContent()
-        assertTrue(content.contains("NOT a veterinary diagnosis, certificate, or official document"))
+        assertTrue(content.contains("not proof of an individual animal identity or an official document"))
     }
 
     // ── ReportContent structure ───────────────────────────────────────
@@ -167,10 +170,11 @@ class PdfReportContentTest {
     @Test
     fun `build returns scores sorted by value descending`() {
         val report = ReportContentBuilder.build(createResult(), "1.0.0")
-        assertEquals(3, report.scoreLines.size)
-        assertTrue(report.scoreLines[0].startsWith("FMD"))
-        assertTrue(report.scoreLines[1].startsWith("LSD"))
-        assertTrue(report.scoreLines[2].startsWith("Healthy"))
+        assertEquals(4, report.scoreLines.size)
+        assertTrue(report.scoreLines[0].startsWith("Brangus"))
+        assertTrue(report.scoreLines[1].startsWith("Bali"))
+        assertTrue(report.scoreLines[2].startsWith("Limousin"))
+        assertTrue(report.scoreLines[3].startsWith("Brahman"))
     }
 
     @Test

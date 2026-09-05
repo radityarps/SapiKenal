@@ -7,6 +7,7 @@
     LogOut,
     ScanLine,
     ScrollText,
+    Sprout,
     X
   } from 'lucide-svelte';
 
@@ -19,6 +20,7 @@
     { href: '/dashboard', label: 'Dashboard', icon: Gauge },
     { href: '/predictions', label: 'Prediksi', icon: ScanLine },
     { href: '/models', label: 'Model AI', icon: BrainCircuit },
+    { href: '/profiles', label: 'Profil jenis', icon: Sprout },
     { href: '/audit-logs', label: 'Audit log', icon: ScrollText }
   ];
 

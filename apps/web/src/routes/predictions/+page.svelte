@@ -13,7 +13,6 @@
     filters: {
       search: string;
       predicted_class: string;
-      outcome: string;
       inference_mode: string;
       reliable: string;
       date_from: string;
@@ -23,7 +22,7 @@
   };
 
   let selectedPrediction: any = null;
-  let detailDialog: HTMLDialogElement;
+  let detailDialog: HTMLDialogElement | undefined;
   let search = data.filters.search;
   let searchTimer: ReturnType<typeof setTimeout>;
 
@@ -36,24 +35,18 @@
   };
 
   const classDisplayMap: Record<string, string> = {
-    healthy: 'Sehat',
-    FMD: 'PMK',
-    LSD: 'Lato-Lato',
-    non_cattle: 'Objek bukan sapi'
+    bali: 'Bali',
+    brahman: 'Brahman',
+    brangus: 'Brangus',
+    limusin: 'Limusin'
   };
 
-  const outcomeFilterItems = [
-    { value: '__all__', label: 'Semua status' },
-    { value: 'accepted', label: 'Diterima' },
-    { value: 'rejected', label: 'Ditolak' },
-    { value: 'failed', label: 'Gagal' }
-  ];
   const classFilterItems = [
-    { value: '__all__', label: 'Semua kelas' },
-    { value: 'healthy', label: 'Sehat' },
-    { value: 'FMD', label: 'PMK' },
-    { value: 'LSD', label: 'Lato-Lato' },
-    { value: 'non_cattle', label: 'Objek bukan sapi' }
+    { value: '__all__', label: 'Semua jenis' },
+    { value: 'bali', label: 'Bali' },
+    { value: 'brahman', label: 'Brahman' },
+    { value: 'brangus', label: 'Brangus' },
+    { value: 'limusin', label: 'Limusin' }
   ];
   const modeFilterItems = [
     { value: '__all__', label: 'Semua mode' },
@@ -66,22 +59,18 @@
     { value: 'false', label: 'Confidence rendah' }
   ];
 
-  function isItemRejected(item: any): boolean {
-    return item?.outcome === 'rejected' || item?.predicted_class === 'non_cattle';
-  }
-
   function isItemFailed(item: any): boolean {
-    return item?.outcome === 'failed';
+    return item?.status === 'failed';
   }
 
   async function openDetail(item: any) {
     selectedPrediction = item;
     await tick();
-    detailDialog.showModal();
+    detailDialog?.showModal();
   }
 
   function closeDetail() {
-    detailDialog.close();
+    detailDialog?.close();
   }
 
   function closeFromBackdrop(event: MouseEvent) {
@@ -125,7 +114,6 @@
     </div>
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
       <DateRangeFilter start={data.filters.date_from} end={data.filters.date_to} onChange={updateDateRange} />
-      <AdminFilterSelect label="Status" value={data.filters.outcome} items={outcomeFilterItems} placeholder="Semua status" onChange={(value) => updateQuery('outcome', value)} />
       <AdminFilterSelect label="Kelas" value={data.filters.predicted_class} items={classFilterItems} placeholder="Semua kelas" onChange={(value) => updateQuery('predicted_class', value)} />
       <AdminFilterSelect label="Mode" value={data.filters.inference_mode} items={modeFilterItems} placeholder="Semua mode" onChange={(value) => updateQuery('inference_mode', value)} />
       <AdminFilterSelect label="Reliability" value={data.filters.reliable} items={reliabilityFilterItems} placeholder="Semua reliability" onChange={(value) => updateQuery('reliable', value)} />
@@ -140,15 +128,7 @@
             <tr>
               <td class="whitespace-normal text-xs leading-5 text-[#53645b]">{formatDate(item.timestamp)}</td>
               <td class="whitespace-normal">
-                {#if isItemRejected(item)}
-                  <div class="grid gap-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="badge !bg-[#edf1ef] !text-[#52645c]">Ditolak</span>
-                      <strong class="text-sm text-[#263a30]">Objek bukan sapi</strong>
-                    </div>
-                    <span class="text-[.68rem] font-semibold text-[#667870]">Confidence penolakan: {formatConfidence(item.confidence)}</span>
-                  </div>
-                {:else if isItemFailed(item)}
+                {#if isItemFailed(item)}
                   <div class="grid gap-1">
                     <div class="flex flex-wrap items-center gap-2">
                       <span class="badge !bg-[#fff3dc] !text-[#8b5a16]">Gagal</span>
@@ -185,21 +165,13 @@
       <div>
         <p class="mb-1 text-[.67rem] font-bold uppercase tracking-[.1em] text-[#6f7e76]">Detail prediksi</p>
         <h2 id="prediction-detail-title" class="m-0 text-lg font-bold">
-          {isItemRejected(selectedPrediction) ? 'Objek bukan sapi' : isItemFailed(selectedPrediction) ? 'Gagal teknis' : selectedPrediction.display_label} · {formatConfidence(selectedPrediction.confidence)}
+          {isItemFailed(selectedPrediction) ? 'Gagal teknis' : selectedPrediction.display_label} · {formatConfidence(selectedPrediction.confidence)}
         </h2>
       </div>
       <button class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef] hover:text-[#263a30]" type="button" aria-label="Tutup detail" onclick={closeDetail}><X size={18} aria-hidden="true" /></button>
     </div>
     <div class="grid gap-5 px-5 py-5">
-      {#if isItemRejected(selectedPrediction)}
-        <div class="rounded-lg border border-[#dde4e0] bg-[#f5f8f6] px-3.5 py-3 text-xs leading-relaxed text-[#40544a]">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="badge !bg-[#edf1ef] !text-[#52645c]">Ditolak</span>
-            <strong>Confidence penolakan: {formatConfidence(selectedPrediction.confidence)}</strong>
-          </div>
-          <p class="mb-0 mt-1.5 text-[#5e7067]">Citra tidak menampilkan sapi (guardrail validasi input, bukan kondisi klinis).</p>
-        </div>
-      {:else if isItemFailed(selectedPrediction)}
+      {#if isItemFailed(selectedPrediction)}
         <div class="flex flex-wrap items-center gap-2 rounded-lg bg-[#fff8e8] px-3.5 py-3">
           <span class="badge !bg-[#fff3dc] !text-[#8b5a16]">Gagal</span>
           <strong>Gagal teknis</strong>
@@ -218,20 +190,20 @@
           <h3 class="m-0 mb-2 text-xs font-bold text-[#55675f]">Skor Probabilitas Model (4 Kelas)</h3>
           <div class="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
             <div class="rounded-md bg-[#f8faf9] p-2">
-              <span class="block text-[.68rem] text-[#6b7c73]">PMK (FMD)</span>
-              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.FMD ?? 0)}</strong>
+              <span class="block text-[.68rem] text-[#6b7c73]">Bali</span>
+              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.bali ?? 0)}</strong>
             </div>
             <div class="rounded-md bg-[#f8faf9] p-2">
-              <span class="block text-[.68rem] text-[#6b7c73]">Sehat</span>
-              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.healthy ?? 0)}</strong>
+              <span class="block text-[.68rem] text-[#6b7c73]">Brahman</span>
+              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.brahman ?? 0)}</strong>
             </div>
             <div class="rounded-md bg-[#f8faf9] p-2">
-              <span class="block text-[.68rem] text-[#6b7c73]">Lato-Lato (LSD)</span>
-              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.LSD ?? 0)}</strong>
+              <span class="block text-[.68rem] text-[#6b7c73]">Brangus</span>
+              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.brangus ?? 0)}</strong>
             </div>
             <div class="rounded-md bg-[#f8faf9] p-2">
-              <span class="block text-[.68rem] text-[#6b7c73]">Objek bukan sapi</span>
-              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.non_cattle ?? 0)}</strong>
+              <span class="block text-[.68rem] text-[#6b7c73]">Limusin</span>
+              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.limusin ?? 0)}</strong>
             </div>
           </div>
         </div>
@@ -247,8 +219,7 @@
         <div><dt class="text-xs font-bold text-[#718078]">Versi model</dt><dd class="m-0 mt-1 break-words">{selectedPrediction.model_version || 'Tidak tersedia'}</dd></div>
         <div><dt class="text-xs font-bold text-[#718078]">Versi aplikasi</dt><dd class="m-0 mt-1 break-words">{selectedPrediction.app_version || 'Tidak tersedia'}</dd></div>
         <div><dt class="text-xs font-bold text-[#718078]">Durasi proses</dt><dd class="m-0 mt-1">{selectedPrediction.processing_ms == null ? 'Tidak tersedia' : `${selectedPrediction.processing_ms} ms`}</dd></div>
-        <div><dt class="text-xs font-bold text-[#718078]">Status operasional</dt><dd class="m-0 mt-1">{isItemRejected(selectedPrediction) ? 'Ditolak (Guardrail non-sapi)' : isItemFailed(selectedPrediction) ? 'Gagal teknis' : 'Diterima'}</dd></div>
-        {#if selectedPrediction.rejection_reason}<div class="sm:col-span-2"><dt class="text-xs font-bold text-[#718078]">Alasan penolakan</dt><dd class="m-0 mt-1 break-words">{selectedPrediction.rejection_reason === 'non_cattle' ? 'Citra tidak menampilkan sapi (NON_CATTLE_IMAGE)' : selectedPrediction.rejection_reason}</dd></div>{/if}
+        <div><dt class="text-xs font-bold text-[#718078]">Status operasional</dt><dd class="m-0 mt-1">{isItemFailed(selectedPrediction) ? 'Gagal teknis' : 'Berhasil'}</dd></div>
         {#if selectedPrediction.error_code}<div class="sm:col-span-2"><dt class="text-xs font-bold text-[#718078]">Kode error</dt><dd class="m-0 mt-1 break-words">{selectedPrediction.error_code}</dd></div>{/if}
       </dl>
     </div>

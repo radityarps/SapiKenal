@@ -12,6 +12,7 @@
     "backend:build": "cd apps/backend && docker compose build",
     "backend:dev": "node scripts/backend-dev.mjs",
     "backend:test": "cd apps/backend && docker compose run --rm backend python -m pytest tests/ -v",
+    "backend:smoke": "node scripts/backend-smoke.mjs",
     "backend:up": "cd apps/backend && docker compose up --build -d",
     "backend:down": "cd apps/backend && docker compose down",
     "backend:logs": "cd apps/backend && docker compose logs -f",

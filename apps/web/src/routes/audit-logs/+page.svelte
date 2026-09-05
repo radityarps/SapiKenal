@@ -10,7 +10,7 @@
   export let data: { user: App.Locals['user']; logs: any; filters: { search: string; action: string; status: string; date_from: string; date_to: string }; error: string | null };
 
   let selectedLog: any = null;
-  let detailDialog: HTMLDialogElement;
+  let detailDialog: HTMLDialogElement | undefined;
   let search = data.filters.search;
   let searchTimer: ReturnType<typeof setTimeout>;
 
@@ -24,10 +24,10 @@
     user_created: 'Pengguna dibuat',
     user_updated: 'Pengguna diperbarui',
     user_password_reset: 'Password pengguna direset',
-    disease_content_created: 'Konten dibuat',
-    disease_content_updated: 'Konten diperbarui',
-    disease_content_activated: 'Konten diaktifkan',
-    disease_content_deactivated: 'Konten dinonaktifkan',
+    breed_profile_created: 'Profil jenis dibuat',
+    breed_profile_updated: 'Profil jenis diperbarui',
+    breed_profile_activated: 'Profil jenis diaktifkan',
+    breed_profile_deactivated: 'Profil jenis dinonaktifkan',
     model_registered: 'Model didaftarkan',
     model_activate: 'Model diaktifkan',
     model_rollback: 'Model dikembalikan',
@@ -47,10 +47,10 @@
     user_created: 'Akun pengguna baru dibuat oleh administrator.',
     user_updated: 'Data atau akses akun pengguna diperbarui.',
     user_password_reset: 'Password pengguna direset dan sesi terkait dicabut.',
-    disease_content_created: 'Draft konten penyakit baru dibuat.',
-    disease_content_updated: 'Revisi konten penyakit dibuat.',
-    disease_content_activated: 'Konten penyakit diterbitkan untuk konsumsi publik.',
-    disease_content_deactivated: 'Konten penyakit ditarik dari publikasi.',
+    breed_profile_created: 'Draft profil jenis baru dibuat.',
+    breed_profile_updated: 'Revisi profil jenis dibuat.',
+    breed_profile_activated: 'Profil jenis diterbitkan untuk konsumsi publik.',
+    breed_profile_deactivated: 'Profil jenis ditarik dari publikasi.',
     model_registered: 'Versi model baru didaftarkan ke registri.',
     model_activate: 'Versi model dipilih sebagai model aktif.',
     model_rollback: 'Model aktif dikembalikan ke versi sebelumnya.',
@@ -66,6 +66,9 @@
     { value: 'login_failed', label: 'Login ditolak' },
     { value: 'logout', label: 'Logout' },
     { value: 'password_changed', label: 'Password diubah' },
+    { value: 'breed_profile_created', label: 'Profil jenis dibuat' },
+    { value: 'breed_profile_activated', label: 'Profil jenis diaktifkan' },
+    { value: 'breed_profile_deactivated', label: 'Profil jenis dinonaktifkan' },
     { value: 'model_registered', label: 'Model didaftarkan' },
     { value: 'model_activate', label: 'Model diaktifkan' },
     { value: 'model_rollback', label: 'Model dikembalikan' }
@@ -86,11 +89,11 @@
   async function openDetail(item: any) {
     selectedLog = item;
     await tick();
-    detailDialog.showModal();
+    detailDialog?.showModal();
   }
 
   function closeDetail() {
-    detailDialog.close();
+    detailDialog?.close();
   }
 
   function closeFromBackdrop(event: MouseEvent) {

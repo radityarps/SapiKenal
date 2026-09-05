@@ -6,23 +6,17 @@ from pathlib import Path
 from threading import RLock
 from typing import Any
 
-import numpy as np
-from config import settings
+import numpy as np  # pyright: ignore[reportMissingImports]
+from PIL import Image
+
+from config import CANONICAL_LABELS, settings
 from model.loader import ModelLoader
 from model.validation import validate_loaded_model
-from PIL import Image
 from preprocessing.model_preprocessor import ModelPreprocessor
 from utils.errors import InferenceError
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
-
-DISPLAY_LABEL_KEY_MAP = {
-    "FMD": "disease.fmd",
-    "LSD": "disease.lsd",
-    "healthy": "disease.healthy",
-    "non_cattle": "validation.non_cattle",
-}
 
 
 class InferenceService:
@@ -33,9 +27,8 @@ class InferenceService:
     Designed for easy migration to Go + Python microservice architecture.
     """
 
-    # Labels from config: FMD, healthy, LSD, non_cattle.
-    LABELS = settings.labels
-    CONFIDENCE_THRESHOLD = settings.confidence_threshold  # 0.60
+    # The active model always uses the final four-class order.
+    LABELS = CANONICAL_LABELS
 
     def __init__(self, model_path: str | None = None):
         """Initialize inference service with singleton model loader."""
@@ -104,7 +97,22 @@ class InferenceService:
                     self, "_model_version", settings.model_version
                 )
                 # The deployed Keras model already returns softmax probabilities.
-                probs = self.model_loader.predict(image_array)[0]
+                raw_probs = np.asarray(self.model_loader.predict(image_array))
+                if raw_probs.shape != (1, len(self.LABELS)):
+                    raise ValueError(
+                        "Model output must have shape "
+                        f"(1, {len(self.LABELS)}); received {raw_probs.shape}"
+                    )
+                probs = raw_probs[0]
+                if (
+                    not np.all(np.isfinite(probs))
+                    or np.any(probs < 0)
+                    or np.any(probs > 1)
+                    or not np.isclose(probs.sum(), 1.0, atol=0.01)
+                ):
+                    raise ValueError(
+                        "Model output must be finite probabilities summing to one"
+                    )
 
             inference_ms = int((time.time() - infer_start) * 1000)
             total_ms = int((time.time() - start_time) * 1000)
@@ -113,11 +121,6 @@ class InferenceService:
             pred_idx = int(np.argmax(probs))
             pred_label = self.LABELS[pred_idx]
             pred_confidence = float(probs[pred_idx])
-            is_reliable = (
-                pred_label != "non_cattle"
-                and pred_confidence >= self.CONFIDENCE_THRESHOLD
-            )
-            outcome = "rejected" if pred_label == "non_cattle" else "accepted"
 
             # Log inference
             logger.info(
@@ -131,14 +134,10 @@ class InferenceService:
             result = {
                 "status": "success",
                 "prediction": {
-                    "outcome": outcome,
-                    "disease_class": pred_label,
-                    "display_label_key": DISPLAY_LABEL_KEY_MAP[pred_label],
-                    "confidence": round(pred_confidence, 4),
-                    "is_reliable": is_reliable,
+                    "predicted_class": pred_label,
+                    "confidence": pred_confidence,
                     "scores": {
-                        self.LABELS[i]: round(float(probs[i]), 4)
-                        for i in range(len(self.LABELS))
+                        self.LABELS[i]: float(probs[i]) for i in range(len(self.LABELS))
                     },
                 },
                 "model_info": {"version": runtime_version},
@@ -149,11 +148,11 @@ class InferenceService:
 
             return result
 
-        except Exception as e:
-            logger.error(f"Inference failed: {e!s}", exc_info=True)
+        except Exception as exc:
+            logger.error(f"Inference failed: {exc!s}", exc_info=True)
             return {
                 "status": "error",
-                "message": str(e),
+                "message": str(exc),
                 "processing_time_ms": int((time.time() - start_time) * 1000),
             }
 

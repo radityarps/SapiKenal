@@ -33,10 +33,10 @@ class LocalizationTest {
             "result_confidence",
             "result_btn_save",
             "result_btn_share",
-            "result_btn_retake",
-            "result_disease_sehat",
-            "result_disease_fmd",
-            "result_disease_lsd",
+            "result_breed_bali",
+            "result_breed_brahman",
+            "result_breed_brangus",
+            "result_breed_limusin",
             "result_learn_more",
             "result_disclaimer",
             "result_advice_title",
@@ -57,18 +57,6 @@ class LocalizationTest {
             // Camera
             "camera_capture",
             "camera_gallery",
-            // Rejection
-            "rejection_non_cattle_title",
-            "rejection_non_cattle_desc",
-            "rejection_btn_retake",
-            "rejection_btn_gallery",
-            "rejection_btn_back",
-            "rejection_status_badge",
-            "rejection_confidence_label",
-            "history_filter_non_cattle",
-            "history_item_rejected",
-            "result_disease_non_cattle",
-            "result_btn_try_again",
             // About
             "about_title",
         )

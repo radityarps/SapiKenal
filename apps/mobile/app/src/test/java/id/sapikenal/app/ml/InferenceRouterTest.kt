@@ -1,6 +1,7 @@
 package id.sapikenal.app.ml
 
 import android.net.Uri
+import id.sapikenal.app.domain.model.ClassifyFailure
 import id.sapikenal.app.domain.model.ClassifyResponse
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
@@ -50,13 +51,19 @@ class InferenceRouterTest {
         private val shouldThrow: Boolean = false,
     ) : ImageClassifier {
         override suspend fun classify(jpegBytes: ByteArray): DetectionResult {
-            if (shouldThrow) throw RuntimeException("Simulated online failure")
+            if (shouldThrow) throw ClassifyFailure.Network("Simulated online failure")
             return DetectionResult(
-                label = "healthy",
-                displayLabel = "Sapi Sehat",
+                label = "bali",
+                displayLabel = "Bali",
                 confidence = 0.95f,
                 isReliable = true,
-                allScores = mapOf("FMD" to 0.02f, "LSD" to 0.03f, "healthy" to 0.95f),
+                allScores =
+                    mapOf(
+                        "bali" to 0.95f,
+                        "brahman" to 0.02f,
+                        "brangus" to 0.02f,
+                        "limusin" to 0.01f,
+                    ),
                 inferenceMode = InferenceMode.ONLINE,
             )
         }
@@ -66,11 +73,17 @@ class InferenceRouterTest {
     private class FakeOfflineClassifier : ImageClassifier {
         override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
             DetectionResult(
-                label = "FMD",
-                displayLabel = "Penyakit Mulut dan Kuku (FMD)",
+                label = "brahman",
+                displayLabel = "Brahman",
                 confidence = 0.80f,
                 isReliable = true,
-                allScores = mapOf("FMD" to 0.80f, "LSD" to 0.10f, "healthy" to 0.10f),
+                allScores =
+                    mapOf(
+                        "bali" to 0.10f,
+                        "brahman" to 0.80f,
+                        "brangus" to 0.05f,
+                        "limusin" to 0.05f,
+                    ),
                 inferenceMode = InferenceMode.OFFLINE,
             )
     }
@@ -280,35 +293,40 @@ class InferenceRouterTest {
         }
 
     @Test
-    fun `rejection response returns ClassifyResponse Rejected`() =
+    fun `breed response is always returned as ClassifyResponse Success`() =
         runTest {
-            val rejectedOnline =
+            val breedOnline =
                 object : ImageClassifier {
                     override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
                         DetectionResult(
-                            label = "non_cattle",
-                            displayLabel = "Objek bukan sapi",
-                            confidence = 0.98f,
+                            label = "bali",
+                            displayLabel = "Bali",
+                            confidence = 0.31f,
                             isReliable = false,
-                            allScores = mapOf("FMD" to 0.01f, "healthy" to 0.01f, "LSD" to 0.0f, "non_cattle" to 0.98f),
+                            allScores =
+                                mapOf(
+                                    "bali" to 0.31f,
+                                    "brahman" to 0.30f,
+                                    "brangus" to 0.29f,
+                                    "limusin" to 0.10f,
+                                ),
                             inferenceMode = InferenceMode.ONLINE,
-                            outcome = "REJECTED",
-                            rejectionReason = "non_cattle",
                         )
                 }
             val preprocessor = FakePreprocessor()
             val router =
                 InferenceRouter(
                     clientPreprocessor = preprocessor,
-                    onlineClient = rejectedOnline,
+                    onlineClient = breedOnline,
                     offlineEngine = FakeOfflineClassifier(),
                     networkChecker = FakeNetworkChecker(true),
                 )
 
             val response = router.classify(testUris.first(), ConsentStatus.ALLOWED)
-            assertTrue(response is ClassifyResponse.Rejected)
-            val rejectedResult = (response as ClassifyResponse.Rejected).result
-            assertEquals("REJECTED", rejectedResult.outcome)
-            assertEquals("non_cattle", rejectedResult.rejectionReason)
+            assertTrue(response is ClassifyResponse.Success)
+            assertEquals(
+                "bali",
+                (response as ClassifyResponse.Success).result.label,
+            )
         }
 }

@@ -228,12 +228,6 @@ fun CameraRoute(
                 viewModel.clearQualityRejection()
                 galleryLauncher.launch("image/*")
             },
-            onDismissNonCattle = viewModel::clearNonCattleRejection,
-            onRetakeNonCattle = { viewModel.clearNonCattleRejection() },
-            onChooseAnotherNonCattle = {
-                viewModel.clearNonCattleRejection()
-                galleryLauncher.launch("image/*")
-            },
         )
     }
 }
@@ -255,9 +249,6 @@ private fun CameraActiveScreen(
     onConsentDeny: () -> Unit,
     onRetake: () -> Unit,
     onChooseAnother: () -> Unit,
-    onDismissNonCattle: () -> Unit,
-    onRetakeNonCattle: () -> Unit,
-    onChooseAnotherNonCattle: () -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -534,16 +525,6 @@ private fun CameraActiveScreen(
                     onRetake = onRetake,
                     onChooseAnother = onChooseAnother,
                     modifier = Modifier.fillMaxSize(),
-                )
-            }
-
-            // Non-cattle rejection bottom sheet
-            state.nonCattleRejection?.let { rejection ->
-                NonCattleRejectionSheet(
-                    rejection = rejection,
-                    onRetake = onRetakeNonCattle,
-                    onChooseAnother = onChooseAnotherNonCattle,
-                    onDismiss = onDismissNonCattle,
                 )
             }
         }

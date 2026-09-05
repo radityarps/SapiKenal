@@ -40,7 +40,6 @@ data class CameraUiState(
     val pendingImageUri: Uri? = null,
     val qualityRejection: Set<RejectionReason>? = null,
     val rejectedImageIsFromCamera: Boolean = true,
-    val nonCattleRejection: DetectionResult? = null,
 )
 
 @HiltViewModel
@@ -105,7 +104,6 @@ class CameraViewModel
                         isLoading = true,
                         error = null,
                         qualityRejection = null,
-                        nonCattleRejection = null,
                         progressText = appContext.getString(R.string.camera_processing),
                     )
 
@@ -172,21 +170,6 @@ class CameraViewModel
                                         )
                                 }
 
-                                is ClassifyResponse.Rejected -> {
-                                    val result = response.result
-                                    Log.d(
-                                        "SapiKenal",
-                                        "ViewModel: classify() non_cattle rejection — reason=${result.rejectionReason}, confidence=${result.confidence}",
-                                    )
-                                    _uiState.value =
-                                        _uiState.value.copy(
-                                            isLoading = false,
-                                            progressText = null,
-                                            nonCattleRejection = result,
-                                            rejectedImageIsFromCamera = isFromCamera,
-                                        )
-                                }
-
                                 is ClassifyResponse.Success -> {
                                     val result = response.result
                                     Log.d(
@@ -230,10 +213,6 @@ class CameraViewModel
 
         fun clearQualityRejection() {
             _uiState.value = _uiState.value.copy(qualityRejection = null)
-        }
-
-        fun clearNonCattleRejection() {
-            _uiState.value = _uiState.value.copy(nonCattleRejection = null)
         }
 
         fun setFlashMode(mode: FlashMode) {

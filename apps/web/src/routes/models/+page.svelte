@@ -17,9 +17,9 @@
   };
   export let form: { success?: boolean; error?: string; registerError?: string } | null;
 
-  let registerDialog: HTMLDialogElement;
-  let detailDialog: HTMLDialogElement;
-  let mutationDialog: HTMLDialogElement;
+  let registerDialog: HTMLDialogElement | undefined;
+  let detailDialog: HTMLDialogElement | undefined;
+  let mutationDialog: HTMLDialogElement | undefined;
   let isRegistering = false;
   let pendingMutation: string | null = null;
   let selectedModel: any = null;
@@ -28,7 +28,7 @@
   let search = data.filters.search;
   let searchTimer: ReturnType<typeof setTimeout>;
 
-  $: modelClasses = data.models.expected_classes ?? ['FMD', 'healthy', 'LSD', 'non_cattle'];
+  $: modelClasses = data.models.expected_classes ?? ['bali', 'brahman', 'brangus', 'limusin'];
 
   const statusItems = [
     { value: '__all__', label: 'Semua status' },
@@ -74,14 +74,14 @@
     goto(`?${query}`, { keepFocus: true, noScroll: true, invalidateAll: true });
   }
   async function openRegisterDialog() {
-    registerDialog.showModal();
+    registerDialog?.showModal();
     await tick();
-    registerDialog.querySelector<HTMLInputElement>('input[name="version"]')?.focus();
+    registerDialog?.querySelector<HTMLInputElement>('input[name="version"]')?.focus();
   }
   async function openDetail(item: any) {
     selectedModel = item;
     await tick();
-    detailDialog.showModal();
+    detailDialog?.showModal();
   }
   async function openMutation(item: any) {
     if (!isCompatible(item)) {
@@ -90,8 +90,8 @@
     }
     mutationModel = item;
     await tick();
-    mutationDialog.showModal();
-    mutationDialog.querySelector<HTMLInputElement>('input[name="reason"]')?.focus();
+    mutationDialog?.showModal();
+    mutationDialog?.querySelector<HTMLInputElement>('input[name="reason"]')?.focus();
   }
   const enhanceRegister: SubmitFunction = () => {
     isRegistering = true;
@@ -106,7 +106,7 @@
     return async ({ result, update }) => {
       await update();
       pendingMutation = null;
-      if (result.type === 'success') mutationDialog.close();
+      if (result.type === 'success') mutationDialog?.close();
       toast(result.type === 'success' ? 'Status model berhasil diperbarui.' : 'Perubahan status model gagal.', result.type === 'success' ? 'success' : 'error');
     };
   };
@@ -191,19 +191,19 @@
 </AdminShell>
 
 <dialog bind:this={registerDialog} class="m-auto max-h-[calc(100dvh-2rem)] w-[min(92vw,44rem)] overflow-x-hidden overflow-y-auto rounded-xl border border-[#dbe4df] bg-white p-0 text-[#17241f] shadow-[0_24px_70px_rgba(23,36,31,.22)] backdrop:bg-[#17241f]/35" aria-labelledby="register-model-title">
-  <div class="flex min-w-0 items-start justify-between gap-4 border-b border-[#e5ebe8] px-5 py-4"><div class="min-w-0"><p class="mb-1 text-[.67rem] font-bold uppercase tracking-[.1em] text-[#6f7e76]">Registry backend</p><h2 id="register-model-title" class="m-0 text-lg font-bold">Daftarkan artefak model</h2></div><button class="grid size-9 min-h-0 shrink-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef] hover:text-[#263a30]" type="button" aria-label="Tutup form registrasi" onclick={() => registerDialog.close()} disabled={isRegistering}><X size={18} aria-hidden="true" /></button></div>
+  <div class="flex min-w-0 items-start justify-between gap-4 border-b border-[#e5ebe8] px-5 py-4"><div class="min-w-0"><p class="mb-1 text-[.67rem] font-bold uppercase tracking-[.1em] text-[#6f7e76]">Registry backend</p><h2 id="register-model-title" class="m-0 text-lg font-bold">Daftarkan artefak model</h2></div><button class="grid size-9 min-h-0 shrink-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef] hover:text-[#263a30]" type="button" aria-label="Tutup form registrasi" onclick={() => registerDialog?.close()} disabled={isRegistering}><X size={18} aria-hidden="true" /></button></div>
   <form class="min-w-0" method="POST" action="?/register" enctype="multipart/form-data" use:enhance={enhanceRegister}>
     <div class="grid min-w-0 gap-4 px-5 py-5 sm:grid-cols-2">
       {#if form?.registerError}<p class="error m-0 min-w-0 break-words sm:col-span-2" role="alert">{form.registerError}</p>{/if}
       <label class="min-w-0">Versi<input class="min-w-0 w-full" name="version" autocomplete="off" maxlength="128" required disabled={isRegistering} /></label>
       <label class="min-w-0">File model (.keras)<input class="min-w-0 w-full max-w-full text-xs" name="artifact" type="file" accept=".keras,application/octet-stream" required disabled={isRegistering} /></label>
       <label class="min-w-0 sm:col-span-2">Urutan kelas backend<input class="min-w-0 w-full font-mono text-xs" name="classes" value={modelClasses.join(',')} readonly aria-describedby="model-class-help" /></label>
-      <p id="model-class-help" class="m-0 text-xs font-normal leading-5 text-[#66766f] sm:col-span-2">Urutan kelas wajib mengikuti kontrak 4 kelas: <code>FMD,healthy,LSD,non_cattle</code>.</p>
+      <p id="model-class-help" class="m-0 text-xs font-normal leading-5 text-[#66766f] sm:col-span-2">Urutan kelas wajib mengikuti kontrak empat jenis: <code>bali,brahman,brangus,limusin</code>.</p>
       <label class="min-w-0">Ukuran input<input class="min-w-0 w-full" name="input_size" type="number" min="1" max="4096" value="224" required disabled={isRegistering} /></label>
       <label class="min-w-0 sm:col-span-2">Catatan<textarea class="min-w-0 w-full" name="notes" maxlength="10000" disabled={isRegistering}></textarea></label>
     </div>
     {#if isRegistering}<p class="mx-5 mb-4 rounded-lg bg-[#f3f8f5] px-3.5 py-3 text-sm text-[#215c42]" role="status">Mengunggah dan memvalidasi model… Jangan tutup halaman.</p>{/if}
-    <div class="flex flex-wrap justify-end gap-2 border-t border-[#e5ebe8] px-5 py-4"><button class="secondary" type="button" onclick={() => registerDialog.close()} disabled={isRegistering}>Batal</button><button type="submit" disabled={isRegistering}>{isRegistering ? 'Memvalidasi…' : 'Unggah dan daftarkan'}</button></div>
+    <div class="flex flex-wrap justify-end gap-2 border-t border-[#e5ebe8] px-5 py-4"><button class="secondary" type="button" onclick={() => registerDialog?.close()} disabled={isRegistering}>Batal</button><button type="submit" disabled={isRegistering}>{isRegistering ? 'Memvalidasi…' : 'Unggah dan daftarkan'}</button></div>
   </form>
 </dialog>
 
@@ -214,7 +214,7 @@
         <p class="mb-1 text-[.67rem] font-bold uppercase tracking-[.1em] text-[#6f7e76]">Detail model</p>
         <h2 id="model-detail-title" class="m-0 break-words text-lg font-bold">{selectedModel.version}</h2>
       </div>
-      <button class="grid size-9 min-h-0 shrink-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef]" type="button" aria-label="Tutup detail" onclick={() => detailDialog.close()}><X size={18} aria-hidden="true" /></button>
+      <button class="grid size-9 min-h-0 shrink-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef]" type="button" aria-label="Tutup detail" onclick={() => detailDialog?.close()}><X size={18} aria-hidden="true" /></button>
     </div>
     <dl class="m-0 grid gap-x-5 gap-y-4 px-5 py-5 text-sm sm:grid-cols-2">
       <div><dt class="text-xs font-bold text-[#718078]">Status</dt><dd class="m-0 mt-1"><span class="badge">{statusLabel(selectedModel.status)}</span></dd></div>
@@ -236,13 +236,13 @@
   {#if mutationModel}
     <div class="flex items-start justify-between gap-4 border-b border-[#e5ebe8] px-5 py-4">
       <div class="min-w-0"><h2 id="model-mutation-title" class="m-0 text-lg font-bold">{mutationLabel()} model?</h2><p class="mb-0 mt-1 break-words text-sm text-[#66766f]">{mutationModel.version}</p></div>
-      <button class="grid size-9 min-h-0 shrink-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef]" type="button" aria-label="Tutup dialog" onclick={() => mutationDialog.close()} disabled={pendingMutation !== null}><X size={18} aria-hidden="true" /></button>
+      <button class="grid size-9 min-h-0 shrink-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef]" type="button" aria-label="Tutup dialog" onclick={() => mutationDialog?.close()} disabled={pendingMutation !== null}><X size={18} aria-hidden="true" /></button>
     </div>
     <form class="grid gap-4 px-5 py-5" method="POST" action={mutationModel.status === 'retired' ? '?/rollback' : '?/activate'} use:enhance={enhanceMutation}>
       <input type="hidden" name="id" value={mutationModel.id} />
       <label>Alasan {mutationLabel().toLowerCase()}<input name="reason" required disabled={pendingMutation !== null} /></label>
       <div class="flex justify-end gap-2">
-        <button class="secondary" type="button" onclick={() => mutationDialog.close()} disabled={pendingMutation !== null}>Batal</button>
+        <button class="secondary" type="button" onclick={() => mutationDialog?.close()} disabled={pendingMutation !== null}>Batal</button>
         <button class:secondary={mutationModel.status === 'retired'} type="submit" disabled={pendingMutation !== null}>{pendingMutation ? 'Memproses…' : mutationLabel()}</button>
       </div>
     </form>

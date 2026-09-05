@@ -16,7 +16,9 @@ services:
       - DEVICE=cpu
       - LOG_LEVEL=info
       - PYTHONUNBUFFERED=1
-      - MODEL_PATH=${MODEL_PATH:-./model/tes1_best_v3.keras}
+      - MODEL_PATH=${MODEL_PATH:-./model/best.keras}
+      - MODEL_CLASS_NAMES_PATH=${MODEL_CLASS_NAMES_PATH:-./model/class_names.json}
+      - MODEL_VERSION=${MODEL_VERSION:-sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32}
       - MODEL_REGISTRY_DIR=${MODEL_REGISTRY_DIR:-./model/registry}
       - MODEL_UPLOAD_MAX_BYTES=${MODEL_UPLOAD_MAX_BYTES:-250000000}
       - MODEL_STARTUP_FALLBACK_ENABLED=${MODEL_STARTUP_FALLBACK_ENABLED:-false}
@@ -42,8 +44,6 @@ services:
       --host 0.0.0.0
       --port 8000
       --reload
-    networks:
-      - sapikenal-network
     healthcheck:
       test:
         - CMD-SHELL
@@ -54,11 +54,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
-networks:
-  sapikenal-network:
-    driver: bridge
-
-volumes:
-  logs:
-    driver: local

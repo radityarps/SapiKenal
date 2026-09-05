@@ -146,7 +146,7 @@ class AcceptanceTestSuite {
     @Test
     fun `offline model version follows naming convention`() {
         assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("mobilenetv3"))
-        assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("v20260725"))
+        assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("contract-v1"))
         assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("fp32"))
     }
 
@@ -176,11 +176,11 @@ class AcceptanceTestSuite {
         pdfCachePath: String? = null,
     ) = DetectionResult(
         id = 1L,
-        label = "FMD",
-        displayLabel = "PMK",
+        label = "brangus",
+        displayLabel = "Brangus",
         confidence = confidence,
         isReliable = isReliable,
-        allScores = mapOf("FMD" to 0.92f, "LSD" to 0.05f, "healthy" to 0.03f),
+        allScores = mapOf("bali" to 0.03f, "brahman" to 0.02f, "brangus" to 0.92f, "limusin" to 0.03f),
         inferenceMode = InferenceMode.ONLINE,
         consentStatus = consentStatus,
         appVersion = appVersion,

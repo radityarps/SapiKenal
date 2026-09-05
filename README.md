@@ -40,6 +40,7 @@ pnpm run backend:up      # Build dan jalankan backend
 pnpm run backend:down    # Hentikan backend
 pnpm run backend:logs    # Tampilkan log backend
 pnpm run backend:test    # Jalankan test backend
+pnpm run backend:smoke   # Reset database dev, load best.keras, and smoke-test /api/predict
 
 pnpm run mobile:build    # Build APK debug
 pnpm run mobile:deploy   # Build dan install APK

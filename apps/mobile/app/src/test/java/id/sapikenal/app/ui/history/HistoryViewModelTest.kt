@@ -15,8 +15,8 @@ import org.junit.Test
 class HistoryViewModelTest {
     private fun createDetectionResult(
         id: Long = 1L,
-        label: String = "FMD",
-        displayLabel: String = "PMK",
+        label: String = "brahman",
+        displayLabel: String = "Brahman",
         confidence: Float = 0.85f,
         inferenceMode: InferenceMode = InferenceMode.ONLINE,
         consentStatus: ConsentStatus = ConsentStatus.ALLOWED,
@@ -30,7 +30,7 @@ class HistoryViewModelTest {
         displayLabel = displayLabel,
         confidence = confidence,
         isReliable = true,
-        allScores = mapOf("FMD" to 0.85f, "LSD" to 0.10f, "healthy" to 0.05f),
+        allScores = mapOf("bali" to 0.05f, "brahman" to 0.85f, "brangus" to 0.05f, "limusin" to 0.05f),
         inferenceMode = inferenceMode,
         consentStatus = consentStatus,
         timestamp = 1700000000000L,
@@ -56,8 +56,6 @@ class HistoryViewModelTest {
             imageSource = imageSource?.name,
             appVersion = appVersion,
             consentStatus = consentStatus.name,
-            outcome = outcome,
-            rejectionReason = rejectionReason,
         )
 
     @Test
@@ -140,14 +138,9 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `mapping preserves outcome REJECTED and rejectionReason`() {
-        val result =
-            createDetectionResult().copy(
-                outcome = "REJECTED",
-                rejectionReason = "non_cattle",
-            )
-        val ui = result.toHistoryItemUiFields()
-        assertEquals("REJECTED", ui.outcome)
-        assertEquals("non_cattle", ui.rejectionReason)
+    fun `mapping preserves canonical breed label`() {
+        val ui = createDetectionResult(label = "brahman").toHistoryItemUiFields()
+        assertEquals("brahman", ui.label)
+        assertEquals("Brahman", ui.displayLabel)
     }
 }

@@ -55,8 +55,12 @@ android {
         }
 
         buildConfigField("String", "API_BASE_URL", apiBaseUrl("http://10.0.2.2:8000/"))
-        buildConfigField("String", "MODEL_FILE_NAME", "\"${envOrProperty("MODEL_FILE_NAME", "cattle_disease.tflite")}\"")
-        buildConfigField("String", "MODEL_VERSION", "\"${envOrProperty("MODEL_VERSION", "cattle-disease-mobilenetv3-v20260725-fp32")}\"")
+        buildConfigField("String", "MODEL_FILE_NAME", "\"${envOrProperty("MODEL_FILE_NAME", "jenis_fp32.tflite")}\"")
+        buildConfigField(
+            "String",
+            "MODEL_VERSION",
+            "\"${envOrProperty("MODEL_VERSION", "sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32")}\"",
+        )
         buildConfigField("int", "MODEL_INPUT_SIZE", envOrProperty("MODEL_INPUT_SIZE", "224"))
         buildConfigField("float", "CONFIDENCE_THRESHOLD", "${envOrProperty("CONFIDENCE_THRESHOLD", "0.60")}f")
     }

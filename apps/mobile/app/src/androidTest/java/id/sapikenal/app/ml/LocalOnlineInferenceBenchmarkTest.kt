@@ -46,7 +46,7 @@ class LocalOnlineInferenceBenchmarkTest {
                     .build()
                     .create(InferenceApiService::class.java)
             val local = OfflineInferenceEngine(context, ModelPreprocessor())
-            val online = OnlineInferenceClient(api, moshi)
+            val online = OnlineInferenceClient(api)
 
             val resultsJson = StringBuilder("[\n")
             var firstEntry = true
@@ -69,15 +69,6 @@ class LocalOnlineInferenceBenchmarkTest {
                 )}",
             )
 
-            output.appendLine(
-                jsonObject(
-                    "record_type" to "meta",
-                    "base_url" to BuildConfig.API_BASE_URL,
-                    "warmups" to warmups,
-                    "runs" to runs,
-                    "images" to images.size,
-                ),
-            )
             images.forEach { image ->
                 val bytes = image.readBytes()
                 repeat(warmups) {

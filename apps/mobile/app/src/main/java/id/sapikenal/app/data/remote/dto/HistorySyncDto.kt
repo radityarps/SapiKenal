@@ -13,8 +13,6 @@ data class HistorySyncRequestDto(
     @Json(name = "display_label") val displayLabel: String,
     val confidence: Float,
     val scores: Map<String, Float>,
-    val outcome: String,
-    @Json(name = "rejection_reason") val rejectionReason: String? = null,
     @Json(name = "inference_mode") val inferenceMode: String,
     @Json(name = "is_reliable") val isReliable: Boolean,
     @Json(name = "processing_ms") val processingMs: Int? = null,

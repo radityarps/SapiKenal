@@ -4,9 +4,6 @@ from __future__ import annotations
 
 import asyncio
 
-from config import settings
-from db.core import get_db
-from db.models import ModelVersion
 from fastapi import (
     APIRouter,
     Depends,
@@ -19,11 +16,8 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.responses import JSONResponse
-from inference_server import get_model_status
-from services.audit import record_prediction_event, sync_history_to_admin
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
-from utils.logger import get_logger
 
 from api.history_store import history_store
 from api.prediction import error_payload_for_http_exception, predict_image_bytes
@@ -35,6 +29,12 @@ from api.schemas import (
     HistoryUpsertResponse,
     PredictResponse,
 )
+from config import settings
+from db.core import get_db
+from db.models import ModelVersion
+from inference_server import get_model_status
+from services.audit import record_prediction_event, sync_history_to_admin
+from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -44,16 +44,10 @@ router = APIRouter(prefix="/api", tags=["mobile"])
 def _record_prediction_error(request_id: str, error_payload: dict) -> None:
     """Record an HTTP prediction failure without retaining image bytes."""
     error_code = error_payload["error_code"]
-    rejection = error_payload.get("rejection") or {}
-    is_rejection = error_code == "NON_CATTLE_IMAGE"
     record_prediction_event(
         request_id=request_id,
-        status="rejected" if is_rejection else "failed",
-        outcome="rejected" if is_rejection else "failed",
+        status="failed",
         error_code=error_code,
-        predicted_class="non_cattle" if is_rejection else None,
-        confidence=rejection.get("confidence"),
-        scores=rejection.get("scores"),
         processing_ms=error_payload.get("processing_time_ms"),
         model_version=(error_payload.get("model_info") or {}).get("version"),
     )
@@ -62,7 +56,7 @@ def _record_prediction_error(request_id: str, error_payload: dict) -> None:
 @router.post("/predict", response_model=PredictResponse)
 async def predict(request: Request, image: UploadFile = File(...)):
     """
-    Predict cattle disease from image.
+    Identify the cattle breed in an image.
 
     NO-RETENTION: uploaded image bytes stay in memory only; backend does not write
     images to disk. Mobile stores local history image path.
@@ -81,8 +75,7 @@ async def predict(request: Request, image: UploadFile = File(...)):
     record_prediction_event(
         request_id=getattr(request.state, "request_id", "unknown"),
         status="success",
-        outcome=prediction.get("outcome", "accepted"),
-        predicted_class=prediction.get("disease_class"),
+        predicted_class=prediction.get("predicted_class"),
         confidence=prediction.get("confidence"),
         scores=prediction.get("scores"),
         processing_ms=processing_ms,

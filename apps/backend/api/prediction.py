@@ -5,10 +5,11 @@ import io
 import time
 from typing import Any, cast
 
-from config import settings
-from fastapi import HTTPException
-from inference_server import get_inference_service, is_model_ready
+from fastapi import HTTPException  # pyright: ignore[reportMissingImports]
 from PIL import Image, ImageOps
+
+from config import settings
+from inference_server import get_inference_service, is_model_ready
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -26,7 +27,6 @@ def error_payload_for_http_exception(exc: HTTPException) -> dict[str, Any]:
             "message": str(detail.get("message", "Request failed"))[:256],
         }
         for key in (
-            "rejection",
             "model_info",
             "processing_time_ms",
             "preprocessing_time_ms",
@@ -103,24 +103,4 @@ async def predict_image_bytes(
         )
 
     server_processing_ms = round((time.perf_counter() - started_at) * 1_000, 3)
-    prediction = result.get("prediction") or {}
-    if prediction.get("disease_class") == "non_cattle":
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "error_code": "NON_CATTLE_IMAGE",
-                "message": "No cattle detected",
-                "rejection": {
-                    "outcome": "rejected",
-                    "reason": "non_cattle",
-                    "display_label_key": "validation.non_cattle",
-                    "confidence": prediction.get("confidence"),
-                    "scores": prediction.get("scores", {}),
-                },
-                "model_info": result.get("model_info"),
-                "processing_time_ms": round(server_processing_ms),
-                "preprocessing_time_ms": result.get("preprocessing_time_ms"),
-                "inference_time_ms": result.get("inference_time_ms"),
-            },
-        )
     return result, server_processing_ms

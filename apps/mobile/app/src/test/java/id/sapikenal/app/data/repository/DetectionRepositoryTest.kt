@@ -52,7 +52,7 @@ class DetectionRepositoryTest {
     }
 
     private fun createResult(
-        label: String = "FMD",
+        label: String = "brangus",
         confidence: Float = 0.92f,
         inferenceMode: InferenceMode = InferenceMode.ONLINE,
         consentStatus: ConsentStatus = ConsentStatus.ALLOWED,
@@ -60,22 +60,18 @@ class DetectionRepositoryTest {
         appVersion: String? = "1.0.0",
         modelVersion: String? = "MobileNetV2-v3",
         preprocessingSummary: String? = "EXIF correct, resize, normalize",
-        outcome: String = "ACCEPTED",
-        rejectionReason: String? = null,
     ) = DetectionResult(
         label = label,
-        displayLabel = "PMK",
+        displayLabel = "Brangus",
         confidence = confidence,
         isReliable = true,
-        allScores = mapOf("FMD" to 0.92f, "LSD" to 0.05f, "healthy" to 0.03f, "non_cattle" to 0.0f),
+        allScores = mapOf("bali" to 0.03f, "brahman" to 0.02f, "brangus" to 0.92f, "limusin" to 0.03f),
         inferenceMode = inferenceMode,
         consentStatus = consentStatus,
         imageSource = imageSource,
         appVersion = appVersion,
         modelVersion = modelVersion,
         preprocessingSummary = preprocessingSummary,
-        outcome = outcome,
-        rejectionReason = rejectionReason,
     )
 
     // Use a content URI that the test context can resolve
@@ -98,7 +94,7 @@ class DetectionRepositoryTest {
 
             val loaded = repository.observeDetection(id).first()
             assertNotNull(loaded)
-            assertEquals("FMD", loaded!!.label)
+            assertEquals("brangus", loaded!!.label)
             assertEquals(0.92f, loaded.confidence, 0.001f)
             assertEquals(InferenceMode.ONLINE, loaded.inferenceMode)
             assertEquals(ConsentStatus.DENIED, loaded.consentStatus)
@@ -159,24 +155,24 @@ class DetectionRepositoryTest {
     @Test
     fun `observeHistoryFiltered by class returns only matching`() =
         runTest {
-            repository.saveDetection(createResult(label = "FMD"), testUri)
-            repository.saveDetection(createResult(label = "LSD"), testUri)
-            repository.saveDetection(createResult(label = "FMD"), testUri)
+            repository.saveDetection(createResult(label = "brangus"), testUri)
+            repository.saveDetection(createResult(label = "bali"), testUri)
+            repository.saveDetection(createResult(label = "brangus"), testUri)
 
-            val filtered = repository.observeHistoryFiltered("FMD", null).first()
+            val filtered = repository.observeHistoryFiltered("brangus", null).first()
             assertEquals(2, filtered.size)
-            assertTrue(filtered.all { it.label == "FMD" })
+            assertTrue(filtered.all { it.label == "brangus" })
         }
 
     @Test
-    fun `observeHistoryFiltered by canonical healthy label returns healthy rows`() =
+    fun `observeHistoryFiltered by canonical breed label returns breed rows`() =
         runTest {
-            repository.saveDetection(createResult(label = "healthy"), testUri)
-            repository.saveDetection(createResult(label = "FMD"), testUri)
+            repository.saveDetection(createResult(label = "bali"), testUri)
+            repository.saveDetection(createResult(label = "brangus"), testUri)
 
-            val filtered = repository.observeHistoryFiltered("healthy", null).first()
+            val filtered = repository.observeHistoryFiltered("bali", null).first()
             assertEquals(1, filtered.size)
-            assertEquals("healthy", filtered.single().label)
+            assertEquals("bali", filtered.single().label)
         }
 
     @Test
@@ -208,12 +204,12 @@ class DetectionRepositoryTest {
     @Test
     fun `softDelete excludes row from filtered history`() =
         runTest {
-            val id1 = repository.saveDetection(createResult(label = "FMD"), testUri)
-            repository.saveDetection(createResult(label = "FMD"), testUri)
+            val id1 = repository.saveDetection(createResult(label = "brangus"), testUri)
+            repository.saveDetection(createResult(label = "brangus"), testUri)
 
             repository.softDelete(id1)
 
-            val filtered = repository.observeHistoryFiltered("FMD", null).first()
+            val filtered = repository.observeHistoryFiltered("brangus", null).first()
             assertEquals(1, filtered.size)
         }
 
@@ -281,29 +277,22 @@ class DetectionRepositoryTest {
         }
 
     @Test
-    fun `saveDetection persists rejected non_cattle detection and filters properly`() =
+    fun `saveDetection persists canonical breed scores`() =
         runTest {
-            val nonCattleResult =
-                createResult(
-                    label = "non_cattle",
-                    confidence = 0.96f,
-                    outcome = "REJECTED",
-                    rejectionReason = "non_cattle",
-                ).copy(
-                    allScores = mapOf("FMD" to 0.01f, "healthy" to 0.02f, "LSD" to 0.01f, "non_cattle" to 0.96f),
+            val result =
+                createResult(label = "limusin", confidence = 0.96f).copy(
+                    displayLabel = "Limusin",
+                    allScores = mapOf("bali" to 0.01f, "brahman" to 0.02f, "brangus" to 0.01f, "limusin" to 0.96f),
                 )
 
-            val id = repository.saveDetection(nonCattleResult, testUri)
+            val id = repository.saveDetection(result, testUri)
             val loaded = repository.observeDetection(id).first()
             assertNotNull(loaded)
-            assertEquals("non_cattle", loaded!!.label)
-            assertEquals("REJECTED", loaded.outcome)
-            assertEquals("non_cattle", loaded.rejectionReason)
-            assertEquals(0.96f, loaded.allScores["non_cattle"] ?: 0f, 0.001f)
+            assertEquals("limusin", loaded!!.label)
+            assertEquals(0.96f, loaded.allScores["limusin"] ?: 0f, 0.001f)
 
-            val filtered = repository.observeHistoryFiltered("non_cattle", null).first()
+            val filtered = repository.observeHistoryFiltered("limusin", null).first()
             assertEquals(1, filtered.size)
-            assertEquals("non_cattle", filtered[0].label)
-            assertEquals("REJECTED", filtered[0].outcome)
+            assertEquals("limusin", filtered.single().label)
         }
 }

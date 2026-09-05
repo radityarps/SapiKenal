@@ -9,7 +9,6 @@
     CircleAlert,
     Clock3,
     Gauge,
-    ImageOff,
     ScanLine,
     ShieldCheck
   } from 'lucide-svelte';
@@ -29,22 +28,23 @@
   ];
 
   const classLabels: Record<string, string> = {
-    healthy: 'Sehat',
-    FMD: 'PMK',
-    LSD: 'Lato-Lato'
+    bali: 'Bali',
+    brahman: 'Brahman',
+    brangus: 'Brangus',
+    limusin: 'Limusin'
   };
 
   const auditLabels: Record<string, string> = {
-    'user.created': 'Pengguna dibuat',
-    'user.updated': 'Pengguna diperbarui',
-    'user.password_reset': 'Password pengguna direset',
-    'disease_content.created': 'Konten penyakit dibuat',
-    'disease_content.updated': 'Konten penyakit diperbarui',
-    'disease_content.activated': 'Konten penyakit diaktifkan',
-    'disease_content.deactivated': 'Konten penyakit dinonaktifkan',
-    'model.registered': 'Model didaftarkan',
-    'model.activated': 'Model diaktifkan',
-    'model.rollback': 'Model di-rollback'
+    user_created: 'Pengguna dibuat',
+    user_updated: 'Pengguna diperbarui',
+    user_password_reset: 'Password pengguna direset',
+    breed_profile_created: 'Profil jenis dibuat',
+    breed_profile_updated: 'Profil jenis diperbarui',
+    breed_profile_activated: 'Profil jenis diaktifkan',
+    breed_profile_deactivated: 'Profil jenis dinonaktifkan',
+    model_registered: 'Model didaftarkan',
+    model_activate: 'Model diaktifkan',
+    model_rollback: 'Model di-rollback'
   };
 
   const formatNumber = (value: number | null | undefined) => value == null ? '—' : new Intl.NumberFormat('id-ID').format(value);
@@ -94,20 +94,17 @@
       <article class="grid min-w-0 gap-2.5 border-b border-[#e7ece9] p-5 sm:border-r xl:border-b-0">
         <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><ScanLine size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Percobaan klasifikasi</span></div>
         <strong class="truncate text-[clamp(1.55rem,2.5vw,2rem)] font-bold leading-none tracking-[-.045em] text-[#17241f]">{formatNumber(data.dashboard.predictions.attempts ?? data.dashboard.predictions.total)}</strong>
-        <div class="flex flex-wrap justify-between gap-1 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.accepted)} diterima</span><span>{formatNumber(data.dashboard.predictions.rejected_non_cattle)} ditolak</span><span>{formatNumber(data.dashboard.predictions.failures)} gagal</span></div>
+        <div class="flex flex-wrap justify-between gap-1 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.accepted)} berhasil</span><span>{formatNumber(data.dashboard.predictions.failures)} gagal</span></div>
       </article>
       <article class="grid min-w-0 gap-2.5 border-b border-[#e7ece9] p-5 xl:border-b-0 xl:border-r">
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><ImageOff size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Citra non-sapi</span></div>
-          <a class="text-[.68rem] font-bold text-[#286248] no-underline hover:text-[#123f2c]" href="/predictions?outcome=rejected&predicted_class=non_cattle" title="Lihat daftar penolakan">Detail →</a>
-        </div>
-        <strong class="truncate text-[clamp(1.55rem,2.5vw,2rem)] font-bold leading-none tracking-[-.045em] text-[#17241f]">{formatPercent(data.dashboard.predictions.non_cattle_rate)}</strong>
-        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.rejected_non_cattle)} penolakan</span><span>Guardrail input</span></div>
+        <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><Gauge size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Keyakinan rata-rata</span></div>
+        <strong class="truncate text-[clamp(1.55rem,2.5vw,2rem)] font-bold leading-none tracking-[-.045em] text-[#17241f]">{formatPercent(data.dashboard.predictions.average_confidence)}</strong>
+        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.low_confidence)} hasil rendah</span><span>Ambang operasional</span></div>
       </article>
       <article class="grid min-w-0 gap-2.5 border-b border-[#e7ece9] p-5 sm:border-r xl:border-b-0">
-        <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><Gauge size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Confidence rendah</span></div>
+        <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><Gauge size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Keyakinan rendah</span></div>
         <strong class="truncate text-[clamp(1.55rem,2.5vw,2rem)] font-bold leading-none tracking-[-.045em] text-[#17241f]">{formatPercent(data.dashboard.predictions.low_confidence_rate)}</strong>
-        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.low_confidence)} hasil diterima</span><span>Di bawah ambang</span></div>
+        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.low_confidence)} hasil</span><span>Di bawah ambang</span></div>
       </article>
       <article class="grid min-w-0 gap-2.5 p-5">
         <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><BrainCircuit size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Model aktif</span></div>
@@ -119,8 +116,8 @@
     <div class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,.92fr)]">
       <section class="min-w-0 rounded-xl border border-[#e0e7e3] bg-white p-5 shadow-sm">
         <div class="flex items-start justify-between gap-4 border-b border-[#e8edea] pb-4">
-          <div><h2 class="m-0 mb-1 text-[.9rem] font-bold tracking-[-.015em]">Distribusi hasil diterima</h2><p class="m-0 text-[.72rem] text-[#7a8881]">Komposisi hasil penyakit sapi pada periode terpilih ({formatNumber(data.dashboard.predictions.accepted)} diterima).</p></div>
-          <a class="inline-flex items-center gap-1 whitespace-nowrap text-[.7rem] font-bold text-[#286248] no-underline hover:text-[#123f2c]" href="/predictions?outcome=accepted">Lihat diterima <ArrowRight size={14} strokeWidth={1.8} aria-hidden="true" /></a>
+          <div><h2 class="m-0 mb-1 text-[.9rem] font-bold tracking-[-.015em]">Distribusi hasil identifikasi</h2><p class="m-0 text-[.72rem] text-[#7a8881]">Komposisi empat jenis sapi pada periode terpilih ({formatNumber(data.dashboard.predictions.accepted)} hasil berhasil).</p></div>
+          <a class="inline-flex items-center gap-1 whitespace-nowrap text-[.7rem] font-bold text-[#286248] no-underline hover:text-[#123f2c]" href="/predictions">Lihat semua <ArrowRight size={14} strokeWidth={1.8} aria-hidden="true" /></a>
         </div>
         {#if distributionTotal()}
           <div class="grid gap-4 py-5">
@@ -132,21 +129,8 @@
             {/each}
           </div>
         {:else}
-          <div class="grid min-h-44 place-items-center gap-2 text-center text-xs text-[#7c8b83]"><ScanLine size={22} strokeWidth={1.5} aria-hidden="true" /><span>Belum ada hasil penyakit diterima pada periode ini.</span></div>
+          <div class="grid min-h-44 place-items-center gap-2 text-center text-xs text-[#7c8b83]"><ScanLine size={22} strokeWidth={1.5} aria-hidden="true" /><span>Belum ada hasil identifikasi pada periode ini.</span></div>
         {/if}
-
-        <div class="rounded-lg border border-[#e2e8e5] bg-[#f8faf9] p-3 text-xs">
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2 text-[#32453c]">
-              <ImageOff size={15} strokeWidth={1.8} class="text-[#597165]" aria-hidden="true" />
-              <span class="font-bold">Kualitas Input (Citra Non-Sapi)</span>
-            </div>
-            <a class="text-[.68rem] font-bold text-[#286248] no-underline hover:text-[#123f2c]" href="/predictions?outcome=rejected&predicted_class=non_cattle">Buka data penolakan →</a>
-          </div>
-          <p class="mb-0 mt-1 text-[.72rem] leading-relaxed text-[#63756d]">
-            Sebanyak <strong>{formatNumber(data.dashboard.predictions.rejected_non_cattle)}</strong> citra ditolak ({formatPercent(data.dashboard.predictions.non_cattle_rate)}) sebagai guardrail validasi input dan tidak dihitung ke distribusi klinis penyakit sapi.
-          </p>
-        </div>
 
         <div class="mt-4 grid gap-2 border-t border-[#e8edea] pt-4 sm:grid-cols-2">
           <div class="grid grid-cols-[auto_1fr_auto] items-center gap-2 text-[.69rem] text-[#708078]"><Clock3 size={15} strokeWidth={1.8} aria-hidden="true" /><span>Median proses</span><strong class="text-[.72rem] text-[#263a30]">{formatNumber(data.dashboard.predictions.median_processing_ms)} ms</strong></div>

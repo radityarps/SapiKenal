@@ -23,6 +23,4 @@ data class DetectionResult(
     val locationSource: LocationSource? = null,
     val deletedAt: Long? = null,
     val pdfCachePath: String? = null,
-    val outcome: String = "ACCEPTED",
-    val rejectionReason: String? = null,
 )

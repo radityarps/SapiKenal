@@ -6,10 +6,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # pyright: ignore[reportMissingImports]
 
 # pi-lens-ignore: python-hallucinated-import
-from sqlalchemy import (
+from sqlalchemy import (  # pyright: ignore[reportMissingImports]
     JSON,
     Boolean,
     DateTime,
@@ -21,7 +21,10 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import (  # pyright: ignore[reportMissingImports]
+    Mapped,
+    mapped_column,
+)
 
 from db.base import Base
 
@@ -117,10 +120,7 @@ class AuditLog(Base):
 
 
 class DetectionHistory(Base):
-    """Fresh admin database projection of mobile detection metadata.
-
-    The legacy mobile sync store remains untouched during this foundation slice.
-    """
+    """Admin projection of mobile breed-identification history metadata."""
 
     __tablename__ = "detection_history"
     __table_args__ = (
@@ -142,14 +142,7 @@ class DetectionHistory(Base):
     predicted_class: Mapped[str] = mapped_column(String(32), nullable=False)
     display_label: Mapped[str] = mapped_column(String(128), nullable=False)
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
-    score_healthy: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    score_fmd: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    score_lsd: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    score_non_cattle: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    outcome: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="accepted", index=True
-    )
-    rejection_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    scores: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     inference_mode: Mapped[str] = mapped_column(String(32), nullable=False)
     is_reliable: Mapped[bool] = mapped_column(Boolean, nullable=False)
     processing_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -176,9 +169,6 @@ class PredictionEvent(Base):
     )
     request_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
-    outcome: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="failed", index=True
-    )
     error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     predicted_class: Mapped[str | None] = mapped_column(String(32), nullable=True)
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -190,8 +180,8 @@ class PredictionEvent(Base):
     )
 
 
-class DiseaseContent(Base):
-    __tablename__ = "disease_contents"
+class BreedProfile(Base):
+    __tablename__ = "breed_profiles"
     __table_args__ = (UniqueConstraint("slug", "locale"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
@@ -212,13 +202,13 @@ class DiseaseContent(Base):
     )
 
 
-class DiseaseContentRevision(Base):
-    __tablename__ = "disease_content_revisions"
-    __table_args__ = (UniqueConstraint("content_id", "revision"),)
+class BreedProfileRevision(Base):
+    __tablename__ = "breed_profile_revisions"
+    __table_args__ = (UniqueConstraint("profile_id", "revision"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    content_id: Mapped[str] = mapped_column(
-        ForeignKey("disease_contents.id", ondelete="CASCADE"),
+    profile_id: Mapped[str] = mapped_column(
+        ForeignKey("breed_profiles.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -228,8 +218,8 @@ class DiseaseContentRevision(Base):
     )
     display_name: Mapped[str] = mapped_column(String(120), nullable=False)
     summary: Mapped[str] = mapped_column(String(500), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    handling_advice: Mapped[str] = mapped_column(Text, nullable=False)
+    strengths: Mapped[str] = mapped_column(Text, nullable=False)
+    limitations: Mapped[str] = mapped_column(Text, nullable=False)
     disclaimer: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_by: Mapped[str | None] = mapped_column(

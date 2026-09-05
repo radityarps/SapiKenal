@@ -66,43 +66,30 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// ── Disease display helpers ──────────────────────────────────────────────
+// ── Breed display helpers ────────────────────────────────────────────────
 
-private val diseaseMap =
+private val breedMap =
     mapOf(
-        "SEHAT" to ("🟢" to SapiKenalColors.Healthy),
-        "sehat" to ("🟢" to SapiKenalColors.Healthy),
-        "healthy" to ("🟢" to SapiKenalColors.Healthy),
-        "PMK" to ("🔴" to SapiKenalColors.DangerPMK),
-        "FMD" to ("🔴" to SapiKenalColors.DangerPMK),
-        "pmk" to ("🔴" to SapiKenalColors.DangerPMK),
-        "fmd" to ("🔴" to SapiKenalColors.DangerPMK),
-        "LSD" to ("🟠" to SapiKenalColors.WarningLSD),
-        "LATO_LATO" to ("🟠" to SapiKenalColors.WarningLSD),
-        "lsd" to ("🟠" to SapiKenalColors.WarningLSD),
-        "lato_lato" to ("🟠" to SapiKenalColors.WarningLSD),
-        "non_cattle" to ("🚫" to SapiKenalColors.TextSecondary),
-        "NON_CATTLE" to ("🚫" to SapiKenalColors.TextSecondary),
+        "bali" to ("🟤" to SapiKenalColors.Bali),
+        "brahman" to ("⚪" to SapiKenalColors.Brahman),
+        "brangus" to ("⚫" to SapiKenalColors.Brangus),
+        "limusin" to ("🟠" to SapiKenalColors.Limusin),
     )
 
-private val diseaseDisplayNames =
+private val breedDisplayNames =
     mapOf(
-        "SEHAT" to R.string.result_disease_sehat,
-        "healthy" to R.string.result_disease_sehat,
-        "PMK" to R.string.result_disease_fmd,
-        "FMD" to R.string.result_disease_fmd,
-        "LSD" to R.string.result_disease_lsd,
-        "LATO_LATO" to R.string.result_disease_lsd,
-        "non_cattle" to R.string.result_disease_non_cattle,
-        "NON_CATTLE" to R.string.result_disease_non_cattle,
+        "bali" to R.string.result_breed_bali,
+        "brahman" to R.string.result_breed_brahman,
+        "brangus" to R.string.result_breed_brangus,
+        "limusin" to R.string.result_breed_limusin,
     )
 
-private fun diseaseEmoji(label: String): String = diseaseMap[label]?.first ?: "📸"
+private fun breedEmoji(label: String): String = breedMap[label.lowercase()]?.first ?: "📸"
 
-private fun diseaseColor(label: String): Color = diseaseMap[label]?.second ?: SapiKenalColors.TextSecondary
+private fun breedColor(label: String): Color = breedMap[label.lowercase()]?.second ?: SapiKenalColors.TextSecondary
 
 @StringRes
-private fun diseaseDisplayNameRes(label: String): Int? = diseaseDisplayNames[label]
+private fun breedDisplayNameRes(label: String): Int? = breedDisplayNames[label.lowercase()]
 
 private fun formatTimestamp(
     millis: Long,
@@ -356,12 +343,12 @@ private fun FilterChipRow(
             label = { Text(stringResource(R.string.history_filter_all)) },
         )
 
-        // Class chips
+        // Breed chips
         listOf(
-            "healthy" to R.string.history_filter_sehat,
-            "FMD" to R.string.history_filter_fmd,
-            "LSD" to R.string.history_filter_lsd,
-            "non_cattle" to R.string.history_filter_non_cattle,
+            "bali" to R.string.history_filter_bali,
+            "brahman" to R.string.history_filter_brahman,
+            "brangus" to R.string.history_filter_brangus,
+            "limusin" to R.string.history_filter_limusin,
         ).forEach { (value, labelRes) ->
             FilterChip(
                 selected = selectedClass == value && selectedMode == null,
@@ -396,10 +383,9 @@ private fun HistoryCard(
     onTap: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val isRejected = item.outcome.equals("REJECTED", ignoreCase = true) || item.label.equals("non_cattle", ignoreCase = true)
-    val emoji = diseaseEmoji(item.label)
-    val color = diseaseColor(item.label)
-    val displayNameRes = diseaseDisplayNameRes(item.label)
+    val emoji = breedEmoji(item.label)
+    val color = breedColor(item.label)
+    val displayNameRes = breedDisplayNameRes(item.label)
     val displayName = displayNameRes?.let { stringResource(it) } ?: item.displayLabel
     val noteTitle = item.title?.takeIf { it.isNotBlank() }
     val noteDescription = item.description?.takeIf { it.isNotBlank() }
@@ -480,7 +466,7 @@ private fun HistoryCard(
                         color = color.copy(alpha = 0.14f),
                     ) {
                         Text(
-                            text = if (isRejected) stringResource(R.string.rejection_status_badge) else displayName,
+                            text = displayName,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = color,
@@ -488,12 +474,7 @@ private fun HistoryCard(
                         )
                     }
                     Text(
-                        text =
-                            if (isRejected) {
-                                stringResource(R.string.history_item_rejected, modeLabel)
-                            } else {
-                                stringResource(R.string.history_confidence_percent, (item.confidence * 100).toInt())
-                            },
+                        text = stringResource(R.string.history_confidence_percent, (item.confidence * 100).toInt()),
                         style = MaterialTheme.typography.bodySmall,
                         color = SapiKenalColors.TextSecondary,
                     )
@@ -502,27 +483,25 @@ private fun HistoryCard(
                 Spacer(Modifier.height(4.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!isRejected) {
-                        val modeColor =
-                            if (isOnline) {
-                                SapiKenalColors.Healthy
-                            } else {
-                                SapiKenalColors.WarningLSD
-                            }
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = modeColor.copy(alpha = 0.15f),
-                        ) {
-                            Text(
-                                text = modeLabel,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                fontSize = 10.sp,
-                                color = modeColor,
-                            )
+                    val modeColor =
+                        if (isOnline) {
+                            SapiKenalColors.Primary
+                        } else {
+                            SapiKenalColors.Secondary
                         }
-
-                        Spacer(Modifier.width(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = modeColor.copy(alpha = 0.15f),
+                    ) {
+                        Text(
+                            text = modeLabel,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            fontSize = 10.sp,
+                            color = modeColor,
+                        )
                     }
+
+                    Spacer(Modifier.width(8.dp))
 
                     Text(
                         text = formatTimestamp(item.timestamp, locale),
@@ -539,7 +518,7 @@ private fun HistoryCard(
                 Icon(
                     Icons.Filled.Delete,
                     contentDescription = stringResource(R.string.btn_delete),
-                    tint = SapiKenalColors.DangerPMK.copy(alpha = 0.7f),
+                    tint = SapiKenalColors.Error.copy(alpha = 0.7f),
                 )
             }
         }

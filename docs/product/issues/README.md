@@ -7,7 +7,7 @@ Issue files ini menguraikan implementasi [PRD Identifikasi Jenis Sapi](../identi
 | 1 | [Tetapkan dan validasi kontrak model](001-kontrak-model.md) | Selesai | Ya (`9db1709`) | — |
 | 2 | [Migrasikan inferensi dan API backend](002-backend-inference-api.md) | Selesai | Ya (`9db1709`) | 001 |
 | 3 | [Reset schema hasil identifikasi](003-schema-dan-riwayat.md) | Selesai | Ya | 001 |
-| 4 | [Migrasikan inferensi mobile](004-mobile-inference.md) | Belum dimulai | Tidak | 001, 002 |
+| 4 | [Migrasikan inferensi mobile](004-mobile-inference.md) | Selesai; verifikasi perangkat tertunda | Ya | 001, 002 |
 | 5 | [Migrasikan pengalaman mobile dan laporan](005-mobile-ui-dan-laporan.md) | Belum dimulai | Tidak | 003, 004 |
 | 6 | [Migrasikan Web Admin dan profil jenis](006-web-admin-dan-profil.md) | Belum dimulai | Tidak | 002, 003 |
 | 7 | [Verifikasi parity dan selesaikan migrasi domain](007-parity-dan-cleanup.md) | Belum dimulai | Tidak | 002–006 |

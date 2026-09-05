@@ -8,6 +8,7 @@ import id.sapikenal.app.data.remote.dto.PredictResponseDto
 import id.sapikenal.app.data.remote.dto.PredictionDto
 import id.sapikenal.app.domain.model.ClassifyFailure
 import id.sapikenal.app.domain.model.DetectionResult
+import id.sapikenal.app.domain.model.InferenceMode
 import kotlinx.coroutines.test.runTest
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -27,36 +28,136 @@ class OnlineInferenceClientTest {
         runTest {
             val api =
                 clientForResponse(
-                    PredictResponseDto(
-                        status = "success",
-                        prediction =
-                            PredictionDto(
-                                predictedClass = "brangus",
-                                confidence = 0.7f,
-                                scores =
-                                    mapOf(
-                                        "bali" to 0.1f,
-                                        "brahman" to 0.1f,
-                                        "brangus" to 0.7f,
-                                        "limusin" to 0.1f,
-                                    ),
+                    responseFor(
+                        predictedClass = "brangus",
+                        confidence = 0.7f,
+                        scores =
+                            mapOf(
+                                "bali" to 0.1f,
+                                "brahman" to 0.1f,
+                                "brangus" to 0.7f,
+                                "limusin" to 0.1f,
                             ),
-                        modelInfo = ModelInfoDto("breed-v1"),
-                        processingTimeMs = 8,
-                        preprocessingTimeMs = 2,
-                        inferenceTimeMs = 6,
                     ),
                 )
 
             val result: DetectionResult = api.classify(byteArrayOf(1, 2, 3))
 
             assertEquals("brangus", result.label)
+            assertEquals("Brangus", result.displayLabel)
             assertEquals(0.7f, result.confidence, 0.001f)
             assertEquals(
                 listOf("bali", "brahman", "brangus", "limusin"),
                 result.allScores.keys.toList(),
             )
             assertEquals("breed-v1", result.modelVersion)
+        }
+
+    @Test
+    fun `online response preserves low confidence as a successful four class result`() =
+        runTest {
+            val api =
+                clientForResponse(
+                    responseFor(
+                        predictedClass = " bali ",
+                        confidence = 0.31f,
+                        scores =
+                            mapOf(
+                                "bali" to 0.31f,
+                                "brahman" to 0.30f,
+                                "brangus" to 0.29f,
+                                "limusin" to 0.10f,
+                            ),
+                    ),
+                )
+
+            val result = api.classify(byteArrayOf(1, 2, 3))
+
+            assertEquals("bali", result.label)
+            assertEquals(InferenceMode.ONLINE, result.inferenceMode)
+            assertEquals("breed-v1", result.modelVersion)
+            assertEquals(0.31f, result.confidence, 0.001f)
+            assertEquals(false, result.isReliable)
+            assertEquals(4, result.allScores.size)
+        }
+
+    @Test
+    fun `online response rejects a non-success status`() =
+        runTest {
+            val api =
+                clientForResponse(
+                    responseFor(
+                        status = "error",
+                        predictedClass = "bali",
+                        confidence = 1.0f,
+                        scores =
+                            mapOf(
+                                "bali" to 1.0f,
+                                "brahman" to 0.0f,
+                                "brangus" to 0.0f,
+                                "limusin" to 0.0f,
+                            ),
+                    ),
+                )
+
+            try {
+                api.classify(byteArrayOf(1, 2, 3))
+                throw AssertionError("Expected ClassifyFailure.Unknown")
+            } catch (error: ClassifyFailure.Unknown) {
+                assertEquals("Invalid prediction status", error.message)
+            }
+        }
+
+    @Test
+    fun `online response rejects an unknown predicted class`() =
+        runTest {
+            val api =
+                clientForResponse(
+                    responseFor(
+                        predictedClass = "unknown",
+                        confidence = 1.0f,
+                        scores =
+                            mapOf(
+                                "bali" to 1.0f,
+                                "brahman" to 0.0f,
+                                "brangus" to 0.0f,
+                                "limusin" to 0.0f,
+                            ),
+                    ),
+                )
+
+            try {
+                api.classify(byteArrayOf(1, 2, 3))
+                throw AssertionError("Expected ClassifyFailure.Unknown")
+            } catch (error: ClassifyFailure.Unknown) {
+                assertEquals("Invalid predicted class", error.message)
+            }
+        }
+
+    @Test
+    fun `online response rejects confidence that does not match top score`() =
+        runTest {
+            val api =
+                clientForResponse(
+                    responseFor(
+                        predictedClass = "bali",
+                        confidence = 0.6f,
+                        scores =
+                            mapOf(
+                                "bali" to 0.9f,
+                                "brahman" to 0.05f,
+                                "brangus" to 0.04f,
+                                "limusin" to 0.01f,
+                            ),
+                    ),
+                )
+
+            try {
+                api.classify(byteArrayOf(1, 2, 3))
+                throw AssertionError("Expected ClassifyFailure.Unknown")
+            } catch (error: ClassifyFailure.Unknown) {
+                assertEquals("Invalid prediction confidence", error.message)
+            }
         }
 
     @Test
@@ -76,6 +177,22 @@ class OnlineInferenceClientTest {
                 assertEquals("Invalid image data", error.message)
             }
         }
+
+    private fun responseFor(
+        status: String = "success",
+        predictedClass: String,
+        confidence: Float,
+        scores: Map<String, Float>,
+        modelVersion: String = "breed-v1",
+    ): PredictResponseDto =
+        PredictResponseDto(
+            status = status,
+            prediction = PredictionDto(predictedClass, confidence, scores),
+            modelInfo = ModelInfoDto(modelVersion),
+            processingTimeMs = 8,
+            preprocessingTimeMs = 2,
+            inferenceTimeMs = 6,
+        )
 
     private fun clientForResponse(response: PredictResponseDto): OnlineInferenceClient =
         OnlineInferenceClient(

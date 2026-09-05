@@ -23,6 +23,7 @@ open class OfflineInferenceEngine
         private val modelPreprocessor: ModelPreprocessor,
     ) : ImageClassifier {
         companion object {
+            private const val EXPECTED_MODEL_FILE = "jenis_fp32.tflite"
             private val MODEL_FILE = BuildConfig.MODEL_FILE_NAME
 
             /** Offline model version identifier. Configured via BuildConfig / local.properties. */
@@ -33,7 +34,7 @@ open class OfflineInferenceEngine
             // Canonical labels matching backend model/class_names.json.
             val CANONICAL_LABELS = listOf("bali", "brahman", "brangus", "limusin")
             private val LABELS = CANONICAL_LABELS
-            private val LABEL_DISPLAY =
+            val DISPLAY_LABELS =
                 mapOf(
                     "bali" to "Bali",
                     "brahman" to "Brahman",
@@ -43,6 +44,9 @@ open class OfflineInferenceEngine
         }
 
         private val interpreter: Interpreter by lazy {
+            require(MODEL_FILE == EXPECTED_MODEL_FILE) {
+                "Unsupported offline model asset: $MODEL_FILE; expected $EXPECTED_MODEL_FILE"
+            }
             val bytes = context.assets.open(MODEL_FILE).use { it.readBytes() }
             val modelBuffer =
                 ByteBuffer.allocateDirect(bytes.size).apply {
@@ -111,12 +115,15 @@ open class OfflineInferenceEngine
                 val scores = output[0]
                 validateScores(scores)
                 val maxIdx = scores.indices.maxByOrNull { scores[it] } ?: 0
+                if (maxIdx !in LABELS.indices) {
+                    throw IllegalStateException("TFLite output selected an invalid class index")
+                }
                 val label =
                     LABELS.getOrElse(maxIdx) { error("Unknown model class index: $maxIdx") }
 
                 DetectionResult(
                     label = label,
-                    displayLabel = LABEL_DISPLAY[label] ?: label,
+                    displayLabel = DISPLAY_LABELS.getValue(label),
                     confidence = scores[maxIdx],
                     isReliable = scores[maxIdx] >= BuildConfig.CONFIDENCE_THRESHOLD,
                     allScores =

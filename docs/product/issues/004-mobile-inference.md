@@ -21,13 +21,13 @@ Menggunakan `jenis_fp32.tflite` untuk mode offline dan kontrak API baru untuk mo
 
 ## Kriteria penerimaan
 
-- [ ] APK memuat `jenis_fp32.tflite`, bukan asset penyakit.
-- [ ] Offline inference mengembalikan tepat empat label final.
-- [ ] Online inference dapat mem-parsing respons backend baru.
-- [ ] Tidak ada hasil offline yang ditolak berdasarkan kelas keempat.
-- [ ] Mode fallback online/offline tetap bekerja sesuai pengaturan saat ini.
+- [x] APK memuat `jenis_fp32.tflite`, bukan asset penyakit.
+- [x] Offline inference mengembalikan tepat empat label final.
+- [x] Online inference dapat mem-parsing respons backend baru.
+- [x] Tidak ada hasil offline yang ditolak berdasarkan kelas keempat.
+- [x] Mode fallback online/offline tetap bekerja sesuai pengaturan saat ini.
 - [ ] Smoke test TFLite menjalankan asset produksi pada perangkat/emulator.
-- [ ] Unit test Android lulus.
+- [x] Unit test Android lulus.
 
 ## Verifikasi
 
@@ -35,4 +35,4 @@ Menggunakan `jenis_fp32.tflite` untuk mode offline dan kontrak API baru untuk mo
 pnpm run mobile:test
 ```
 
-Jalankan instrumentation smoke test pada emulator/perangkat sebagai bagian penerimaan issue.
+Instrumentation smoke test tersedia di `OfflineInferenceEngineSmokeTest`; jalankan pada emulator/perangkat dengan `cd apps/mobile && bash ./gradlew connectedDebugAndroidTest` sebagai bagian penerimaan issue.

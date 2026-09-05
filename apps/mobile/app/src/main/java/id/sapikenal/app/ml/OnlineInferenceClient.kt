@@ -36,14 +36,31 @@ open class OnlineInferenceClient
                         "SapiKenal",
                         "OnlineInferenceClient: response received — status=${response.status}, prediction=${response.prediction.predictedClass}",
                     )
+                    if (!response.status.equals("success", ignoreCase = true)) {
+                        throw ClassifyFailure.Unknown("Invalid prediction status")
+                    }
                     val prediction = response.prediction
                     val scores =
                         canonicalScores(prediction.scores)
                             ?: throw ClassifyFailure.Unknown("Invalid prediction scores")
+                    val predictedClass = prediction.predictedClass.trim().lowercase()
+                    if (predictedClass !in EXPECTED_SCORE_KEYS) {
+                        throw ClassifyFailure.Unknown("Invalid predicted class")
+                    }
+                    val topClass = scores.entries.maxByOrNull { it.value }?.key
+                    if (predictedClass != topClass) {
+                        throw ClassifyFailure.Unknown("Predicted class does not match scores")
+                    }
+                    if (!prediction.confidence.isFinite() ||
+                        prediction.confidence !in 0f..1f ||
+                        kotlin.math.abs(prediction.confidence - scores.getValue(predictedClass)) > SCORE_TOLERANCE
+                    ) {
+                        throw ClassifyFailure.Unknown("Invalid prediction confidence")
+                    }
 
                     DetectionResult(
-                        label = prediction.predictedClass,
-                        displayLabel = prediction.predictedClass,
+                        label = predictedClass,
+                        displayLabel = OfflineInferenceEngine.DISPLAY_LABELS.getValue(predictedClass),
                         confidence = prediction.confidence,
                         isReliable = prediction.confidence >= 0.60f,
                         allScores = scores,
@@ -86,6 +103,6 @@ open class OnlineInferenceClient
 
         private companion object {
             const val SCORE_TOLERANCE = 0.01f
-            val EXPECTED_SCORE_KEYS = listOf("bali", "brahman", "brangus", "limusin")
+            val EXPECTED_SCORE_KEYS = OfflineInferenceEngine.CANONICAL_LABELS
         }
     }

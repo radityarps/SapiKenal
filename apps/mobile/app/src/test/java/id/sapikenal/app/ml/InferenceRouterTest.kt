@@ -70,7 +70,9 @@ class InferenceRouterTest {
     }
 
     /** Fake offline classifier that returns a deterministic OFFLINE result. */
-    private class FakeOfflineClassifier : ImageClassifier {
+    private class FakeOfflineClassifier(
+        private val modelVersion: String? = null,
+    ) : ImageClassifier {
         override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
             DetectionResult(
                 label = "brahman",
@@ -85,6 +87,8 @@ class InferenceRouterTest {
                         "limusin" to 0.05f,
                     ),
                 inferenceMode = InferenceMode.OFFLINE,
+                processingMs = 27,
+                modelVersion = modelVersion,
             )
     }
 
@@ -290,6 +294,38 @@ class InferenceRouterTest {
                     result.consentStatus,
                 )
             }
+        }
+
+    @Test
+    fun `online fallback preserves offline scores confidence timing and model version`() =
+        runTest {
+            val preprocessor = FakePreprocessor()
+            val router =
+                InferenceRouter(
+                    clientPreprocessor = preprocessor,
+                    onlineClient = FakeOnlineClassifier(shouldThrow = true),
+                    offlineEngine = FakeOfflineClassifier(modelVersion = "offline-v1"),
+                    networkChecker = FakeNetworkChecker(online = true),
+                )
+
+            val result =
+                (router.classify(testUris.first(), ConsentStatus.ALLOWED) as ClassifyResponse.Success).result
+
+            assertEquals("brahman", result.label)
+            assertEquals(0.80f, result.confidence, 0.001f)
+            assertEquals(
+                mapOf(
+                    "bali" to 0.10f,
+                    "brahman" to 0.80f,
+                    "brangus" to 0.05f,
+                    "limusin" to 0.05f,
+                ),
+                result.allScores,
+            )
+            assertEquals(InferenceMode.OFFLINE_FALLBACK, result.inferenceMode)
+            assertEquals(27, result.processingMs)
+            assertEquals("offline-v1", result.modelVersion)
+            assertEquals(ConsentStatus.ALLOWED, result.consentStatus)
         }
 
     @Test

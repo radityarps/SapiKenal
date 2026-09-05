@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "7e48e99232fbd7a88304eb5945b434bc",
+    "identityHash": "50bf750639e970cbb8e1e26e803e59fe",
     "entities": [
       {
         "tableName": "detection_records",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `imagePath` TEXT, `predictedClass` TEXT NOT NULL, `displayLabel` TEXT NOT NULL, `confidence` REAL NOT NULL, `scoresJson` TEXT NOT NULL, `inferenceMode` TEXT NOT NULL, `isReliable` INTEGER NOT NULL, `processingMs` INTEGER, `title` TEXT, `description` TEXT, `consentStatus` TEXT NOT NULL, `appVersion` TEXT, `modelVersion` TEXT, `imageSource` TEXT, `preprocessingSummary` TEXT, `latitude` REAL, `longitude` REAL, `locationSource` TEXT, `deletedAt` INTEGER, `pdfCachePath` TEXT, `syncStatus` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `imagePath` TEXT, `predictedClass` TEXT NOT NULL, `displayLabel` TEXT NOT NULL, `confidence` REAL NOT NULL, `scoreHealthy` REAL NOT NULL, `scoreFmd` REAL NOT NULL, `scoreLsd` REAL NOT NULL, `scoreNonCattle` REAL NOT NULL, `inferenceMode` TEXT NOT NULL, `isReliable` INTEGER NOT NULL, `processingMs` INTEGER, `title` TEXT, `description` TEXT, `consentStatus` TEXT NOT NULL, `appVersion` TEXT, `modelVersion` TEXT, `imageSource` TEXT, `preprocessingSummary` TEXT, `latitude` REAL, `longitude` REAL, `locationSource` TEXT, `deletedAt` INTEGER, `pdfCachePath` TEXT, `outcome` TEXT NOT NULL, `rejectionReason` TEXT, `syncStatus` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -45,9 +45,27 @@
             "notNull": true
           },
           {
-            "fieldPath": "scoresJson",
-            "columnName": "scoresJson",
-            "affinity": "TEXT",
+            "fieldPath": "scoreHealthy",
+            "columnName": "scoreHealthy",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scoreFmd",
+            "columnName": "scoreFmd",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scoreLsd",
+            "columnName": "scoreLsd",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scoreNonCattle",
+            "columnName": "scoreNonCattle",
+            "affinity": "REAL",
             "notNull": true
           },
           {
@@ -141,6 +159,18 @@
             "notNull": false
           },
           {
+            "fieldPath": "outcome",
+            "columnName": "outcome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rejectionReason",
+            "columnName": "rejectionReason",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "syncStatus",
             "columnName": "syncStatus",
             "affinity": "TEXT",
@@ -160,7 +190,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7e48e99232fbd7a88304eb5945b434bc')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '50bf750639e970cbb8e1e26e803e59fe')"
     ]
   }
 }

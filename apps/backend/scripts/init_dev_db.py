@@ -18,9 +18,11 @@ _DROP_STATEMENTS = {
 
 
 def _sqlite_path(database_url: str) -> Path | None:
-    if not database_url.startswith("sqlite:///"):
+    if not database_url.startswith("sqlite:///") or ":memory:" in database_url:
         return None
-    return Path(database_url.removeprefix("sqlite:///").removeprefix("./"))
+    raw_path = database_url.removeprefix("sqlite:///")
+    path = Path(raw_path)
+    return path if path.is_absolute() else Path.cwd() / path
 
 
 def _drop_tables(path: Path, table_names: set[str]) -> None:
@@ -40,9 +42,15 @@ def _drop_tables(path: Path, table_names: set[str]) -> None:
 def _reset_incompatible_sqlite_tables() -> None:
     if not settings.allow_dev_db_reset:
         return
+    if settings.fastapi_env != "development" or not settings.debug:
+        raise RuntimeError(
+            "Development database reset requires FASTAPI_ENV=development and DEBUG=true"
+        )
     admin_path = _sqlite_path(settings.database_url)
     if admin_path is None:
-        return
+        raise RuntimeError(
+            "Development database reset requires a file-backed SQLite database"
+        )
     _drop_tables(
         admin_path,
         {
@@ -52,7 +60,12 @@ def _reset_incompatible_sqlite_tables() -> None:
             "prediction_events",
         },
     )
-    _drop_tables(Path(settings.history_db_path), {"detection_history"})
+    _drop_tables(configured_history_path(), {"detection_history"})
+
+
+def configured_history_path() -> Path:
+    path = Path(settings.history_db_path)
+    return path if path.is_absolute() else Path.cwd() / path
 
 
 def main() -> int:

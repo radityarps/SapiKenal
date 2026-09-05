@@ -24,7 +24,7 @@ services:
       - MODEL_STARTUP_FALLBACK_ENABLED=${MODEL_STARTUP_FALLBACK_ENABLED:-false}
       # Hot-swap MVP is intentionally single-worker even if .env is stale.
       - WORKERS=1
-      - HISTORY_DB_PATH=./data/history.sqlite3
+      - HISTORY_DB_PATH=${HISTORY_DB_PATH:-./data/history.sqlite3}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/admin.sqlite3}
       - SESSION_TTL_DAYS=${SESSION_TTL_DAYS:-7}
       - PASSWORD_MIN_LENGTH=${PASSWORD_MIN_LENGTH:-12}

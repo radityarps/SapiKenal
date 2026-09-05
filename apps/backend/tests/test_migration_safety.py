@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import sqlite3
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -45,29 +47,31 @@ def test_unset_class_names_file_uses_canonical_defaults(monkeypatch):
     assert _load_labels() == list(CANONICAL_LABELS)
 
 
-def test_0005_migration_is_immutable_relative_to_head():
-    import hashlib
-    import subprocess
-
-    path = (
-        Path(__file__).parents[1]
-        / "alembic/versions/0005_four_class_prediction_contract.py"
-    )
-    expected = subprocess.run(
-        [
-            "git",
-            "show",
-            "HEAD:apps/backend/alembic/versions/0005_four_class_prediction_contract.py",
-        ],
-        check=True,
-        capture_output=True,
-    ).stdout
+@pytest.mark.parametrize(
+    "revision",
+    [
+        "0005_four_class_prediction_contract.py",
+        "0006_four_class_prediction_contract.py",
+    ],
+)
+def test_committed_migration_is_immutable_relative_to_head(revision):
+    path = Path(__file__).parents[1] / "alembic/versions" / revision
+    try:
+        expected = subprocess.run(
+            ["git", "show", f"HEAD:apps/backend/alembic/versions/{revision}"],
+            check=True,
+            capture_output=True,
+        ).stdout
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        pytest.skip("git history is unavailable in the test container")
     assert (
         hashlib.sha256(path.read_bytes()).digest() == hashlib.sha256(expected).digest()
     )
 
 
 def test_dev_reset_clears_both_sqlite_stores(monkeypatch, tmp_path):
+    monkeypatch.setattr(init_dev_db.settings, "fastapi_env", "development")
+    monkeypatch.setattr(init_dev_db.settings, "debug", True)
     admin_path = tmp_path / "admin.sqlite3"
     history_path = tmp_path / "history.sqlite3"
     _legacy_tables(admin_path)
@@ -92,7 +96,29 @@ def test_dev_reset_clears_both_sqlite_stores(monkeypatch, tmp_path):
     )
 
 
+def test_sqlite_path_resolves_relative_to_backend_working_directory(monkeypatch):
+    monkeypatch.chdir(Path(__file__).parents[1])
+    assert init_dev_db._sqlite_path("sqlite:///./data/admin.sqlite3") == (
+        Path.cwd() / "data/admin.sqlite3"
+    )
+
+
+def test_dev_reset_rejects_non_development_guard(monkeypatch, tmp_path):
+    monkeypatch.setattr(init_dev_db.settings, "allow_dev_db_reset", True)
+    monkeypatch.setattr(init_dev_db.settings, "fastapi_env", "production")
+    monkeypatch.setattr(init_dev_db.settings, "debug", False)
+    monkeypatch.setattr(
+        init_dev_db.settings,
+        "database_url",
+        f"sqlite:///{tmp_path / 'admin.sqlite3'}",
+    )
+    with pytest.raises(RuntimeError, match="development and DEBUG=true"):
+        init_dev_db._reset_incompatible_sqlite_tables()
+
+
 def test_dev_reset_is_disabled_by_default(monkeypatch, tmp_path):
+    monkeypatch.setattr(init_dev_db.settings, "fastapi_env", "development")
+    monkeypatch.setattr(init_dev_db.settings, "debug", True)
     admin_path = tmp_path / "admin.sqlite3"
     _legacy_tables(admin_path)
     monkeypatch.setattr(init_dev_db.settings, "allow_dev_db_reset", False)

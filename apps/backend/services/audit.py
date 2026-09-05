@@ -73,8 +73,16 @@ def _history_values(item: dict[str, Any]) -> dict[str, Any]:
         "inference_mode": history.inference_mode,
         "is_reliable": history.is_reliable,
         "processing_ms": history.processing_ms,
+        "title": history.title,
+        "description": history.description,
+        "consent_status": history.consent_status,
         "app_version": history.app_version,
         "model_version": history.model_version,
+        "image_source": history.image_source,
+        "preprocessing_summary": history.preprocessing_summary,
+        "latitude": history.latitude,
+        "longitude": history.longitude,
+        "location_source": history.location_source,
     }
 
 

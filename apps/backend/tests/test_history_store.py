@@ -30,15 +30,34 @@ def _item(**overrides):
     return item
 
 
-def test_history_store_round_trips_labeled_scores(tmp_path):
+def test_history_store_round_trips_labeled_scores_and_metadata(tmp_path):
     module = history_store_module
     original_path = module.settings.history_db_path
     module.settings.history_db_path = str(tmp_path / "history.sqlite3")
     try:
         store = module.HistoryStore()
-        created = store.upsert(_item())
+        created = store.upsert(
+            _item(
+                title="Sapi #3",
+                description="Catatan lapangan",
+                consent_status="allowed",
+                image_source="camera",
+                preprocessing_summary="RGB 224x224",
+                latitude=-6.2,
+                longitude=106.8,
+                location_source="gps",
+            )
+        )
         assert created["predicted_class"] == "brangus"
         assert json.loads(created["scores"]) == _item()["scores"]
+        assert created["title"] == "Sapi #3"
+        assert created["description"] == "Catatan lapangan"
+        assert created["consent_status"] == "allowed"
+        assert created["image_source"] == "camera"
+        assert created["preprocessing_summary"] == "RGB 224x224"
+        assert created["latitude"] == pytest.approx(-6.2)
+        assert created["longitude"] == pytest.approx(106.8)
+        assert created["location_source"] == "gps"
 
         updated = store.upsert(_item(title="updated"))
         assert updated["id"] == created["id"]
@@ -83,8 +102,22 @@ def test_history_store_rejects_incompatible_existing_schema(tmp_path):
 
 def test_history_schema_columns_are_explicit():
     assert "scores" in history_store_module.COLUMNS
-    assert "outcome" not in history_store_module.COLUMNS
-    assert "rejection_reason" not in history_store_module.COLUMNS
+    assert {
+        "title",
+        "description",
+        "consent_status",
+        "image_source",
+        "latitude",
+        "longitude",
+    } <= set(history_store_module.COLUMNS)
+    assert not {
+        "score_fmd",
+        "score_lsd",
+        "score_healthy",
+        "score_non_cattle",
+        "outcome",
+        "rejection_reason",
+    } & set(history_store_module.COLUMNS)
 
 
 def test_history_values_rejects_malformed_scores():
@@ -95,9 +128,27 @@ def test_history_values_rejects_malformed_scores():
 
 
 def test_history_values_normalizes_enum_and_preserves_scores():
-    values = audit_module._history_values(_item())
+    item = _item(
+        title="Sapi #3",
+        description="Catatan lapangan",
+        consent_status="allowed",
+        image_source="camera",
+        preprocessing_summary="RGB 224x224",
+        latitude=-6.2,
+        longitude=106.8,
+        location_source="gps",
+    )
+    values = audit_module._history_values(item)
     assert values["predicted_class"] == "brangus"
-    assert values["scores"] == _item()["scores"]
+    assert values["scores"] == item["scores"]
+    assert values["title"] == "Sapi #3"
+    assert values["description"] == "Catatan lapangan"
+    assert values["consent_status"] == "allowed"
+    assert values["image_source"] == "camera"
+    assert values["preprocessing_summary"] == "RGB 224x224"
+    assert values["latitude"] == -6.2
+    assert values["longitude"] == 106.8
+    assert values["location_source"] == "gps"
 
 
 def test_prediction_event_drops_invalid_scores(monkeypatch):

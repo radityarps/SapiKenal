@@ -146,8 +146,18 @@ class DetectionHistory(Base):
     inference_mode: Mapped[str] = mapped_column(String(32), nullable=False)
     is_reliable: Mapped[bool] = mapped_column(Boolean, nullable=False)
     processing_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    title: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    consent_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     app_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
     model_version: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    image_source: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    preprocessing_summary: Mapped[str | None] = mapped_column(
+        String(500), nullable=True
+    )
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    location_source: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )

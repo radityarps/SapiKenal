@@ -61,6 +61,8 @@ abstract class AppDatabase : RoomDatabase() {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     // Legacy score columns are removed by MIGRATION_10_11 after v9/v10 bookkeeping.
                     db.execSQL("ALTER TABLE detection_records ADD COLUMN scoreNonCattle REAL NOT NULL DEFAULT 0.0")
+                    db.execSQL("ALTER TABLE detection_records ADD COLUMN outcome TEXT NOT NULL DEFAULT 'ACCEPTED'")
+                    db.execSQL("ALTER TABLE detection_records ADD COLUMN rejectionReason TEXT DEFAULT NULL")
                 }
             }
 

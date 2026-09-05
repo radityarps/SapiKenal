@@ -20,12 +20,12 @@ Mengganti penyimpanan hasil penyakit dengan schema baru yang menyimpan hasil ide
 
 ## Kriteria penerimaan
 
-- [ ] Database baru dapat dibuat dari nol melalui perintah repository.
-- [ ] Satu hasil menyimpan kelas teratas dan tepat empat skor jenis.
-- [ ] Round-trip API ↔ database ↔ mobile mempertahankan semua skor.
-- [ ] Tidak ada kolom `score_fmd`, `score_lsd`, `score_healthy`, atau `score_non_cattle` pada schema baru.
-- [ ] Reset tidak berjalan otomatis terhadap database produksi.
-- [ ] Test schema, history store, dan sinkronisasi lulus.
+- [x] Database baru dapat dibuat dari nol melalui perintah repository.
+- [x] Satu hasil menyimpan kelas teratas dan tepat empat skor jenis.
+- [x] Round-trip API ↔ database ↔ mobile mempertahankan semua skor.
+- [x] Tidak ada kolom `score_fmd`, `score_lsd`, `score_healthy`, atau `score_non_cattle` pada schema baru.
+- [x] Reset tidak berjalan otomatis terhadap database produksi.
+- [x] Test schema, history store, dan sinkronisasi lulus.
 
 ## Workflow reset nonproduksi
 

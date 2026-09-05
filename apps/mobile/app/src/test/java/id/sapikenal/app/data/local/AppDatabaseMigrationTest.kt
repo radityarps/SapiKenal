@@ -63,6 +63,8 @@ class AppDatabaseMigrationTest {
                 assertFalse(columns.contains("scoreFmd"))
                 assertFalse(columns.contains("scoreLsd"))
                 assertFalse(columns.contains("scoreNonCattle"))
+                assertFalse(columns.contains("outcome"))
+                assertFalse(columns.contains("rejectionReason"))
             }
         database.close()
     }

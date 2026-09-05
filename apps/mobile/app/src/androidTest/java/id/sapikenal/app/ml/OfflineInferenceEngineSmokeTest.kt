@@ -26,7 +26,6 @@ class OfflineInferenceEngineSmokeTest {
             assertTrue(result.allScores.values.all { it.isFinite() && it in 0f..1f })
             assertEquals(1f, result.allScores.values.sum(), 0.01f)
             assertEquals(OfflineInferenceEngine.MODEL_VERSION, result.modelVersion)
-            assertEquals("ACCEPTED", result.outcome)
         }
 
     private fun createJpeg(): ByteArray {

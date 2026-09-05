@@ -75,7 +75,8 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     columns = {row[1] for row in conn.execute("PRAGMA table_info(detection_history)")}
     if columns and columns != set(COLUMNS):
         raise RuntimeError(
-            "History database does not use the current breed schema; reset it in development before use"
+            "History database does not use the current breed schema; "
+            "run the explicit development reset before use"
         )
 
 
@@ -85,6 +86,7 @@ def _connect() -> sqlite3.Connection:
         path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
         existing = conn.execute(
             "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'detection_history'"
         ).fetchone()

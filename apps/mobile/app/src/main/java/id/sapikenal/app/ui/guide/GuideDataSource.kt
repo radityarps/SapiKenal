@@ -114,6 +114,14 @@ object GuideDataSource {
                 summary = context.getString(R.string.guide_brangus_summary_2),
                 body = context.getString(R.string.guide_brangus_body_2),
             ),
+            GuideArticle(
+                id = "brangus_3",
+                category = GuideCategory.BRANGUS,
+                icon = "📏",
+                title = context.getString(R.string.guide_brangus_title_3),
+                summary = context.getString(R.string.guide_brangus_summary_3),
+                body = context.getString(R.string.guide_brangus_body_3),
+            ),
             // ── Limusin ──────────────────────────────────────────────────────
             GuideArticle(
                 id = "limusin_1",

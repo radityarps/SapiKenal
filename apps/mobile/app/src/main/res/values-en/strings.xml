@@ -52,10 +52,12 @@
     <string name="result_loading_1">Uploading image…</string>
     <string name="result_loading_2">Analyzing with AI…</string>
     <string name="result_loading_3">Preparing results…</string>
-    <string name="result_diagnosis">Classification Result</string>
+    <string name="result_identification">Identification Result</string>
     <string name="result_confidence">Confidence</string>
     <string name="result_mode_online">Online</string>
     <string name="result_mode_offline">Offline</string>
+    <string name="result_mode_offline_fallback">Offline fallback</string>
+    <string name="result_mode_unknown">Unknown mode</string>
     <string name="result_btn_save">Save</string>
     <string name="result_btn_edit">Edit</string>
     <string name="result_save_dialog_title">Save Result</string>
@@ -64,6 +66,7 @@
     <string name="result_save_hint_desc">Description (optional)</string>
     <string name="result_btn_share">Share</string>
     <string name="result_btn_export_pdf">Export PDF</string>
+    <string name="result_export_loading">Loading saved result…</string>
     <string name="result_pdf_exported">PDF report generated successfully</string>
     <string name="result_pdf_failed">Failed to generate PDF report</string>
     <string name="result_breed_bali">Bali</string>
@@ -74,7 +77,7 @@
     <string name="result_scan_image">Scan image</string>
     <string name="result_scanned_at">Scan time: %1$s</string>
     <string name="result_share_title">SapiKenal Classification Result</string>
-    <string name="result_share_diagnosis">Predicted class: %1$s</string>
+    <string name="result_share_identification">Identification result: %1$s</string>
     <string name="result_share_confidence">Confidence: %1$d%% (%2$s)</string>
     <string name="result_share_mode">Inference mode: %1$s</string>
     <string name="result_share_class_scores">Class scores:</string>
@@ -102,40 +105,41 @@
     <string name="result_consent_allowed">Allowed</string>
     <string name="result_consent_denied">Denied</string>
     <string name="result_consent_undecided">Undecided</string>
-    <string name="result_accessibility_summary">Predicted class: %1$s, confidence %2$d percent, mode %3$s</string>
+    <string name="result_accessibility_summary">Selected breed: %1$s, confidence %2$d percent, mode %3$s</string>
 
     <!-- PDF report -->
     <string name="report_date">Date</string>
     <string name="report_predicted_class">Predicted Class</string>
     <string name="report_confidence">Confidence</string>
-    <string name="report_reliable">Reliable</string>
-    <string name="report_yes">Yes</string>
-    <string name="report_no">No</string>
     <string name="report_inference_mode">Inference Mode</string>
     <string name="report_app_version">App Version</string>
     <string name="report_model_version">Model Version</string>
+    <string name="report_processing_time">Processing Time</string>
     <string name="report_preprocessing">Preprocessing</string>
+    <string name="report_image_source">Image Source</string>
+    <string name="report_record_title">Title</string>
+    <string name="report_record_description">Description</string>
     <string name="report_consent_status">Consent Status</string>
     <string name="report_allowed">Allowed</string>
     <string name="report_denied">Denied</string>
     <string name="report_undecided">Undecided</string>
     <string name="report_coarse_location">Coarse Location</string>
-    <string name="report_detection_result">Detection Result</string>
+    <string name="report_detection_result">Identification Result</string>
     <string name="report_class_scores">Class Scores</string>
     <string name="report_technical_information">Technical Information</string>
     <string name="report_device">Device</string>
     <string name="report_disclaimer">DISCLAIMER</string>
     <string name="report_title">SapiKenal — Classification Report</string>
     <string name="report_subtitle">Cattle breed identification result from an AI model.</string>
-    <string name="report_not_clinical_diagnosis">This report contains a cattle breed identification result from image classification, not validation that the image contains cattle.</string>
+    <string name="report_object_validation_limitation">This report contains a cattle breed identification result from image classification, not validation that the image contains cattle.</string>
     <string name="report_not_official_document">It is not proof of an individual animal identity or an official document.</string>
-    <string name="report_consult_veterinarian">This result is supporting information only; the app does not validate the object or assess anything beyond the four supported breeds.</string>
+    <string name="report_supported_breeds_limitation">This result is supporting information only; the app does not validate the object or assess anything beyond the four supported breeds.</string>
     <string name="report_generated_by">Generated by SapiKenal</string>
 
     <!-- History -->
-    <string name="history_title">Detection History</string>
-    <string name="history_empty">No examinations yet</string>
-    <string name="history_empty_filter">No results matching this filter</string>
+    <string name="history_title">Identification History</string>
+    <string name="history_empty">No identification results yet</string>
+    <string name="history_empty_filter">No identification results match this filter</string>
     <string name="history_clear_filter">Clear Filter</string>
     <string name="history_filter_all">All</string>
     <string name="history_filter_bali">Bali</string>
@@ -144,14 +148,16 @@
     <string name="history_filter_limusin">Limousin</string>
     <string name="history_filter_online">Online</string>
     <string name="history_filter_offline">Offline</string>
-    <string name="history_delete_title">Delete Record</string>
-    <string name="history_delete_message">Delete this examination result?</string>
+    <string name="history_filter_offline_fallback">Offline fallback</string>
+    <string name="history_filter_unknown">Unknown mode</string>
+    <string name="history_delete_title">Delete Identification Result</string>
+    <string name="history_delete_message">Delete this identification result?</string>
     <string name="history_delete_all_title">Delete All</string>
-    <string name="history_delete_all_message">Delete all examination history?</string>
-    <string name="history_deleted">Record deleted</string>
+    <string name="history_delete_all_message">Delete all identification history?</string>
+    <string name="history_deleted">Identification result deleted</string>
     <string name="history_undo">Undo</string>
     <string name="history_all_deleted">All history deleted</string>
-    <string name="history_detail_tap">Tap to view details</string>
+    <string name="history_detail_tap">Tap to view identification details</string>
     <string name="history_confidence_percent">%1$d%% confident</string>
 
     <!-- Guide -->
@@ -172,67 +178,70 @@
     <!-- Guide: App Usage -->
     <string name="guide_app_title_1">Your First Scan</string>
     <string name="guide_app_summary_1">A complete guide to using the scan feature to identify breeds in your cattle.</string>
-    <string name="guide_app_body_1">How to Scan\n\nOpen SapiKenal and make sure you are on the Scan tab. Point the camera at the cattle you want to examine.\n\nTips for Taking Good Photos\n\n• Prioritize a close-up photo of the symptom area (mouth, hooves, or skin)\n• Make sure the symptom area fills most of the frame and is clearly visible\n• Ensure adequate lighting and avoid shadows on the symptom area\n• Position the camera level with the symptom area, not from above\n• Avoid blurry, too distant, or obstructed images\n\nAfter Taking a Photo\n\nThe app will process the image and display the classification result within seconds. Results include the predicted class, confidence score, and handling recommendations.\n\nYou can also select an image from your gallery by tapping the gallery icon at the bottom of the camera screen.</string>
+    <string name="guide_app_body_1">How to Identify\n\nOpen SapiKenal and select the Check tab. Aim the camera at cattle with the body and visible breed characteristics clear in the frame. You can also select an image from the gallery.\n\nTips for Taking an Image\n\n• Show the whole body from a side or three-quarter angle\n• Include the head, shoulder, and legs when possible\n• Use even lighting and avoid strong shadows\n• Keep the camera steady and avoid blurry images\n• Do not assume the camera or gallery validates the object in the image\n\nAfter Selecting an Image\n\nThe app processes the image and displays one top breed, its confidence, and scores for Bali, Brahman, Brangus, and Limousin. This is a model classification result, not proof of pedigree or individual identity.</string>
 
     <string name="guide_app_title_2">Online vs Offline Mode</string>
     <string name="guide_app_summary_2">Differences between online and offline inference modes, and when to use each.</string>
     <string name="guide_app_body_2">Online Mode\n\nIn online mode, the image is sent to the server for analysis using the full MobileNetV3 model. This mode requires a stable internet connection.\n\nOnline mode advantages:\n• Higher accuracy using the full server-side model\n• Automatic model updates without needing to update the app\n\nOffline Mode\n\nIn offline mode, analysis is performed directly on your device using TensorFlow Lite. This mode works without an internet connection.\n\nOffline mode advantages:\n• Works in locations without internet signal\n• Faster processing since no data is sent to the server\n• Image data stays on your device (more private)\n\nWhen to Use Each?\n\nUse online mode when you have a stable internet connection and need the highest accuracy results. Use offline mode when in the field without signal or when you need instant results.\n\nThe app will automatically switch to offline mode if the server cannot be reached.</string>
 
     <string name="guide_app_title_3">Understanding Classification Results</string>
-    <string name="guide_app_summary_3">How to read confidence scores and understand the reliability of detection results.</string>
-    <string name="guide_app_body_3" formatted="false">Confidence Score\n\nEvery breed identification result includes a confidence score as a percentage. This score indicates the model confidence in the predicted breed.\n\nConfidence Levels\n\n• High (≥80%): The model is very confident in the result.\n• Medium (60–79%): The model is fairly confident; rescan with a clearer photo or from a different angle.\n• Low (&lt;60%): The model is uncertain. Rescan with better photo conditions.\n\nPer-Class Scores\n\nBesides the main breed, the app displays scores for Bali, Brahman, Brangus, and Limousin. This helps you see the distribution of model output scores.\n\nWhen to Rescan?\n\n• Confidence score below 60%\n• Photo taken was blurry or poorly lit\n• Result does not match the visible cattle characteristics\n\nImportant: Results from this app are an image classification aid, not a substitute for expert livestock assessment.</string>
+    <string name="guide_app_summary_3">How to read confidence and all four identification scores.</string>
+    <string name="guide_app_body_3">Confidence and all four identification scores are shown. The confidence value expresses the model relative output for the selected breed, not proof of identity. Use the labels and numbers as supporting information. The camera or gallery does not validate the object in the image.</string>
 
     <!-- Guide: Bali -->
-    <string name="guide_bali_title_1">Bali Cattle Identification</string>
-    <string name="guide_bali_summary_1">Visual characteristics that help distinguish Bali cattle in an image.</string>
-    <string name="guide_bali_body_1" formatted="false">Bali cattle are a local Indonesian breed commonly recognized by a compact body, a distinctive coat, and a dark line along the back. Color and body shape can vary with age, sex, and management.\n\nFor a useful image, capture the whole side of the animal in clear, even light. Use this guide together with the model scores; a photo alone is not a pedigree certificate.</string>
+    <string name="guide_bali_title_1">Bali Cattle Profile</string>
+    <string name="guide_bali_summary_1">Common traits, strengths, and limitations of Bali cattle for supporting information.</string>
+    <string name="guide_bali_body_1" formatted="false">Profile Summary\n\nBali cattle are commonly recognized by a relatively compact body, reddish-brown coat, white rump patch, and white lower legs.\n\nStrengths\n\n• Distinctive color markings can support visual comparison in a clear image\n• A compact build provides another cue when reviewing the model result\n\nLimitations\n\n• Color can vary with sex, age, lighting, and the individual animal\n• Camera angle, dirt, or crossbreeding can obscure visual traits\n\nThese are general traits, not proof of pedigree or an absolute recommendation.</string>
 
     <string name="guide_bali_title_2">Bali Cattle Coat and Build</string>
     <string name="guide_bali_summary_2">Coat, proportions, and visible structure to review during identification.</string>
-    <string name="guide_bali_body_2">Look for the overall combination rather than one isolated feature:\n• Compact proportions and a moderate frame\n• A coat that may range from reddish brown to dark brown depending on sex and age\n• A darker dorsal line and darker lower legs are common visual clues\n• A light rump area may be visible in some animals\n\nKeep the camera level with the animal and avoid cropped legs, heavy shadows, or obstructing objects.</string>
+    <string name="guide_bali_body_2">Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.</string>
 
     <string name="guide_bali_title_3">Comparing Bali Cattle in Photos</string>
     <string name="guide_bali_summary_3">A practical checklist for consistent image-based comparison.</string>
-    <string name="guide_bali_body_3">Before comparing a photo, check the same cues across all candidates:\n• Side angle with the body fully visible\n• Neutral posture on level ground\n• Even lighting without a strong color cast\n• Enough detail to inspect the coat and back line\n\nReview the Bali score alongside the other three class scores. If the scores are close, treat the result as uncertain and capture another angle.</string>
+    <string name="guide_bali_body_3">Comparing Results\n\nUse similar framing and lighting when comparing images. Review this breed score alongside the other three class scores and record the image context.\n\nScores are relative model outputs. The app does not validate the object, pedigree, or individual identity.</string>
 
-    <string name="guide_bali_title_4">Using a Bali Profile Responsibly</string>
-    <string name="guide_bali_summary_4">How to combine the profile, image quality, and model confidence.</string>
-    <string name="guide_bali_body_4">Use the profile as supporting information for breed identification. Confirm important decisions with farm records or a qualified livestock professional.\n\nA clear image can still produce an uncertain classification. Retake the photo when the animal is too small, blurred, poorly lit, or partly hidden. Never treat a model result as proof of lineage or registration.</string>
+    <string name="guide_bali_title_4">Bali Profile Limitations</string>
+    <string name="guide_bali_summary_4">How to use strengths and limitations without treating them as an absolute recommendation.</string>
+    <string name="guide_bali_body_4">Profile Limitations\n\nThis information is general and does not represent every individual animal. The profile does not assess condition, quality, management needs, or purchasing and breeding decisions.\n\nThe model result is image classification, not proof of pedigree or registration. Use herd records and qualified professional advice for important decisions.</string>
 
     <!-- Guide: Brahman -->
-    <string name="guide_brahman_title_1">Brahman Cattle Identification</string>
-    <string name="guide_brahman_summary_1">Visual characteristics that help distinguish Brahman cattle in an image.</string>
-    <string name="guide_brahman_body_1" formatted="false">Brahman cattle are known for a prominent shoulder hump, loose skin, and long ears. Coat colors commonly range from light gray to red, and individual appearance varies with age and management.\n\nFor a useful image, capture the whole side of the animal and include the shoulder, head, and ears. Use the profile with the model scores; an image result is not proof of pedigree.</string>
+    <string name="guide_brahman_title_1">Brahman Cattle Profile</string>
+    <string name="guide_brahman_summary_1">Common traits, strengths, and limitations of Brahman cattle for supporting information.</string>
+    <string name="guide_brahman_body_1" formatted="false">Profile Summary\n\nBrahman cattle commonly have a shoulder hump, long ears, and loose skin; their coat color can vary.\n\nStrengths\n\n• The hump, ears, and skin folds provide several distinct visual cues\n• The head and shoulder silhouette can support comparison in a full-body image\n\nLimitations\n\n• Coat-color variation means color alone is insufficient for identification\n• A frontal or cropped image can hide the hump and body proportions\n\nThese are general traits, not proof of pedigree or an absolute recommendation.</string>
 
     <string name="guide_brahman_title_2">Brahman Cattle Coat and Build</string>
     <string name="guide_brahman_summary_2">Coat, proportions, and visible structure to review during identification.</string>
-    <string name="guide_brahman_body_2">Review the combination of visible cues:\n• A defined hump over the shoulders\n• Loose skin under the neck and along the body\n• Long, drooping ears and a relatively long face\n• Light gray, silver, or red coat variations\n\nKeep the camera level with the animal. Avoid cropped ears, heavy shadows, and poses that hide the shoulder profile.</string>
+    <string name="guide_brahman_body_2">Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.</string>
 
     <string name="guide_brahman_title_3">Comparing Brahman Cattle in Photos</string>
     <string name="guide_brahman_summary_3">A practical checklist for consistent image-based comparison.</string>
-    <string name="guide_brahman_body_3">Use consistent framing when comparing photos:\n• Show the full body from a side or three-quarter angle\n• Keep the head and shoulder hump visible\n• Use even lighting and a neutral background\n• Compare the same features across candidate animals\n\nReview the Brahman score with the other three class scores. Close scores indicate that another clear photo may help.</string>
+    <string name="guide_brahman_body_3">Comparing Results\n\nUse similar framing and lighting when comparing images. Review this breed score alongside the other three class scores and record the image context.\n\nScores are relative model outputs. The app does not validate the object, pedigree, or individual identity.</string>
 
-    <string name="guide_brahman_title_4">Using a Brahman Profile Responsibly</string>
-    <string name="guide_brahman_summary_4">How to combine the profile, image quality, and model confidence.</string>
-    <string name="guide_brahman_body_4">Use this profile as supporting information for breed identification. Confirm important decisions with farm records or a qualified livestock professional.\n\nRetake the image when the animal is too small, blurred, poorly lit, or partly hidden. Do not treat a model result as proof of lineage or registration.</string>
+    <string name="guide_brahman_title_4">Brahman Profile Limitations</string>
+    <string name="guide_brahman_summary_4">How to use strengths and limitations without treating them as an absolute recommendation.</string>
+    <string name="guide_brahman_body_4">Profile Limitations\n\nThis information is general and does not represent every individual animal. The profile does not assess condition, quality, management needs, or purchasing and breeding decisions.\n\nThe model result is image classification, not proof of pedigree or registration. Use herd records and qualified professional advice for important decisions.</string>
 
     <!-- Guide: Brangus -->
-    <string name="guide_brangus_title_1">Brangus Cattle Identification</string>
-    <string name="guide_brangus_summary_1">Visual characteristics that help distinguish Brangus cattle in an image.</string>
-    <string name="guide_brangus_body_1">Brangus cattle commonly have a black coat, a muscular body, and features combining Brahman and Angus characteristics. Individual appearance varies with age, sex, and management.\n\nCapture the whole side of the animal in even light. Use this profile together with the model scores; an image result is not proof of pedigree.</string>
+    <string name="guide_brangus_title_1">Brangus Cattle Profile</string>
+    <string name="guide_brangus_summary_1">Common traits, strengths, and limitations of Brangus cattle for supporting information.</string>
+    <string name="guide_brangus_body_1">Profile Summary\n\nBrangus is a composite of Brahman and Angus; cattle are commonly solidly built, black or red, and polled.\n\nStrengths\n\n• A solid build combined with a polled head provides a distinct visual context\n• A relatively uniform coat can support comparison when lighting is adequate\n\nLimitations\n\n• Composite traits can overlap with Angus, Brahman, and other crossbred cattle\n• Dark coats can lose body detail in shadows or underexposed images\n\nThese are general traits, not proof of pedigree or an absolute recommendation.</string>
 
     <string name="guide_brangus_title_2">Brangus Cattle Coat and Build</string>
     <string name="guide_brangus_summary_2">Coat, proportions, and visible structure to review during identification.</string>
-    <string name="guide_brangus_body_2">Review the combination of visible cues:\n• A black or very dark coat is common\n• A muscular body with a strong back and hindquarters\n• Ears may show the longer character associated with Brahman influence\n• Skin and shoulder shape may show Brahman influence\n\nAvoid lighting that removes detail from the dark coat. Include the head, shoulder, and legs when possible.</string>
+    <string name="guide_brangus_body_2">Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.</string>
+    <string name="guide_brangus_title_3">Comparing a Brangus Profile</string>
+    <string name="guide_brangus_summary_3">How to review visible traits and four scores consistently.</string>
+    <string name="guide_brangus_body_3">Comparing Results\n\nUse similar framing and lighting when comparing images. Review this breed score alongside the other three class scores and record the image context.\n\nScores are relative model outputs. The app does not validate the object, pedigree, or individual identity.</string>
 
     <!-- Guide: Limusin -->
-    <string name="guide_limusin_title_1">Limousin Cattle Identification</string>
-    <string name="guide_limusin_summary_1">Visual characteristics that help distinguish Limousin cattle in an image.</string>
-    <string name="guide_limusin_body_1">Limousin cattle commonly have a golden-red to reddish-brown coat, a muscular body, and strong hindquarters. Individual appearance varies with age, sex, and management.\n\nCapture the whole side of the animal in even light. Use this profile together with the model scores; an image result is not proof of pedigree.</string>
+    <string name="guide_limusin_title_1">Limousin Cattle Profile</string>
+    <string name="guide_limusin_summary_1">Common traits, strengths, and limitations of Limousin cattle for supporting information.</string>
+    <string name="guide_limusin_body_1">Profile Summary\n\nLimousin cattle commonly have a muscular build, golden-red to reddish-brown coat, and lighter coloring around the eyes or muzzle.\n\nStrengths\n\n• Muscling and hindquarter proportions provide a characteristic visual context\n• Lighter facial coloring can support comparison in a sharp image\n\nLimitations\n\n• Coat color and horn status can vary by bloodline and individual animal\n• Pose and camera angle can make muscling appear different\n\nThese are general traits, not proof of pedigree or an absolute recommendation.</string>
 
     <string name="guide_limusin_title_2">Limousin Cattle Coat and Build</string>
     <string name="guide_limusin_summary_2">Coat, proportions, and visible structure to review during identification.</string>
-    <string name="guide_limusin_body_2">Review the combination of visible cues:\n• A characteristic golden-red or reddish-brown coat\n• A muscular body with a developed chest and hindquarters\n• The muzzle and area around the eyes may appear lighter\n• Strong legs with a balanced posture\n\nUse a side or three-quarter angle with the head, shoulder, and legs visible. Retake the photo if shadows hide the color or structure.</string>
+    <string name="guide_limusin_body_2">Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.</string>
 
     <!-- About -->
     <string name="about_title">About</string>
@@ -271,13 +280,13 @@
     <string name="settings_text_size_large">Large</string>
 
     <string name="settings_clear_history">Clear All History</string>
-    <string name="settings_clear_history_message">Permanently delete all examination history? This is an immediate permanent purge of all records and associated files. This cannot be undone.</string>
+    <string name="settings_clear_history_message">Permanently delete all identification history? This is an immediate permanent purge of all records and associated files. This cannot be undone.</string>
     <string name="settings_reset_onboarding">Reset Onboarding</string>
     <string name="settings_reset_onboarding_message">Show the introduction guide again?</string>
     <string name="settings_history_cleared">All history cleared</string>
     <string name="settings_onboarding_reset">Onboarding reset</string>
     <string name="settings_upload_consent">Upload Images to Server</string>
-    <string name="settings_upload_consent_description">If disabled, only offline detection will be used. Images will not be sent to the server.</string>
+    <string name="settings_upload_consent_description">If disabled, only offline identification will be used. Images will not be sent to the server.</string>
     <string name="settings_crash_reporting">Crash Reporting</string>
     <string name="settings_crash_reporting_description">Allow sending anonymous crash reports to help improve app quality.</string>
     <string name="settings_purge_deleted">Purge Expired Deleted Records</string>
@@ -301,7 +310,7 @@
     <string name="consent_info_optional">Image upload to the server is optional</string>
     <string name="consent_info_exif">EXIF metadata is removed before upload</string>
     <string name="consent_info_no_retention">Server does not retain images after analysis</string>
-    <string name="consent_info_offline">Offline detection is available if upload is declined</string>
+    <string name="consent_info_offline">Offline identification is available if upload is declined</string>
     <string name="consent_btn_allow">Allow</string>
     <string name="consent_btn_offline">Use Offline</string>
     <string name="settings_app_version">App Version</string>
@@ -310,7 +319,7 @@
     <string name="settings_privacy_exif">EXIF metadata is removed before upload</string>
     <string name="settings_privacy_no_retention">Server does not retain images after analysis</string>
     <string name="settings_privacy_local_history">Scan history is stored locally on device</string>
-    <string name="settings_privacy_offline">Offline detection available without sending data</string>
+    <string name="settings_privacy_offline">Offline identification available without sending data</string>
     <string name="settings_privacy_location">Location data is stored locally only, never uploaded</string>
 
     <!-- Quality Gate -->

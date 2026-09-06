@@ -1,6 +1,5 @@
 package id.sapikenal.app.ui.result
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.StringRes
@@ -55,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -68,9 +68,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import id.sapikenal.app.R
+import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
-import id.sapikenal.app.domain.model.ImageSource
 import id.sapikenal.app.domain.model.InferenceMode
 import id.sapikenal.app.domain.model.LocationSource
 import id.sapikenal.app.ui.theme.SapiKenalColors
@@ -79,6 +79,7 @@ import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 // ════════════════════════════════════════════════════════════════════════
 // Data helpers
@@ -113,27 +114,16 @@ private val defaultClassConfig =
     )
 
 @StringRes
-private fun scoreDisplayNameRes(key: String): Int? =
-    when (key.lowercase()) {
-        "bali" -> R.string.result_breed_bali
-        "brahman" -> R.string.result_breed_brahman
-        "brangus" -> R.string.result_breed_brangus
-        "limusin" -> R.string.result_breed_limusin
-        else -> null
-    }
+private fun scoreDisplayNameRes(key: String): Int? = BreedContract.find(key)?.displayNameResId
 
 @StringRes
-private fun modeLabelRes(mode: String): Int =
-    when (mode.uppercase()) {
-        "ONLINE" -> R.string.result_mode_online
-        else -> R.string.result_mode_offline
-    }
+internal fun modeLabelRes(mode: String): Int = InferenceMode.parse(mode).labelResId
 
-private fun modeColor(mode: String): Color =
-    if (mode.uppercase() == "ONLINE") {
-        SapiKenalColors.Primary
-    } else {
-        SapiKenalColors.Secondary
+internal fun modeColor(mode: String): Color =
+    when (InferenceMode.parse(mode)) {
+        InferenceMode.ONLINE -> SapiKenalColors.Primary
+        InferenceMode.OFFLINE, InferenceMode.OFFLINE_FALLBACK -> SapiKenalColors.Secondary
+        InferenceMode.UNKNOWN -> SapiKenalColors.TextSecondary
     }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -153,6 +143,7 @@ fun ResultRoute(
     fromHistory: Boolean = false,
     appVersion: String? = null,
     modelVersion: String? = null,
+    initialResult: DetectionResult? = null,
     consentStatus: ConsentStatus = ConsentStatus.UNDECIDED,
     onBack: () -> Unit,
     onNavigateToGuide: (String) -> Unit = {},
@@ -161,16 +152,22 @@ fun ResultRoute(
     val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
     val selectedDetection by viewModel.selectedDetection.collectAsStateWithLifecycle()
-    val confidencePercent = (confidence.coerceIn(0f, 1f) * 100).toInt()
-    val config = classConfigs[label.lowercase()] ?: defaultClassConfig
-    val scannedAt = if (scanTimestamp > 0L) Date(scanTimestamp) else Date()
+    val displayedResult = selectedDetection ?: initialResult
+    val isHistoryRecordLoading = fromHistory && detectionId != null && selectedDetection == null
+    val displayLabelKey = displayedResult?.label ?: label
+    val confidencePercent = ((displayedResult?.confidence ?: confidence).coerceIn(0f, 1f) * 100).toInt()
+    val config = classConfigs[displayLabelKey.trim().lowercase(Locale.ROOT)] ?: defaultClassConfig
+    val scannedAt =
+        Date(
+            (displayedResult?.timestamp ?: scanTimestamp).takeIf { it > 0L } ?: System.currentTimeMillis(),
+        )
     val scannedAtText = SimpleDateFormat("dd MMM yyyy, HH:mm", locale).format(scannedAt)
-    val modeLabel = stringResource(modeLabelRes(mode))
+    val modeName = displayedResult?.inferenceMode?.name ?: mode
+    val modeLabel = stringResource(displayedResult?.inferenceMode?.labelResId ?: modeLabelRes(mode))
     val displayName = stringResource(config.displayNameResId)
-    val modeBadgeColor = modeColor(mode)
+    val modeBadgeColor = modeColor(modeName)
 
-    // Parse scores map
-    val allScores: Map<String, Float> =
+    val routeScores: Map<String, Float> =
         remember(allScoresJson) {
             try {
                 val json = JSONObject(allScoresJson)
@@ -181,44 +178,32 @@ fun ResultRoute(
                 emptyMap()
             }
         }
+    val allScores = displayedResult?.allScores ?: routeScores
 
     val snackbarHostState = androidx.compose.runtime.remember { SnackbarHostState() }
     val noteSaved by viewModel.noteSaved.collectAsStateWithLifecycle()
-    val noteTitle = selectedDetection?.title?.takeIf { it.isNotBlank() }
-    val noteDescription = selectedDetection?.description?.takeIf { it.isNotBlank() }
-    // Resolve metadata from persisted detection when viewing from history
-    val resolvedConsentStatus = selectedDetection?.consentStatus ?: consentStatus
-    val resolvedAppVersion = selectedDetection?.appVersion ?: appVersion
-    val resolvedModelVersion = selectedDetection?.modelVersion ?: modelVersion
-    val resolvedPreprocessingSummary = selectedDetection?.preprocessingSummary
-    val resolvedImageSource = selectedDetection?.imageSource
-    val resolvedLatitude = selectedDetection?.latitude
-    val resolvedLongitude = selectedDetection?.longitude
-    val resolvedLocationSource = selectedDetection?.locationSource
+    val noteTitle = displayedResult?.title?.takeIf { it.isNotBlank() }
+    val noteDescription = displayedResult?.description?.takeIf { it.isNotBlank() }
+    // History metadata is read only from the persisted result; fresh scans use
+    // the complete result passed by the camera flow.
+    val resolvedConsentStatus = displayedResult?.consentStatus ?: if (!fromHistory) consentStatus else ConsentStatus.UNDECIDED
+    val resolvedAppVersion = displayedResult?.appVersion ?: if (!fromHistory) appVersion else null
+    val resolvedModelVersion = displayedResult?.modelVersion ?: if (!fromHistory) modelVersion else null
+    val resolvedPreprocessingSummary = displayedResult?.preprocessingSummary
+    val resolvedImageSource = displayedResult?.imageSource
+    val resolvedLatitude = displayedResult?.latitude
+    val resolvedLongitude = displayedResult?.longitude
+    val resolvedLocationSource = displayedResult?.locationSource
+    val isExportReady = selectResultForExport(fromHistory, selectedDetection, initialResult) != null
+    val exportLoadingMessage = stringResource(R.string.result_export_loading)
     val savedMessage = stringResource(R.string.result_saved)
 
-    // Build the DetectionResult used for PDF export/share. Prefer the persisted
-    // detection (richest metadata); fall back to route params for a freshly
-    // produced result that may not be loaded from the DB yet.
-    fun buildExportResult(): DetectionResult {
-        selectedDetection?.let { return it }
-        return DetectionResult(
-            id = detectionId ?: 0L,
-            imagePath = imageRef.takeIf { it.isNotBlank() },
-            label = label,
-            displayLabel = displayName,
-            confidence = confidence,
-            isReliable = confidence >= 0.60f,
-            allScores = allScores,
-            inferenceMode =
-                runCatching { InferenceMode.valueOf(mode.uppercase()) }
-                    .getOrDefault(InferenceMode.OFFLINE),
-            consentStatus = consentStatus,
-            timestamp = if (scanTimestamp > 0L) scanTimestamp else System.currentTimeMillis(),
-            appVersion = appVersion,
-            modelVersion = modelVersion,
+    fun buildExportResult(): DetectionResult? =
+        selectResultForExport(
+            fromHistory = fromHistory,
+            persistedResult = selectedDetection,
+            freshResult = initialResult,
         )
-    }
     LaunchedEffect(detectionId) {
         viewModel.setDetectionId(detectionId)
     }
@@ -233,30 +218,35 @@ fun ResultRoute(
     val pdfError by viewModel.pdfError.collectAsStateWithLifecycle()
     val pdfExportedMessage = stringResource(R.string.result_pdf_exported)
     val pdfFailedMessage = stringResource(R.string.result_pdf_failed)
+    var shareRequested by rememberSaveable { mutableStateOf(false) }
+
+    fun exportPdf(share: Boolean) {
+        buildExportResult()?.let {
+            shareRequested = share
+            viewModel.exportPdf(it)
+        }
+    }
 
     LaunchedEffect(pdfPath) {
         pdfPath?.let { path ->
-            // Share the generated PDF
-            val file = java.io.File(path)
-            if (file.exists()) {
-                val uri =
-                    androidx.core.content.FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.fileprovider",
-                        file,
-                    )
-                val intent =
-                    Intent(Intent.ACTION_SEND).apply {
-                        type = "application/pdf"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.result_share_title))
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (shareRequested) {
+                val file = File(path)
+                if (file.exists()) {
+                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                    val intent =
+                        Intent(Intent.ACTION_SEND).apply {
+                            type = "application/pdf"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.result_share_title))
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                    runCatching {
+                        context.startActivity(Intent.createChooser(intent, context.getString(R.string.result_share_chooser)))
                     }
-                runCatching {
-                    context.startActivity(Intent.createChooser(intent, context.getString(R.string.result_share_chooser)))
                 }
             }
             snackbarHostState.showSnackbar(pdfExportedMessage)
+            shareRequested = false
             viewModel.consumePdfPath()
         }
     }
@@ -322,7 +312,7 @@ fun ResultRoute(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(R.string.result_diagnosis),
+                        stringResource(R.string.result_identification),
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
@@ -355,7 +345,7 @@ fun ResultRoute(
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
             ) {
-                val model = resolveImageModel(imageRef)
+                val model = resolveImageModel(displayedResult?.imagePath ?: imageRef)
                 if (model != null) {
                     AsyncImage(
                         model = model,
@@ -476,24 +466,24 @@ fun ResultRoute(
             )
             Spacer(Modifier.height(12.dp))
 
-            val sortedScores = allScores.entries.sortedByDescending { it.value }
-            if (sortedScores.isEmpty()) {
-                Text(
-                    text = "—",
-                    color = SapiKenalColors.TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium,
+            val sortedScores =
+                BreedContract.CANONICAL_LABELS
+                    .mapNotNull { key -> allScores[key]?.let { score -> key to score } }
+                    .sortedByDescending { it.second }
+            sortedScores.forEach { (key, score) ->
+                val isHighlighted = isLabelMatch(key, config.labelKey)
+                ScoreRow(
+                    label = stringResource(scoreDisplayNameRes(key)!!),
+                    score = score,
+                    isHighlighted = isHighlighted,
+                    color = config.color,
+                    accessibilityDescription =
+                        "${stringResource(
+                            scoreDisplayNameRes(key)!!,
+                        )}, ${stringResource(R.string.result_confidence)} ${(score.coerceIn(0f, 1f) * 100).toInt()}%" +
+                            if (isHighlighted) ", ${stringResource(R.string.result_identification)}" else "",
                 )
-            } else {
-                sortedScores.forEach { (key, score) ->
-                    val isHighlighted = isLabelMatch(key, config.labelKey)
-                    ScoreRow(
-                        label = scoreDisplayNameRes(key)?.let { stringResource(it) } ?: key.replace("_", " "),
-                        score = score,
-                        isHighlighted = isHighlighted,
-                        color = config.color,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                }
+                Spacer(Modifier.height(8.dp))
             }
 
             Spacer(Modifier.height(20.dp))
@@ -528,16 +518,9 @@ fun ResultRoute(
             TextButton(
                 onClick = {
                     // Use canonical label and fall back to substring matching for robustness
-                    val canonicalLabel = (selectedDetection?.label ?: label).lowercase()
-                    val guideArticleId =
-                        when {
-                            canonicalLabel == "bali" -> "bali_1"
-                            canonicalLabel == "brahman" -> "brahman_1"
-                            canonicalLabel == "brangus" -> "brangus_1"
-                            canonicalLabel == "limusin" -> "limusin_1"
-                            else -> "bali_1"
-                        }
-                    onNavigateToGuide(guideArticleId)
+                    val canonicalLabel = (displayedResult?.label ?: label).lowercase()
+                    val guideArticleId = BreedContract.find(canonicalLabel)?.guideArticleId
+                    guideArticleId?.let(onNavigateToGuide)
                 },
             ) {
                 Text(
@@ -660,19 +643,17 @@ fun ResultRoute(
         ) {
             // Share now generates and shares a PDF report (not plain text)
             OutlinedButton(
-                onClick = {
-                    selectedDetection?.let { viewModel.exportPdf(it) }
-                },
+                onClick = { exportPdf(share = false) },
                 modifier = Modifier.weight(1f),
-                enabled = selectedDetection != null,
+                enabled = isExportReady && !isHistoryRecordLoading,
             ) {
-                Text(stringResource(R.string.result_btn_share))
+                Text(if (isHistoryRecordLoading) exportLoadingMessage else stringResource(R.string.result_btn_export_pdf))
             }
             if (detectionId != null) {
                 Button(
                     onClick = {
-                        saveTitle = selectedDetection?.title.orEmpty()
-                        saveDesc = selectedDetection?.description.orEmpty()
+                        saveTitle = displayedResult?.title.orEmpty()
+                        saveDesc = displayedResult?.description.orEmpty()
                         showSaveDialog = true
                     },
                     modifier = Modifier.weight(1f),
@@ -684,6 +665,20 @@ fun ResultRoute(
                     Text(stringResource(if (fromHistory) R.string.result_btn_edit else R.string.result_btn_save))
                 }
             }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Button(
+            onClick = { exportPdf(share = true) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = isExportReady && !isHistoryRecordLoading,
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = SapiKenalColors.Primary,
+                ),
+        ) {
+            Text(if (isHistoryRecordLoading) exportLoadingMessage else stringResource(R.string.result_btn_share))
         }
     }
 
@@ -746,9 +741,14 @@ private fun ScoreRow(
     score: Float,
     isHighlighted: Boolean,
     color: Color,
+    accessibilityDescription: String,
 ) {
+    val percentage = (score.coerceIn(0f, 1f) * 100).toInt()
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clearAndSetSemantics { contentDescription = accessibilityDescription },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Highlighted / normal circle
@@ -783,7 +783,7 @@ private fun ScoreRow(
 
         // Percentage
         Text(
-            text = "${(score * 100).toInt()}%",
+            text = "$percentage%",
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.width(38.dp),
             textAlign = TextAlign.End,

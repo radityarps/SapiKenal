@@ -22,6 +22,7 @@ class HistoryViewModelTest {
         consentStatus: ConsentStatus = ConsentStatus.ALLOWED,
         imageSource: ImageSource? = ImageSource.CAMERA,
         appVersion: String? = "1.0.0",
+        modelVersion: String? = "sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32",
         title: String? = null,
         description: String? = null,
     ) = DetectionResult(
@@ -36,6 +37,7 @@ class HistoryViewModelTest {
         timestamp = 1700000000000L,
         imageSource = imageSource,
         appVersion = appVersion,
+        modelVersion = modelVersion,
         title = title,
         description = description,
     )
@@ -55,6 +57,7 @@ class HistoryViewModelTest {
             description = description,
             imageSource = imageSource?.name,
             appVersion = appVersion,
+            modelVersion = modelVersion,
             consentStatus = consentStatus.name,
         )
 
@@ -84,6 +87,13 @@ class HistoryViewModelTest {
         val result = createDetectionResult(appVersion = "2.1.0")
         val ui = result.toHistoryItemUiFields()
         assertEquals("2.1.0", ui.appVersion)
+    }
+
+    @Test
+    fun `mapping preserves modelVersion`() {
+        val result = createDetectionResult(modelVersion = "model-v2")
+        val ui = result.toHistoryItemUiFields()
+        assertEquals("model-v2", ui.modelVersion)
     }
 
     @Test
@@ -135,6 +145,13 @@ class HistoryViewModelTest {
         val result = createDetectionResult(inferenceMode = InferenceMode.OFFLINE)
         val ui = result.toHistoryItemUiFields()
         assertEquals("OFFLINE", ui.mode)
+    }
+
+    @Test
+    fun `mapping preserves mode OFFLINE_FALLBACK`() {
+        val result = createDetectionResult(inferenceMode = InferenceMode.OFFLINE_FALLBACK)
+        val ui = result.toHistoryItemUiFields()
+        assertEquals("OFFLINE_FALLBACK", ui.mode)
     }
 
     @Test

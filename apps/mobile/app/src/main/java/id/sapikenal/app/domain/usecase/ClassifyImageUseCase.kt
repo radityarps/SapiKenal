@@ -87,7 +87,9 @@ class ClassifyImageUseCase
                     imageUri,
                     updateDetectionId,
                 )
-            val savedResult = resultWithMetadata.copy(id = savedId)
+            val savedResult =
+                detectionRepository.observeDetection(savedId).first()
+                    ?: resultWithMetadata.copy(id = savedId)
 
             return ClassifyResponse.Success(savedResult)
         }

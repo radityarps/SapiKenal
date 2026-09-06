@@ -2,8 +2,6 @@ package id.sapikenal.app.ui.camera
 
 import android.Manifest
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -17,9 +15,6 @@ import id.sapikenal.app.domain.model.ClassifyResponse
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.usecase.ClassifyImageUseCase
 import id.sapikenal.app.ml.preprocessing.ClientPreprocessor
-import id.sapikenal.app.ml.quality.ImageQualityGate
-import id.sapikenal.app.ml.quality.QualityResult
-import id.sapikenal.app.ml.quality.RejectionReason
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,8 +33,7 @@ data class CameraUiState(
     val showGrid: Boolean = false,
     val showConsentPanel: Boolean = false,
     val pendingImageUri: Uri? = null,
-    val qualityRejection: Set<RejectionReason>? = null,
-    val rejectedImageIsFromCamera: Boolean = true,
+    val pendingImageIsFromCamera: Boolean = true,
 )
 
 @HiltViewModel
@@ -53,8 +47,6 @@ class CameraViewModel
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(CameraUiState())
         val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
-
-        private val qualityGate = ImageQualityGate()
 
         // Track detection ID for retake/update scenario
         private val _updateDetectionId = MutableStateFlow<Long?>(null)
@@ -103,19 +95,17 @@ class CameraViewModel
                     _uiState.value.copy(
                         isLoading = true,
                         error = null,
-                        qualityRejection = null,
                         progressText = appContext.getString(R.string.camera_processing),
                     )
 
-                // 1. Run ClientPreprocessor (EXIF correction + resize) then decode for quality gate
-                val preprocessedJpegBytes: ByteArray
-                val preprocessedBitmap: Bitmap =
+                // Preprocessing is the trust boundary: every successfully decoded image
+                // continues to inference. The product contract intentionally has no
+                // blur/brightness/size rejection gate.
+                val preprocessedJpegBytes =
                     try {
-                        preprocessedJpegBytes = clientPreprocessor.process(imageUri)
-                        BitmapFactory.decodeByteArray(preprocessedJpegBytes, 0, preprocessedJpegBytes.size)
-                            ?: throw IllegalStateException("Failed to decode preprocessed image")
+                        clientPreprocessor.process(imageUri)
                     } catch (e: Exception) {
-                        Log.e("SapiKenal", "ViewModel: Preprocessing failed for quality gate", e)
+                        Log.e("SapiKenal", "ViewModel: Image preprocessing failed", e)
                         _uiState.value =
                             _uiState.value.copy(
                                 isLoading = false,
@@ -125,94 +115,54 @@ class CameraViewModel
                         return@launch
                     }
 
-                // 2. Extract pixels from preprocessed bitmap and evaluate quality gate
-                val qualityResult =
-                    try {
-                        val width = preprocessedBitmap.width
-                        val height = preprocessedBitmap.height
-                        val pixels = IntArray(width * height)
-                        preprocessedBitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-                        preprocessedBitmap.recycle()
-                        qualityGate.evaluate(pixels, width, height)
-                    } catch (e: Exception) {
-                        Log.e("SapiKenal", "ViewModel: Quality gate evaluation failed", e)
-                        preprocessedBitmap.recycle()
-                        _uiState.value =
-                            _uiState.value.copy(
-                                isLoading = false,
-                                progressText = null,
-                                error = appContext.getString(R.string.quality_error_check),
-                            )
-                        return@launch
-                    }
+                runCatching {
+                    classifyImageUseCase.classifyPreprocessed(
+                        preprocessedJpegBytes,
+                        imageUri,
+                        updateDetectionId,
+                        isFromCamera,
+                    )
+                }.onSuccess { response ->
+                    when (response) {
+                        is ClassifyResponse.ConsentRequired -> {
+                            Log.d("SapiKenal", "ViewModel: classify() consent required")
+                            _uiState.value =
+                                _uiState.value.copy(
+                                    showConsentPanel = true,
+                                    pendingImageUri = imageUri,
+                                    pendingImageIsFromCamera = isFromCamera,
+                                    isLoading = false,
+                                    progressText = null,
+                                )
+                        }
 
-                // 3. Handle quality gate result
-                when (qualityResult) {
-                    is QualityResult.Pass -> {
-                        // Proceed with existing inference flow
-                        runCatching {
-                            classifyImageUseCase.classifyPreprocessed(
-                                preprocessedJpegBytes,
-                                imageUri,
-                                updateDetectionId,
-                                isFromCamera,
+                        is ClassifyResponse.Success -> {
+                            val result = response.result
+                            Log.d(
+                                "SapiKenal",
+                                "ViewModel: classify() success — label=${result.label}, confidence=${result.confidence}, mode=${result.inferenceMode}",
                             )
-                        }.onSuccess { response ->
-                            when (response) {
-                                is ClassifyResponse.ConsentRequired -> {
-                                    Log.d("SapiKenal", "ViewModel: classify() consent required")
-                                    _uiState.value =
-                                        _uiState.value.copy(
-                                            showConsentPanel = true,
-                                            pendingImageUri = imageUri,
-                                            isLoading = false,
-                                            progressText = null,
-                                        )
-                                }
-
-                                is ClassifyResponse.Success -> {
-                                    val result = response.result
-                                    Log.d(
-                                        "SapiKenal",
-                                        "ViewModel: classify() success — label=${result.label}, confidence=${result.confidence}, mode=${result.inferenceMode}",
-                                    )
-                                    _uiState.value =
-                                        _uiState.value.copy(
-                                            isLoading = false,
-                                            progressText = null,
-                                        )
-                                    onResult(result)
-                                }
-                            }
-                        }.onFailure { throwable ->
-                            Log.e("SapiKenal", "ViewModel: classify() failed", throwable)
                             _uiState.value =
                                 _uiState.value.copy(
                                     isLoading = false,
                                     progressText = null,
-                                    error =
-                                        throwable.message
-                                            ?: appContext.getString(R.string.camera_processing),
+                                    pendingImageUri = null,
                                 )
+                            onResult(result)
                         }
                     }
-
-                    is QualityResult.Reject -> {
-                        Log.d("SapiKenal", "ViewModel: Quality gate rejected image with reasons=${qualityResult.reasons}")
-                        _uiState.value =
-                            _uiState.value.copy(
-                                isLoading = false,
-                                progressText = null,
-                                qualityRejection = qualityResult.reasons,
-                                rejectedImageIsFromCamera = isFromCamera,
-                            )
-                    }
+                }.onFailure { throwable ->
+                    Log.e("SapiKenal", "ViewModel: classify() failed", throwable)
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoading = false,
+                            progressText = null,
+                            error =
+                                throwable.message
+                                    ?: appContext.getString(R.string.camera_processing),
+                        )
                 }
             }
-        }
-
-        fun clearQualityRejection() {
-            _uiState.value = _uiState.value.copy(qualityRejection = null)
         }
 
         fun setFlashMode(mode: FlashMode) {
@@ -228,7 +178,12 @@ class CameraViewModel
                 _uiState.value = _uiState.value.copy(showConsentPanel = false)
                 // Re-trigger classification with the pending image
                 _uiState.value.pendingImageUri?.let { uri ->
-                    classify(uri, updateDetectionId = _updateDetectionId.value, onResult = onResult)
+                    classify(
+                        uri,
+                        updateDetectionId = _updateDetectionId.value,
+                        isFromCamera = _uiState.value.pendingImageIsFromCamera,
+                        onResult = onResult,
+                    )
                 }
             }
         }

@@ -2,6 +2,7 @@ package id.sapikenal.app.ml
 
 import android.util.Log
 import id.sapikenal.app.data.remote.api.InferenceApiService
+import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.ClassifyFailure
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.InferenceMode
@@ -60,7 +61,7 @@ open class OnlineInferenceClient
 
                     DetectionResult(
                         label = predictedClass,
-                        displayLabel = OfflineInferenceEngine.DISPLAY_LABELS.getValue(predictedClass),
+                        displayLabel = BreedContract.DISPLAY_LABELS.getValue(predictedClass),
                         confidence = prediction.confidence,
                         isReliable = prediction.confidence >= 0.60f,
                         allScores = scores,
@@ -103,6 +104,6 @@ open class OnlineInferenceClient
 
         private companion object {
             const val SCORE_TOLERANCE = 0.01f
-            val EXPECTED_SCORE_KEYS = OfflineInferenceEngine.CANONICAL_LABELS
+            val EXPECTED_SCORE_KEYS = BreedContract.CANONICAL_LABELS
         }
     }

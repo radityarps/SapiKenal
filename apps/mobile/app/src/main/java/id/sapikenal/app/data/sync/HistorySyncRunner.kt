@@ -7,6 +7,7 @@ import id.sapikenal.app.data.local.dao.DetectionDao
 import id.sapikenal.app.data.local.entity.DetectionEntity
 import id.sapikenal.app.data.remote.api.InferenceApiService
 import id.sapikenal.app.data.remote.dto.HistorySyncRequestDto
+import id.sapikenal.app.domain.model.BreedContract
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import org.json.JSONObject
@@ -80,6 +81,6 @@ class HistorySyncRunner
             )
 
         private companion object {
-            val SCORE_KEYS = listOf("bali", "brahman", "brangus", "limusin")
+            val SCORE_KEYS = BreedContract.CANONICAL_LABELS
         }
     }

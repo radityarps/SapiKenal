@@ -30,6 +30,7 @@ data class HistoryItemUi(
     val description: String?,
     val imageSource: String?,
     val appVersion: String?,
+    val modelVersion: String?,
     val consentStatus: String,
 )
 
@@ -116,6 +117,7 @@ class HistoryViewModel
                 description = description,
                 imageSource = imageSource?.name,
                 appVersion = appVersion,
+                modelVersion = modelVersion,
                 consentStatus = consentStatus.name,
             )
         }

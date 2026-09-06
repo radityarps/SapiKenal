@@ -77,6 +77,20 @@ class AcceptanceTestSuite {
     // ══════════════════════════════════════════════════════════════════════
     // Local Scan History (Issue #5)
     // ══════════════════════════════════════════════════════════════════════
+    @Test
+    fun `identification result retains all four breed scores`() {
+        val result = createResult()
+        assertEquals(4, result.allScores.size)
+        assertTrue(result.allScores.keys.containsAll(listOf("bali", "brahman", "brangus", "limusin")))
+    }
+
+    @Test
+    fun `identification result retains mode and confidence for history detail`() {
+        val result = createResult(confidence = 0.31f)
+        assertEquals(InferenceMode.ONLINE, result.inferenceMode)
+        assertEquals(0.31f, result.confidence, 0.001f)
+    }
+
     // Room DAO tests are in DetectionDaoTest.kt and DetectionRepositoryTest.kt
 
     @Test
@@ -157,10 +171,11 @@ class AcceptanceTestSuite {
     @Test
     fun `all inference modes are defined`() {
         val modes = InferenceMode.entries
-        assertEquals(3, modes.size)
+        assertEquals(4, modes.size)
         assertTrue(modes.contains(InferenceMode.ONLINE))
         assertTrue(modes.contains(InferenceMode.OFFLINE))
         assertTrue(modes.contains(InferenceMode.OFFLINE_FALLBACK))
+        assertTrue(modes.contains(InferenceMode.UNKNOWN))
     }
 
     // ══════════════════════════════════════════════════════════════════════

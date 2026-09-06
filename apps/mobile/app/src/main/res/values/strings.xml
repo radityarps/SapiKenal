@@ -52,10 +52,12 @@
     <string name="result_loading_1">Mengunggah gambar…</string>
     <string name="result_loading_2">Menganalisis dengan AI…</string>
     <string name="result_loading_3">Menyiapkan hasil…</string>
-    <string name="result_diagnosis">Hasil Klasifikasi</string>
+    <string name="result_identification">Hasil Identifikasi</string>
     <string name="result_confidence">Keyakinan</string>
     <string name="result_mode_online">Online</string>
     <string name="result_mode_offline">Offline</string>
+    <string name="result_mode_offline_fallback">Fallback offline</string>
+    <string name="result_mode_unknown">Mode tidak diketahui</string>
     <string name="result_btn_save">Simpan</string>
     <string name="result_btn_edit">Edit</string>
     <string name="result_save_dialog_title">Simpan Hasil</string>
@@ -64,6 +66,7 @@
     <string name="result_save_hint_desc">Deskripsi (opsional)</string>
     <string name="result_btn_share">Bagikan</string>
     <string name="result_btn_export_pdf">Ekspor PDF</string>
+    <string name="result_export_loading">Memuat hasil tersimpan…</string>
     <string name="result_pdf_exported">Laporan PDF berhasil dibuat</string>
     <string name="result_pdf_failed">Gagal membuat laporan PDF</string>
     <string name="result_breed_bali">Bali</string>
@@ -74,7 +77,7 @@
     <string name="result_scan_image">Gambar scan</string>
     <string name="result_scanned_at">Waktu scan: %1$s</string>
     <string name="result_share_title">Hasil Klasifikasi SapiKenal</string>
-    <string name="result_share_diagnosis">Kelas prediksi: %1$s</string>
+    <string name="result_share_identification">Hasil identifikasi: %1$s</string>
     <string name="result_share_confidence">Keyakinan: %1$d%% (%2$s)</string>
     <string name="result_share_mode">Mode inferensi: %1$s</string>
     <string name="result_share_class_scores">Skor kelas:</string>
@@ -102,40 +105,41 @@
     <string name="result_consent_allowed">Diizinkan</string>
     <string name="result_consent_denied">Ditolak</string>
     <string name="result_consent_undecided">Belum Ditentukan</string>
-    <string name="result_accessibility_summary">Kelas prediksi: %1$s, keyakinan %2$d persen, mode %3$s</string>
+    <string name="result_accessibility_summary">Jenis terpilih: %1$s, tingkat keyakinan %2$d persen, mode %3$s</string>
 
     <!-- PDF report -->
     <string name="report_date">Tanggal</string>
     <string name="report_predicted_class">Kelas Prediksi</string>
     <string name="report_confidence">Keyakinan</string>
-    <string name="report_reliable">Dapat Diandalkan</string>
-    <string name="report_yes">Ya</string>
-    <string name="report_no">Tidak</string>
     <string name="report_inference_mode">Mode Inferensi</string>
     <string name="report_app_version">Versi Aplikasi</string>
     <string name="report_model_version">Versi Model</string>
+    <string name="report_processing_time">Waktu Pemrosesan</string>
     <string name="report_preprocessing">Prapemrosesan</string>
+    <string name="report_image_source">Sumber Gambar</string>
+    <string name="report_record_title">Judul</string>
+    <string name="report_record_description">Deskripsi</string>
     <string name="report_consent_status">Status Persetujuan</string>
     <string name="report_allowed">Diizinkan</string>
     <string name="report_denied">Ditolak</string>
     <string name="report_undecided">Belum Ditentukan</string>
     <string name="report_coarse_location">Lokasi Perkiraan</string>
-    <string name="report_detection_result">Hasil Klasifikasi</string>
+    <string name="report_detection_result">Hasil Identifikasi</string>
     <string name="report_class_scores">Skor Kelas</string>
     <string name="report_technical_information">Informasi Teknis</string>
     <string name="report_device">Perangkat</string>
     <string name="report_disclaimer">PENAFIAN</string>
     <string name="report_title">SapiKenal — Laporan Klasifikasi</string>
     <string name="report_subtitle">Hasil identifikasi jenis sapi dari model AI.</string>
-    <string name="report_not_clinical_diagnosis">Laporan ini berisi hasil identifikasi jenis sapi dari klasifikasi citra, bukan validasi bahwa objek pada citra adalah sapi.</string>
+    <string name="report_object_validation_limitation">Laporan ini berisi hasil identifikasi jenis sapi dari klasifikasi citra, bukan validasi bahwa objek pada citra adalah sapi.</string>
     <string name="report_not_official_document">Laporan ini bukan bukti identitas individual sapi atau dokumen resmi.</string>
-    <string name="report_consult_veterinarian">Hasil berlaku sebagai informasi pendukung; aplikasi tidak memvalidasi objek atau memberi penilaian di luar empat jenis yang didukung.</string>
+    <string name="report_supported_breeds_limitation">Hasil berlaku sebagai informasi pendukung; aplikasi tidak memvalidasi objek atau memberi penilaian di luar empat jenis yang didukung.</string>
     <string name="report_generated_by">Dibuat oleh SapiKenal</string>
 
     <!-- History -->
-    <string name="history_title">Riwayat Deteksi</string>
-    <string name="history_empty">Belum ada pemeriksaan</string>
-    <string name="history_empty_filter">Tidak ada hasil dengan filter ini</string>
+    <string name="history_title">Riwayat Identifikasi</string>
+    <string name="history_empty">Belum ada hasil identifikasi</string>
+    <string name="history_empty_filter">Tidak ada hasil identifikasi dengan filter ini</string>
     <string name="history_clear_filter">Hapus Filter</string>
     <string name="history_filter_all">Semua</string>
     <string name="history_filter_bali">Bali</string>
@@ -144,14 +148,16 @@
     <string name="history_filter_limusin">Limusin</string>
     <string name="history_filter_online">Online</string>
     <string name="history_filter_offline">Offline</string>
-    <string name="history_delete_title">Hapus Pemeriksaan</string>
-    <string name="history_delete_message">Hapus hasil pemeriksaan ini?</string>
+    <string name="history_filter_offline_fallback">Fallback offline</string>
+    <string name="history_filter_unknown">Mode tidak diketahui</string>
+    <string name="history_delete_title">Hapus Hasil Identifikasi</string>
+    <string name="history_delete_message">Hapus hasil identifikasi ini?</string>
     <string name="history_delete_all_title">Hapus Semua</string>
-    <string name="history_delete_all_message">Hapus semua riwayat pemeriksaan?</string>
-    <string name="history_deleted">Pemeriksaan dihapus</string>
+    <string name="history_delete_all_message">Hapus semua riwayat identifikasi?</string>
+    <string name="history_deleted">Hasil identifikasi dihapus</string>
     <string name="history_undo">Urungkan</string>
     <string name="history_all_deleted">Semua riwayat dihapus</string>
-    <string name="history_detail_tap">Ketuk untuk melihat detail</string>
+    <string name="history_detail_tap">Ketuk untuk melihat detail hasil identifikasi</string>
     <string name="history_confidence_percent">%1$d%% yakin</string>
 
     <!-- Guide -->
@@ -172,67 +178,71 @@
     <!-- Guide: App Usage -->
     <string name="guide_app_title_1">Memulai Scan Pertama</string>
     <string name="guide_app_summary_1">Panduan lengkap menggunakan fitur scan untuk mengidentifikasi jenis sapi Anda.</string>
-    <string name="guide_app_body_1">Cara Melakukan Scan\n\nBuka aplikasi SapiKenal dan pastikan Anda berada di tab Periksa. Arahkan kamera ke sapi yang ingin diperiksa.\n\nTips Mengambil Foto yang Baik\n\n• Prioritaskan foto jarak dekat pada area yang menunjukkan gejala (mulut, kuku, atau kulit)\n• Pastikan area gejala memenuhi sebagian besar bingkai dan terlihat jelas\n• Pastikan pencahayaan cukup dan hindari bayangan pada area gejala\n• Posisikan kamera sejajar dengan area gejala, bukan dari atas\n• Hindari gambar buram, terlalu jauh, atau terhalang objek lain\n\nSetelah Mengambil Foto\n\nAplikasi akan memproses gambar dan menampilkan hasil klasifikasi dalam beberapa detik. Hasil mencakup kelas prediksi, tingkat kepercayaan (confidence score), dan saran penanganan.\n\nAnda juga dapat memilih gambar dari galeri dengan menekan ikon galeri di bagian bawah layar kamera.</string>
+    <string name="guide_app_body_1">Cara Melakukan Identifikasi\n\nBuka aplikasi SapiKenal dan pilih tab Periksa. Arahkan kamera ke sapi dengan tubuh dan ciri jenis terlihat jelas di dalam bingkai. Anda juga dapat memilih citra dari galeri.\n\nTips Mengambil Citra\n\n• Tampilkan tubuh sapi dari samping atau sudut tiga perempat\n• Pastikan kepala, bahu, dan kaki terlihat jika memungkinkan\n• Gunakan pencahayaan merata dan hindari bayangan kuat\n• Jaga kamera tetap stabil dan hindari citra buram\n• Jangan menganggap kamera atau galeri telah memvalidasi objek pada citra\n\nSetelah Citra Dipilih\n\nAplikasi memproses citra dan menampilkan satu jenis teratas, tingkat keyakinan, serta skor Bali, Brahman, Brangus, dan Limusin. Hasil ini adalah klasifikasi model, bukan bukti silsilah atau identitas individual.</string>
 
     <string name="guide_app_title_2">Mode Online vs Offline</string>
     <string name="guide_app_summary_2">Perbedaan antara mode inferensi online dan offline, serta kapan menggunakan masing-masing.</string>
-    <string name="guide_app_body_2">Mode Online\n\nPada mode online, gambar dikirim ke server untuk dianalisis menggunakan model MobileNetV3 dengan akurasi penuh. Mode ini memerlukan koneksi internet yang stabil.\n\nKelebihan mode online:\n• Akurasi lebih tinggi karena menggunakan model lengkap di server\n• Pembaruan model otomatis tanpa perlu update aplikasi\n\nMode Offline\n\nPada mode offline, analisis dilakukan langsung di perangkat menggunakan TensorFlow Lite. Mode ini bekerja tanpa koneksi internet.\n\nKelebihan mode offline:\n• Dapat digunakan di lokasi tanpa sinyal internet\n• Proses lebih cepat karena tidak perlu mengirim data ke server\n• Data gambar tetap di perangkat (lebih privat)\n\nKapan Menggunakan Masing-Masing?\n\nGunakan mode online saat Anda memiliki koneksi internet yang stabil dan membutuhkan hasil dengan akurasi tertinggi. Gunakan mode offline saat berada di lapangan tanpa sinyal atau saat membutuhkan hasil instan.\n\nAplikasi akan otomatis beralih ke mode offline jika server tidak dapat dijangkau.</string>
+    <string name="guide_app_body_2">Mode Online\n\nPada mode online, gambar dikirim ke server untuk dianalisis menggunakan model MobileNetV3. Mode ini memerlukan koneksi internet yang stabil.\n\nKelebihan mode online:\n• Model berada di server sehingga pembaruannya tidak bergantung pada versi aplikasi\n• Dapat menjadi pilihan saat koneksi internet tersedia\n\nMode Offline\n\nPada mode offline, analisis dilakukan langsung di perangkat menggunakan TensorFlow Lite. Mode ini bekerja tanpa koneksi internet.\n\nKelebihan mode offline:\n• Dapat digunakan di lokasi tanpa sinyal internet\n• Gambar tidak perlu dikirim ke server\n• Tetap tersedia saat koneksi tidak stabil\n\nKapan Menggunakan Masing-Masing?\n\nGunakan mode online atau offline sesuai koneksi dan kebutuhan Anda. Kedua mode menghasilkan klasifikasi citra dengan kontrak empat jenis yang sama; tingkat keyakinan tetap merupakan keluaran relatif model. Aplikasi dapat beralih ke mode fallback offline jika server tidak dapat dijangkau.</string>
 
     <string name="guide_app_title_3">Memahami Hasil Klasifikasi</string>
-    <string name="guide_app_summary_3">Cara membaca confidence score dan memahami tingkat kepercayaan hasil deteksi.</string>
-    <string name="guide_app_body_3" formatted="false">Confidence Score\n\nSetiap hasil klasifikasi disertai confidence score (skor kepercayaan) dalam bentuk persentase. Skor ini menunjukkan seberapa yakin model terhadap kelas prediksi.\n\nTingkat Kepercayaan\n\n• Tinggi (≥80%): Model sangat yakin dengan hasil deteksi. Hasil dapat menjadi bahan pertimbangan bersama pemeriksaan dokter hewan.\n• Sedang (60–79%): Model cukup yakin, namun disarankan untuk melakukan scan ulang dengan foto yang lebih jelas atau dari sudut berbeda.\n• Rendah (&lt;60%): Model kurang yakin. Lakukan scan ulang dengan kondisi foto yang lebih baik. Jika hasil tetap rendah, segera konsultasikan dengan dokter hewan.\n\nSkor Per Kelas\n\nSelain kelas utama, aplikasi menampilkan skor untuk setiap kelas (Bali, Brahman, Brangus, Limusin). Ini membantu Anda melihat distribusi skor keluaran model.\n\nKapan Harus Scan Ulang?\n\n• Confidence score di bawah 60%\n• Foto yang diambil buram atau pencahayaan kurang\n• Hasil tidak sesuai dengan gejala yang terlihat secara visual\n\nPenting: Hasil dari aplikasi ini adalah alat bantu klasifikasi citra, bukan pengganti pemeriksaan dokter hewan profesional.</string>
+    <string name="guide_app_summary_3">Cara membaca tingkat keyakinan dan empat skor hasil identifikasi.</string>
+    <string name="guide_app_body_3" formatted="false">Tingkat Keyakinan\n\nSetiap hasil identifikasi menampilkan tingkat keyakinan dalam persentase. Angka ini menunjukkan keyakinan relatif model terhadap jenis terpilih, bukan jaminan identitas sapi.\n\nSkor Per Jenis\n\nAplikasi menampilkan skor Bali, Brahman, Brangus, dan Limusin agar distribusi keluaran model dapat dibandingkan. Warna dan tanda visual hanya pelengkap; label dan angka tetap menjadi informasi utama.\n\nBatasan\n\nModel selalu memilih salah satu dari empat jenis yang didukung. Kamera atau galeri tidak memvalidasi bahwa objek pada citra adalah sapi, dan hasil bukan bukti silsilah atau identitas individual.</string>
 
     <!-- Guide: Bali -->
-    <string name="guide_bali_title_1">Identifikasi Sapi Bali</string>
-    <string name="guide_bali_summary_1">Ciri visual yang membantu membedakan sapi Bali pada citra.</string>
-    <string name="guide_bali_body_1" formatted="false">Sapi Bali merupakan jenis sapi lokal Indonesia yang umumnya dikenali dari tubuh yang kompak, warna bulu khas, dan garis gelap di sepanjang punggung. Warna dan bentuk tubuh dapat berbeda menurut umur, jenis kelamin, dan pemeliharaan.\n\nUntuk citra yang bermanfaat, ambil sisi tubuh sapi secara utuh dengan pencahayaan merata. Gunakan panduan ini bersama skor model; citra saja bukan sertifikat silsilah.</string>
+    <string name="guide_bali_title_1">Profil Sapi Bali</string>
+    <string name="guide_bali_summary_1">Kelebihan, kekurangan, dan ciri umum Sapi Bali untuk informasi pendukung.</string>
+    <string name="guide_bali_body_1" formatted="false">Ringkasan Profil\n\nSapi Bali umumnya dikenali melalui tubuh yang relatif kompak, warna cokelat kemerahan, bagian pantat putih, dan warna putih pada kaki bawah.\n\nKelebihan\n\n• Ciri warna khas dapat membantu perbandingan visual pada citra yang jelas\n• Bentuk tubuh kompak memberi konteks tambahan saat meninjau hasil model\n\nKekurangan\n\n• Warna dapat berubah menurut jenis kelamin, umur, pencahayaan, dan individu\n• Ciri visual dapat tertutup sudut pengambilan, kotoran, atau persilangan\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.</string>
 
     <string name="guide_bali_title_2">Warna Bulu dan Bentuk Sapi Bali</string>
     <string name="guide_bali_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
-    <string name="guide_bali_body_2">Perhatikan gabungan ciri, bukan satu ciri saja:\n• Proporsi tubuh kompak dengan kerangka sedang\n• Warna bulu dapat berkisar dari cokelat kemerahan hingga cokelat gelap menurut umur dan jenis kelamin\n• Garis punggung dan kaki bagian bawah yang lebih gelap merupakan petunjuk visual umum\n• Bagian pantat yang lebih terang dapat terlihat pada beberapa sapi\n\nJaga kamera sejajar dengan sapi dan hindari kaki terpotong, bayangan kuat, atau objek yang menghalangi.</string>
+    <string name="guide_bali_body_2">Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.</string>
 
     <string name="guide_bali_title_3">Membandingkan Sapi Bali pada Citra</string>
     <string name="guide_bali_summary_3">Daftar periksa praktis untuk perbandingan berbasis citra yang konsisten.</string>
-    <string name="guide_bali_body_3">Sebelum membandingkan citra, periksa ciri yang sama pada setiap kandidat:\n• Sudut samping dengan tubuh terlihat utuh\n• Postur netral di permukaan yang rata\n• Pencahayaan merata tanpa perubahan warna yang kuat\n• Detail cukup untuk meninjau warna bulu dan garis punggung\n\nTinjau skor Bali bersama tiga skor kelas lainnya. Jika skor berdekatan, anggap hasil belum pasti dan ambil sudut lain.</string>
+    <string name="guide_bali_body_3">Membandingkan Hasil\n\nGunakan framing dan pencahayaan yang serupa ketika membandingkan citra. Tinjau skor jenis ini bersama tiga skor kelas lainnya dan catat konteks pengambilan citra.\n\nSkor adalah keluaran relatif model. Aplikasi tidak memvalidasi objek, silsilah, atau identitas individual.</string>
 
-    <string name="guide_bali_title_4">Menggunakan Profil Sapi Bali dengan Tepat</string>
-    <string name="guide_bali_summary_4">Cara menggabungkan profil, kualitas citra, dan tingkat keyakinan model.</string>
-    <string name="guide_bali_body_4">Gunakan profil sebagai informasi pendukung untuk identifikasi jenis sapi. Konfirmasikan keputusan penting dengan catatan ternak atau tenaga profesional yang berkualifikasi.\n\nCitra yang jelas tetap dapat menghasilkan klasifikasi yang belum pasti. Ambil ulang foto jika sapi terlalu kecil, buram, kurang cahaya, atau sebagian tertutup. Jangan menganggap hasil model sebagai bukti silsilah atau registrasi.</string>
+    <string name="guide_bali_title_4">Batasan Profil Sapi Bali</string>
+    <string name="guide_bali_summary_4">Cara memakai kelebihan dan kekurangan tanpa menjadikannya rekomendasi mutlak.</string>
+    <string name="guide_bali_body_4">Batasan Profil\n\nInformasi ini bersifat umum dan tidak mewakili setiap individu. Profil tidak menilai kondisi, kualitas, kebutuhan pemeliharaan, atau keputusan pembelian dan pembiakan.\n\nHasil model adalah klasifikasi citra dan bukan bukti silsilah atau registrasi. Gunakan catatan ternak dan tenaga profesional yang berkualifikasi untuk keputusan penting.</string>
 
     <!-- Guide: Brahman -->
-    <string name="guide_brahman_title_1">Identifikasi Sapi Brahman</string>
-    <string name="guide_brahman_summary_1">Ciri visual yang membantu membedakan sapi Brahman pada citra.</string>
-    <string name="guide_brahman_body_1" formatted="false">Sapi Brahman dikenal dengan punuk bahu yang menonjol, kulit yang longgar, dan telinga yang panjang. Warna bulunya umumnya berkisar dari abu-abu terang hingga merah, dan tampilan setiap sapi dapat berbeda menurut umur serta pemeliharaan.\n\nUntuk citra yang bermanfaat, ambil sisi tubuh sapi secara utuh dan sertakan bahu, kepala, serta telinga. Gunakan profil bersama skor model; hasil citra bukan bukti silsilah.</string>
+    <string name="guide_brahman_title_1">Profil Sapi Brahman</string>
+    <string name="guide_brahman_summary_1">Kelebihan, kekurangan, dan ciri umum Sapi Brahman untuk informasi pendukung.</string>
+    <string name="guide_brahman_body_1" formatted="false">Ringkasan Profil\n\nSapi Brahman umumnya memiliki punuk di bahu, telinga panjang, dan kulit longgar; warna bulunya dapat bervariasi.\n\nKelebihan\n\n• Punuk, telinga, dan lipatan kulit memberi beberapa petunjuk visual yang berbeda\n• Siluet kepala dan bahu dapat membantu perbandingan pada citra tubuh utuh\n\nKekurangan\n\n• Variasi warna membuat warna bulu saja tidak cukup untuk identifikasi\n• Sudut depan atau citra terpotong dapat menyembunyikan punuk dan proporsi tubuh\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.</string>
 
     <string name="guide_brahman_title_2">Warna Bulu dan Bentuk Sapi Brahman</string>
     <string name="guide_brahman_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
-    <string name="guide_brahman_body_2">Tinjau gabungan ciri yang terlihat:\n• Punuk yang jelas di atas bahu\n• Kulit longgar di bawah leher dan sepanjang tubuh\n• Telinga panjang yang menggantung dan wajah yang relatif panjang\n• Variasi warna bulu abu-abu terang, perak, atau merah\n\nJaga kamera sejajar dengan sapi. Hindari telinga terpotong, bayangan kuat, dan pose yang menyembunyikan profil bahu.</string>
+    <string name="guide_brahman_body_2">Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.</string>
 
     <string name="guide_brahman_title_3">Membandingkan Sapi Brahman pada Citra</string>
     <string name="guide_brahman_summary_3">Daftar periksa praktis untuk perbandingan berbasis citra yang konsisten.</string>
-    <string name="guide_brahman_body_3">Gunakan bingkai yang konsisten saat membandingkan citra:\n• Tampilkan tubuh utuh dari samping atau sudut tiga perempat\n• Pastikan kepala dan punuk bahu terlihat\n• Gunakan pencahayaan merata dan latar netral\n• Bandingkan ciri yang sama pada setiap kandidat\n\nTinjau skor Brahman bersama tiga skor kelas lainnya. Skor yang berdekatan menunjukkan bahwa foto lain yang lebih jelas mungkin membantu.</string>
+    <string name="guide_brahman_body_3">Membandingkan Hasil\n\nGunakan framing dan pencahayaan yang serupa ketika membandingkan citra. Tinjau skor jenis ini bersama tiga skor kelas lainnya dan catat konteks pengambilan citra.\n\nSkor adalah keluaran relatif model. Aplikasi tidak memvalidasi objek, silsilah, atau identitas individual.</string>
 
-    <string name="guide_brahman_title_4">Menggunakan Profil Sapi Brahman dengan Tepat</string>
-    <string name="guide_brahman_summary_4">Cara menggabungkan profil, kualitas citra, dan tingkat keyakinan model.</string>
-    <string name="guide_brahman_body_4">Gunakan profil ini sebagai informasi pendukung untuk identifikasi jenis sapi. Konfirmasikan keputusan penting dengan catatan ternak atau tenaga profesional yang berkualifikasi.\n\nAmbil ulang foto jika sapi terlalu kecil, buram, kurang cahaya, atau sebagian tertutup. Jangan menganggap hasil model sebagai bukti silsilah atau registrasi.</string>
+    <string name="guide_brahman_title_4">Batasan Profil Sapi Brahman</string>
+    <string name="guide_brahman_summary_4">Cara memakai kelebihan dan kekurangan tanpa menjadikannya rekomendasi mutlak.</string>
+    <string name="guide_brahman_body_4">Batasan Profil\n\nInformasi ini bersifat umum dan tidak mewakili setiap individu. Profil tidak menilai kondisi, kualitas, kebutuhan pemeliharaan, atau keputusan pembelian dan pembiakan.\n\nHasil model adalah klasifikasi citra dan bukan bukti silsilah atau registrasi. Gunakan catatan ternak dan tenaga profesional yang berkualifikasi untuk keputusan penting.</string>
 
     <!-- Guide: Brangus -->
-    <string name="guide_brangus_title_1">Identifikasi Sapi Brangus</string>
-    <string name="guide_brangus_summary_1">Ciri visual yang membantu membedakan sapi Brangus pada citra.</string>
-    <string name="guide_brangus_body_1">Sapi Brangus umumnya memiliki bulu hitam, tubuh berotot, dan ciri bentuk yang menggabungkan karakter sapi Brahman serta Angus. Variasi individu tetap mungkin terjadi menurut umur, jenis kelamin, dan pemeliharaan.\n\nAmbil citra sisi tubuh secara utuh dengan pencahayaan merata. Gunakan profil ini bersama skor model; hasil citra bukan bukti silsilah.</string>
+    <string name="guide_brangus_title_1">Profil Sapi Brangus</string>
+    <string name="guide_brangus_summary_1">Kelebihan, kekurangan, dan ciri umum Sapi Brangus untuk informasi pendukung.</string>
+    <string name="guide_brangus_body_1">Ringkasan Profil\n\nSapi Brangus merupakan jenis komposit Brahman dan Angus; umumnya bertubuh padat, berwarna hitam atau merah, dan tidak bertanduk.\n\nKelebihan\n\n• Kombinasi bentuk tubuh padat dan kepala tanpa tanduk memberi konteks visual tersendiri\n• Warna bulu yang relatif seragam dapat membantu perbandingan bila pencahayaan memadai\n\nKekurangan\n\n• Ciri komposit dapat tumpang tindih dengan Angus, Brahman, atau hasil persilangan lain\n• Warna gelap dapat menghilangkan detail tubuh pada bayangan atau citra kurang terang\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.</string>
 
     <string name="guide_brangus_title_2">Warna Bulu dan Bentuk Sapi Brangus</string>
     <string name="guide_brangus_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
-    <string name="guide_brangus_body_2">Perhatikan gabungan ciri berikut:\n• Bulu hitam atau sangat gelap pada banyak individu\n• Tubuh berotot dengan punggung dan bagian belakang yang kuat\n• Telinga dapat menunjukkan karakter yang lebih panjang daripada sapi Angus\n• Kulit dan bentuk bahu dapat memperlihatkan pengaruh sapi Brahman\n\nHindari pencahayaan yang membuat bulu gelap kehilangan detail. Sertakan kepala, bahu, dan kaki dalam bingkai bila memungkinkan.</string>
+    <string name="guide_brangus_body_2">Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.</string>
+
+    <string name="guide_brangus_title_3">Membandingkan Profil Sapi Brangus</string>
+    <string name="guide_brangus_summary_3">Cara membaca ciri visual dan empat skor secara konsisten.</string>
+    <string name="guide_brangus_body_3">Membandingkan Hasil\n\nGunakan framing dan pencahayaan yang serupa ketika membandingkan citra. Tinjau skor jenis ini bersama tiga skor kelas lainnya dan catat konteks pengambilan citra.\n\nSkor adalah keluaran relatif model. Aplikasi tidak memvalidasi objek, silsilah, atau identitas individual.</string>
 
     <!-- Guide: Limusin -->
-    <string name="guide_limusin_title_1">Identifikasi Sapi Limusin</string>
-    <string name="guide_limusin_summary_1">Ciri visual yang membantu membedakan sapi Limusin pada citra.</string>
-    <string name="guide_limusin_body_1">Sapi Limusin umumnya memiliki warna bulu merah keemasan hingga cokelat kemerahan, tubuh berotot, dan bagian belakang yang kuat. Tampilan individu dapat berbeda menurut umur, jenis kelamin, dan pemeliharaan.\n\nAmbil citra sisi tubuh secara utuh dengan pencahayaan merata. Gunakan profil ini bersama skor model; hasil citra bukan bukti silsilah.</string>
+    <string name="guide_limusin_title_1">Profil Sapi Limusin</string>
+    <string name="guide_limusin_summary_1">Kelebihan, kekurangan, dan ciri umum Sapi Limusin untuk informasi pendukung.</string>
+    <string name="guide_limusin_body_1">Ringkasan Profil\n\nSapi Limusin umumnya memiliki tubuh berotot dengan warna merah keemasan hingga merah kecokelatan dan bagian sekitar mata atau moncong yang lebih terang.\n\nKelebihan\n\n• Otot tubuh dan proporsi bagian belakang memberi konteks visual yang khas\n• Perbedaan warna pada wajah dapat membantu perbandingan pada citra yang tajam\n\nKekurangan\n\n• Warna dan keberadaan tanduk dapat berbeda menurut garis keturunan dan individu\n• Pose atau sudut pengambilan dapat membuat bentuk otot tampak berbeda\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.</string>
 
     <string name="guide_limusin_title_2">Warna Bulu dan Bentuk Sapi Limusin</string>
     <string name="guide_limusin_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
-    <string name="guide_limusin_body_2">Perhatikan gabungan ciri berikut:\n• Warna bulu merah keemasan atau cokelat kemerahan yang khas\n• Tubuh berotot dengan dada dan bagian belakang yang berkembang\n• Moncong dan area sekitar mata dapat tampak lebih terang\n• Kaki relatif kuat dengan postur yang seimbang\n\nGunakan sudut samping atau tiga perempat dengan kepala, bahu, dan kaki terlihat. Ambil ulang foto jika warna atau bentuk tertutup bayangan.</string>
+    <string name="guide_limusin_body_2">Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.</string>
 
     <!-- About -->
     <string name="about_title">Tentang</string>
@@ -271,13 +281,13 @@
     <string name="settings_text_size_large">Besar</string>
 
     <string name="settings_clear_history">Hapus Semua Riwayat</string>
-    <string name="settings_clear_history_message">Hapus semua riwayat pemeriksaan secara permanen? Tindakan ini langsung menghapus semua data dan tidak dapat dibatalkan.</string>
+    <string name="settings_clear_history_message">Hapus semua riwayat identifikasi secara permanen? Tindakan ini langsung menghapus semua data dan tidak dapat dibatalkan.</string>
     <string name="settings_reset_onboarding">Reset Onboarding</string>
     <string name="settings_reset_onboarding_message">Tampilkan kembali panduan pengenalan?</string>
     <string name="settings_history_cleared">Semua riwayat dihapus</string>
     <string name="settings_onboarding_reset">Onboarding direset</string>
     <string name="settings_upload_consent">Upload Gambar ke Server</string>
-    <string name="settings_upload_consent_description">Jika dinonaktifkan, hanya deteksi offline yang digunakan. Gambar tidak akan dikirim ke server.</string>
+    <string name="settings_upload_consent_description">Jika dinonaktifkan, hanya identifikasi offline yang digunakan. Gambar tidak akan dikirim ke server.</string>
     <string name="settings_crash_reporting">Pelaporan Crash</string>
     <string name="settings_crash_reporting_description">Izinkan pengiriman laporan crash anonim untuk membantu meningkatkan kualitas aplikasi.</string>
     <string name="settings_purge_deleted">Hapus Permanen Rekaman Kedaluwarsa</string>
@@ -301,7 +311,7 @@
     <string name="consent_info_optional">Upload gambar ke server bersifat opsional</string>
     <string name="consent_info_exif">Metadata EXIF dihapus sebelum upload</string>
     <string name="consent_info_no_retention">Server tidak menyimpan gambar setelah analisis</string>
-    <string name="consent_info_offline">Deteksi offline tersedia jika upload ditolak</string>
+    <string name="consent_info_offline">Identifikasi offline tersedia jika upload ditolak</string>
     <string name="consent_btn_allow">Izinkan</string>
     <string name="consent_btn_offline">Gunakan Offline</string>
     <string name="settings_app_version">Versi Aplikasi</string>
@@ -310,7 +320,7 @@
     <string name="settings_privacy_exif">Metadata EXIF dihapus sebelum upload</string>
     <string name="settings_privacy_no_retention">Server tidak menyimpan gambar setelah analisis</string>
     <string name="settings_privacy_local_history">Riwayat scan disimpan lokal di perangkat</string>
-    <string name="settings_privacy_offline">Deteksi offline tersedia tanpa mengirim data</string>
+    <string name="settings_privacy_offline">Identifikasi offline tersedia tanpa mengirim data</string>
     <string name="settings_privacy_location">Data lokasi hanya disimpan lokal, tidak diunggah</string>
 
     <!-- Quality Gate -->
@@ -322,6 +332,6 @@
     <string name="quality_choose_another">Pilih Lain</string>
     <string name="quality_unreadable">Gambar tidak dapat dibaca. Pastikan pencahayaan cukup dan kamera stabil.</string>
     <string name="quality_error_load">Gagal memuat gambar</string>
-    <string name="quality_error_check">Pemeriksaan kualitas gagal</string>
+    <string name="quality_error_check">Pengecekan kualitas gagal</string>
 
 </resources>

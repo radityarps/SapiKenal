@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import id.sapikenal.app.data.local.dao.DetectionDao
 import id.sapikenal.app.data.local.entity.DetectionEntity
 import id.sapikenal.app.data.sync.HistorySyncScheduler
+import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.ImageSource
@@ -112,10 +113,7 @@ class DetectionRepository
                     detectionDao.observeAll().map { rows ->
                         rows
                             .filter {
-                                (
-                                    it.predictedClass.equals(classFilter, ignoreCase = true)
-                                ) &&
-                                    it.inferenceMode.equals(modeFilter, ignoreCase = true)
+                                it.predictedClass.equals(classFilter, ignoreCase = true) && it.matchesMode(modeFilter)
                             }.map { it.toDomain() }
                     }
                 }
@@ -130,8 +128,14 @@ class DetectionRepository
                 }
 
                 modeFilter != null -> {
-                    detectionDao.observeByMode(modeFilter).map { rows ->
-                        rows.map { it.toDomain() }
+                    if (InferenceMode.parse(modeFilter) == InferenceMode.UNKNOWN) {
+                        detectionDao.observeAll().map { rows ->
+                            rows.filter { it.matchesMode(modeFilter) }.map { it.toDomain() }
+                        }
+                    } else {
+                        detectionDao.observeByMode(modeFilter).map { rows ->
+                            rows.map { it.toDomain() }
+                        }
                     }
                 }
 
@@ -141,7 +145,7 @@ class DetectionRepository
             }
 
         private fun DetectionEntity.toDomain(): DetectionResult {
-            val mode = runCatching { InferenceMode.valueOf(inferenceMode) }.getOrDefault(InferenceMode.OFFLINE)
+            val mode = InferenceMode.parse(inferenceMode)
             val consent = runCatching { ConsentStatus.valueOf(consentStatus) }.getOrDefault(ConsentStatus.UNDECIDED)
             val source = imageSource?.let { runCatching { ImageSource.valueOf(it) }.getOrNull() }
             val locSource = locationSource?.let { runCatching { LocationSource.valueOf(it) }.getOrNull() }
@@ -171,6 +175,15 @@ class DetectionRepository
             )
         }
 
+        private fun DetectionEntity.matchesMode(modeFilter: String): Boolean {
+            val parsedFilter = InferenceMode.parse(modeFilter)
+            return if (parsedFilter == InferenceMode.UNKNOWN) {
+                InferenceMode.parse(inferenceMode) == InferenceMode.UNKNOWN
+            } else {
+                inferenceMode.equals(parsedFilter.name, ignoreCase = true)
+            }
+        }
+
         private fun scoresJson(scores: Map<String, Float>): String {
             val json = JSONObject()
             SCORE_KEYS.forEach { key -> json.put(key, scores[key] ?: 0f) }
@@ -184,7 +197,7 @@ class DetectionRepository
             }.getOrDefault(emptyMap())
 
         private companion object {
-            val SCORE_KEYS = listOf("bali", "brahman", "brangus", "limusin")
+            val SCORE_KEYS = BreedContract.CANONICAL_LABELS
         }
 
         private fun copyImageToLocalHistory(imageUri: Uri): String? =

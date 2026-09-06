@@ -50,6 +50,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,6 +64,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import id.sapikenal.app.R
+import id.sapikenal.app.domain.model.BreedContract
+import id.sapikenal.app.domain.model.InferenceMode
 import id.sapikenal.app.ui.theme.SapiKenalColors
 import java.io.File
 import java.text.SimpleDateFormat
@@ -75,21 +81,14 @@ private val breedMap =
         "brangus" to ("⚫" to SapiKenalColors.Brangus),
         "limusin" to ("🟠" to SapiKenalColors.Limusin),
     )
+private val breedDisplayNames = BreedContract.definitions.associate { it.key to it.displayNameResId }
 
-private val breedDisplayNames =
-    mapOf(
-        "bali" to R.string.result_breed_bali,
-        "brahman" to R.string.result_breed_brahman,
-        "brangus" to R.string.result_breed_brangus,
-        "limusin" to R.string.result_breed_limusin,
-    )
+private fun breedEmoji(label: String): String = breedMap[label.trim().lowercase(Locale.ROOT)]?.first ?: "📸"
 
-private fun breedEmoji(label: String): String = breedMap[label.lowercase()]?.first ?: "📸"
-
-private fun breedColor(label: String): Color = breedMap[label.lowercase()]?.second ?: SapiKenalColors.TextSecondary
+private fun breedColor(label: String): Color = breedMap[label.trim().lowercase(Locale.ROOT)]?.second ?: SapiKenalColors.TextSecondary
 
 @StringRes
-private fun breedDisplayNameRes(label: String): Int? = breedDisplayNames[label.lowercase()]
+private fun breedDisplayNameRes(label: String): Int? = breedDisplayNames[label.trim().lowercase(Locale.ROOT)]
 
 private fun formatTimestamp(
     millis: Long,
@@ -112,6 +111,8 @@ fun HistoryRoute(
         imageRef: String,
         timestamp: Long,
         detectionId: Long,
+        appVersion: String?,
+        modelVersion: String?,
     ) -> Unit,
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
@@ -148,7 +149,7 @@ fun HistoryRoute(
 
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
             window.statusBarColor = statusBarColorArgb
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isLightStatusBar
         }
@@ -260,6 +261,8 @@ fun HistoryRoute(
                                     item.imagePath.orEmpty(),
                                     item.timestamp,
                                     item.id,
+                                    item.appVersion,
+                                    item.modelVersion,
                                 )
                             },
                             onDelete = { deleteTargetId = item.id },
@@ -344,12 +347,7 @@ private fun FilterChipRow(
         )
 
         // Breed chips
-        listOf(
-            "bali" to R.string.history_filter_bali,
-            "brahman" to R.string.history_filter_brahman,
-            "brangus" to R.string.history_filter_brangus,
-            "limusin" to R.string.history_filter_limusin,
-        ).forEach { (value, labelRes) ->
+        BreedContract.definitions.map { it.key to it.displayNameResId }.forEach { (value, labelRes) ->
             FilterChip(
                 selected = selectedClass == value && selectedMode == null,
                 onClick = {
@@ -362,8 +360,10 @@ private fun FilterChipRow(
 
         // Mode chips
         listOf(
-            "ONLINE" to R.string.history_filter_online,
-            "OFFLINE" to R.string.history_filter_offline,
+            InferenceMode.ONLINE.name to R.string.history_filter_online,
+            InferenceMode.OFFLINE.name to R.string.history_filter_offline,
+            InferenceMode.OFFLINE_FALLBACK.name to R.string.history_filter_offline_fallback,
+            InferenceMode.UNKNOWN.name to R.string.history_filter_unknown,
         ).forEach { (value, labelRes) ->
             FilterChip(
                 selected = selectedMode == value && selectedClass == null,
@@ -390,19 +390,28 @@ private fun HistoryCard(
     val noteTitle = item.title?.takeIf { it.isNotBlank() }
     val noteDescription = item.description?.takeIf { it.isNotBlank() }
     val locale = LocalConfiguration.current.locales[0]
-    val isOnline = item.mode.equals("ONLINE", ignoreCase = true)
-    val modeLabel =
-        if (isOnline) {
-            stringResource(R.string.result_mode_online)
-        } else {
-            stringResource(R.string.result_mode_offline)
+    val inferenceMode = InferenceMode.parse(item.mode)
+    val modeLabel = stringResource(inferenceMode.labelResId)
+    val modeColor =
+        when (inferenceMode) {
+            InferenceMode.ONLINE -> SapiKenalColors.Primary
+            InferenceMode.OFFLINE, InferenceMode.OFFLINE_FALLBACK -> SapiKenalColors.Secondary
+            InferenceMode.UNKNOWN -> SapiKenalColors.TextSecondary
         }
+
+    val accessibilityDescription =
+        stringResource(
+            R.string.result_accessibility_summary,
+            displayName,
+            (item.confidence * 100).toInt(),
+            modeLabel,
+        )
+    val detailTapDescription = stringResource(R.string.history_detail_tap)
 
     Card(
         modifier =
             Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onTap),
+                .fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
     ) {
         Row(
@@ -412,104 +421,110 @@ private fun HistoryCard(
                     .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Thumbnail placeholder
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
+            Row(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .clickable(onClick = onTap)
+                        .clearAndSetSemantics {
+                            contentDescription = "$accessibilityDescription. $detailTapDescription"
+                            role = Role.Button
+                        },
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                val imagePath = item.imagePath
-                if (!imagePath.isNullOrBlank() && File(imagePath).exists()) {
-                    AsyncImage(
-                        model = File(imagePath),
-                        contentDescription = displayName,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(emoji, fontSize = 24.sp)
-                    }
-                }
-            }
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = noteTitle ?: displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = SapiKenalColors.TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                if (noteDescription != null) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = noteDescription,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SapiKenalColors.TextSecondary,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-
-                Spacer(Modifier.height(6.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                // Thumbnail placeholder
+                Surface(
+                    modifier = Modifier.size(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = color.copy(alpha = 0.14f),
-                    ) {
-                        Text(
-                            text = displayName,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = color,
-                            fontWeight = FontWeight.SemiBold,
+                    val imagePath = item.imagePath
+                    if (!imagePath.isNullOrBlank() && File(imagePath).exists()) {
+                        AsyncImage(
+                            model = File(imagePath),
+                            contentDescription = displayName,
+                            modifier = Modifier.fillMaxSize(),
                         )
+                    } else {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(emoji, fontSize = 24.sp)
+                        }
                     }
-                    Text(
-                        text = stringResource(R.string.history_confidence_percent, (item.confidence * 100).toInt()),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SapiKenalColors.TextSecondary,
-                    )
                 }
 
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.width(12.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val modeColor =
-                        if (isOnline) {
-                            SapiKenalColors.Primary
-                        } else {
-                            SapiKenalColors.Secondary
-                        }
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = modeColor.copy(alpha = 0.15f),
-                    ) {
-                        Text(
-                            text = modeLabel,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            fontSize = 10.sp,
-                            color = modeColor,
-                        )
-                    }
-
-                    Spacer(Modifier.width(8.dp))
-
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = formatTimestamp(item.timestamp, locale),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SapiKenalColors.TextSecondary,
+                        text = noteTitle ?: displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = SapiKenalColors.TextPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+
+                    if (noteDescription != null) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = noteDescription,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SapiKenalColors.TextSecondary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+
+                    Spacer(Modifier.height(6.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = color.copy(alpha = 0.14f),
+                        ) {
+                            Text(
+                                text = displayName,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = color,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.history_confidence_percent, (item.confidence * 100).toInt()),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SapiKenalColors.TextSecondary,
+                        )
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = modeColor.copy(alpha = 0.15f),
+                        ) {
+                            Text(
+                                text = modeLabel,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                fontSize = 10.sp,
+                                color = modeColor,
+                            )
+                        }
+
+                        Spacer(Modifier.width(8.dp))
+
+                        Text(
+                            text = formatTimestamp(item.timestamp, locale),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SapiKenalColors.TextSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
 

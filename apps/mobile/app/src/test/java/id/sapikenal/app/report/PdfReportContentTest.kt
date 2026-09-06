@@ -59,9 +59,10 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes confidence`() {
+    fun `report includes confidence without threshold reliability`() {
         val content = buildContent()
         assertTrue(content.contains("92%"))
+        assertFalse(content.contains("Reliable"))
     }
 
     @Test
@@ -71,11 +72,24 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes class scores`() {
+    fun `report distinguishes offline fallback mode`() {
+        val content = buildContent(createResult().copy(inferenceMode = InferenceMode.OFFLINE_FALLBACK))
+        assertTrue(content.contains("Inference Mode: Offline fallback"))
+        assertFalse(content.contains("Inference Mode: Offline\n"))
+    }
+
+    @Test
+    fun `report includes all four canonical class scores`() {
         val content = buildContent()
         assertTrue(content.contains("Brangus: 92%"))
         assertTrue(content.contains("Bali: 3%"))
         assertTrue(content.contains("Brahman: 2%"))
+        assertTrue(content.contains("Limousin: 3%"))
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `report rejects incomplete canonical scores`() {
+        buildContent(createResult().copy(allScores = mapOf("brangus" to 0.92f)))
     }
 
     @Test

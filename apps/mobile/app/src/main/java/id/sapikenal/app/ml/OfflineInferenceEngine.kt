@@ -3,6 +3,7 @@ package id.sapikenal.app.ml
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import id.sapikenal.app.BuildConfig
+import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.InferenceMode
 import id.sapikenal.app.ml.preprocessing.ModelPreprocessor
@@ -32,15 +33,9 @@ open class OfflineInferenceEngine
             private val EXPECTED_OUTPUT_SHAPE = intArrayOf(1, 4)
 
             // Canonical labels matching backend model/class_names.json.
-            val CANONICAL_LABELS = listOf("bali", "brahman", "brangus", "limusin")
+            val CANONICAL_LABELS = BreedContract.CANONICAL_LABELS
             private val LABELS = CANONICAL_LABELS
-            val DISPLAY_LABELS =
-                mapOf(
-                    "bali" to "Bali",
-                    "brahman" to "Brahman",
-                    "brangus" to "Brangus",
-                    "limusin" to "Limusin",
-                )
+            val DISPLAY_LABELS = BreedContract.DISPLAY_LABELS
         }
 
         private val interpreter: Interpreter by lazy {

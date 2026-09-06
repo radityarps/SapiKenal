@@ -21,18 +21,21 @@ Menampilkan identifikasi jenis sapi secara konsisten pada onboarding, hasil, riw
 
 ## Kriteria penerimaan
 
-- [ ] Alur kamera dan galeri berakhir pada salah satu dari empat jenis beserta persentase.
-- [ ] Semua skor dapat ditampilkan dengan label yang benar.
-- [ ] Riwayat dan PDF mempertahankan hasil, skor, mode, dan versi model.
-- [ ] Tidak ada teks pengguna yang menyebut deteksi penyakit, diagnosis, PMK, LSD, sehat sebagai kelas, atau objek non-sapi sebagai penolakan model.
-- [ ] Profil empat jenis dapat dibaca dalam bahasa yang didukung.
-- [ ] Hasil dapat dibaca pembaca layar dan tidak bergantung pada warna saja.
-- [ ] Unit/acceptance test mobile lulus.
+- [x] Alur kamera dan galeri berakhir pada salah satu dari empat jenis beserta persentase.
+- [x] Semua skor dapat ditampilkan dengan label yang benar.
+- [x] Riwayat dan PDF mempertahankan hasil, skor, mode, dan versi model.
+- [x] Tidak ada teks pengguna yang menyebut deteksi penyakit, diagnosis, PMK, LSD, sehat sebagai kelas, atau objek non-sapi sebagai penolakan model.
+- [x] Profil empat jenis dapat dibaca dalam bahasa yang didukung.
+- [ ] Hasil dapat dibaca pembaca layar dan tidak bergantung pada warna saja (implementasi tersedia; verifikasi TalkBack manual masih pending).
+- [x] Unit/acceptance test mobile lulus (otomatis).
+
+Status implementasi: selesai untuk kode, resource, test, dan laporan. Verifikasi manual perangkat masih tertunda; status ini tidak menyatakan camera/gallery flow, skala font besar, TalkBack, atau visual PDF telah tervalidasi.
 
 ## Verifikasi
 
 ```bash
 pnpm run mobile:test
+pnpm run mobile:build
 ```
 
-Lakukan pemeriksaan manual singkat pada font scale besar untuk layar hasil dan profil jenis.
+Verifikasi manual yang masih pending: camera/gallery pada perangkat, gallery saat izin kamera ditolak, skala font besar pada hasil dan profil jenis, TalkBack, serta pemeriksaan visual PDF pada perangkat/emulator. Tandai kriteria aksesibilitas manual setelah pemeriksaan tersebut benar-benar dilakukan.

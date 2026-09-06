@@ -14,7 +14,6 @@
       search: string;
       predicted_class: string;
       inference_mode: string;
-      reliable: string;
       date_from: string;
       date_to: string;
     };
@@ -28,7 +27,7 @@
 
   const formatDate = (value: number) => new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
   const formatConfidence = (value: number) => `${(value * 100).toFixed(1)}%`;
-  const reliabilityLabel = (value: boolean) => value ? 'Reliable' : 'Confidence rendah';
+  const hasScores = (item: any) => Object.keys(item?.scores ?? {}).length > 0;
   const modeLabel = (value: string) => {
     const normalized = value?.toLowerCase();
     return normalized === 'online' ? 'Online' : normalized === 'offline' || normalized === 'offline_fallback' ? 'Offline' : value;
@@ -53,11 +52,6 @@
     { value: 'online', label: 'Online' },
     { value: 'offline', label: 'Offline' }
   ];
-  const reliabilityFilterItems = [
-    { value: '__all__', label: 'Semua reliability' },
-    { value: 'true', label: 'Reliable' },
-    { value: 'false', label: 'Confidence rendah' }
-  ];
 
   function isItemFailed(item: any): boolean {
     return item?.status === 'failed';
@@ -79,7 +73,8 @@
 
   function updateQuery(key: string, value: string) {
     const query = new URLSearchParams(window.location.search);
-    value ? query.set(key, value) : query.delete(key);
+    if (value) query.set(key, value);
+    else query.delete(key);
     query.delete('page');
     goto(`?${query}`, { keepFocus: true, noScroll: true });
   }
@@ -97,32 +92,33 @@
 
   function updateDateRange(range: { start: string; end: string }) {
     const query = new URLSearchParams(window.location.search);
-    range.start ? query.set('date_from', range.start) : query.delete('date_from');
-    range.end ? query.set('date_to', range.end) : query.delete('date_to');
+    if (range.start) query.set('date_from', range.start);
+    else query.delete('date_from');
+    if (range.end) query.set('date_to', range.end);
+    else query.delete('date_to');
     query.delete('page');
     goto(`?${query}`, { keepFocus: true, noScroll: true, invalidateAll: true });
   }
 </script>
 
-<svelte:head><title>Prediksi — SapiKenal Admin</title></svelte:head>
-<AdminShell title="Prediksi" eyebrow="Metadata klasifikasi" active="/predictions" user={data.user}>
+<svelte:head><title>Hasil Identifikasi — SapiKenal Admin</title></svelte:head>
+<AdminShell title="Hasil identifikasi" eyebrow="Metadata klasifikasi" active="/predictions" user={data.user}>
   <section class="page-intro"><p class="muted">Riwayat menampilkan metadata operasional utama. Citra, koordinat, dan device ID mentah tidak disimpan atau ditampilkan.</p></section>
   {#if data.error}<p class="error">{data.error}</p>{/if}
   <div class="mt-4 grid gap-3 lg:grid-cols-[minmax(14rem,.75fr)_minmax(33rem,1.25fr)]">
     <div>
-      <label class="relative"><span>Cari prediksi</span><Search class="pointer-events-none absolute bottom-3 left-3 text-[#718078]" size={16} aria-hidden="true" /><input class="w-full pl-9" type="search" value={search} placeholder="Hasil, model, mode, atau user ID" oninput={(event) => debounceSearch(event.currentTarget.value)} /></label>
+      <label class="relative"><span>Cari hasil identifikasi</span><Search class="pointer-events-none absolute bottom-3 left-3 text-[#718078]" size={16} aria-hidden="true" /><input class="w-full pl-9" type="search" value={search} placeholder="Hasil, model, mode, atau user ID" oninput={(event) => debounceSearch(event.currentTarget.value)} /></label>
     </div>
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
       <DateRangeFilter start={data.filters.date_from} end={data.filters.date_to} onChange={updateDateRange} />
       <AdminFilterSelect label="Kelas" value={data.filters.predicted_class} items={classFilterItems} placeholder="Semua kelas" onChange={(value) => updateQuery('predicted_class', value)} />
       <AdminFilterSelect label="Mode" value={data.filters.inference_mode} items={modeFilterItems} placeholder="Semua mode" onChange={(value) => updateQuery('inference_mode', value)} />
-      <AdminFilterSelect label="Reliability" value={data.filters.reliable} items={reliabilityFilterItems} placeholder="Semua reliability" onChange={(value) => updateQuery('reliable', value)} />
     </div>
   </div>
   <section class="panel mt-3 p-0">
     {#if data.predictions.items.length}
       <table class="table-fixed">
-        <thead><tr><th class="w-[17%]">Waktu</th><th class="w-[28%]">Hasil prediksi</th><th class="w-[18%]">Perangkat</th><th class="w-[13%]">Mode</th><th>Durasi proses</th><th class="w-14 text-center"><span class="sr-only">Detail</span></th></tr></thead>
+        <thead><tr><th class="w-[17%]">Waktu</th><th class="w-[28%]">Hasil identifikasi</th><th class="w-[18%]">Perangkat</th><th class="w-[13%]">Mode</th><th>Durasi proses</th><th class="w-14 text-center"><span class="sr-only">Detail</span></th></tr></thead>
         <tbody>
           {#each data.predictions.items as item}
             <tr>
@@ -142,19 +138,18 @@
                       <span class="badge">{item.display_label}</span>
                       <strong class="text-sm text-[#263a30]">{formatConfidence(item.confidence)}</strong>
                     </div>
-                    <span class:!text-[#8b5a16]={!item.is_reliable} class="text-[.68rem] font-semibold text-[#4d7561]">{reliabilityLabel(item.is_reliable)}</span>
                   </div>
                 {/if}
               </td>
               <td><code class="rounded-md bg-[#f1f5f3] px-2 py-1 text-[.72rem] text-[#40554a]">{item.device_ref}</code></td>
               <td class="text-xs font-semibold text-[#40554a]">{modeLabel(item.inference_mode)}</td>
               <td class="text-xs text-[#53645b]">{item.processing_ms == null ? 'Tidak tersedia' : `${item.processing_ms} ms`}</td>
-              <td class="text-center"><button class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#426353] hover:bg-[#edf5f1] hover:text-[#176b49]" type="button" aria-label={`Lihat detail prediksi ${item.display_label}`} title="Lihat detail" onclick={() => openDetail(item)}><Eye size={17} strokeWidth={1.8} aria-hidden="true" /></button></td>
+              <td class="text-center"><button class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#426353] hover:bg-[#edf5f1] hover:text-[#176b49]" type="button" aria-label={`Lihat detail hasil identifikasi ${item.display_label}`} title="Lihat detail" onclick={() => openDetail(item)}><Eye size={17} strokeWidth={1.8} aria-hidden="true" /></button></td>
             </tr>
           {/each}
         </tbody>
       </table>
-    {:else}<div class="empty">Belum ada metadata prediksi pada periode ini.</div>{/if}
+    {:else}<div class="empty">Belum ada metadata hasil identifikasi pada periode ini.</div>{/if}
     <TablePagination count={data.predictions.total} page={data.predictions.page} perPage={data.predictions.page_size} onChange={updatePage} />
   </section>
 </AdminShell>
@@ -163,7 +158,7 @@
   {#if selectedPrediction}
     <div class="flex items-start justify-between gap-4 border-b border-[#e5ebe8] px-5 py-4">
       <div>
-        <p class="mb-1 text-[.67rem] font-bold uppercase tracking-[.1em] text-[#6f7e76]">Detail prediksi</p>
+        <p class="mb-1 text-[.67rem] font-bold uppercase tracking-[.1em] text-[#6f7e76]">Detail hasil identifikasi</p>
         <h2 id="prediction-detail-title" class="m-0 text-lg font-bold">
           {isItemFailed(selectedPrediction) ? 'Gagal teknis' : selectedPrediction.display_label} · {formatConfidence(selectedPrediction.confidence)}
         </h2>
@@ -181,11 +176,10 @@
         <div class="flex flex-wrap items-center gap-2 rounded-lg bg-[#f3f7f5] px-3.5 py-3">
           <span class="badge">{selectedPrediction.display_label}</span>
           <strong>{formatConfidence(selectedPrediction.confidence)}</strong>
-          <span class:!bg-[#fff3dc]={!selectedPrediction.is_reliable} class:!text-[#8b5a16]={!selectedPrediction.is_reliable} class="badge">{reliabilityLabel(selectedPrediction.is_reliable)}</span>
         </div>
       {/if}
 
-      {#if selectedPrediction.scores}
+      {#if hasScores(selectedPrediction)}
         <div class="rounded-lg border border-[#e4ebe7] bg-white p-3.5">
           <h3 class="m-0 mb-2 text-xs font-bold text-[#55675f]">Skor Probabilitas Model (4 Kelas)</h3>
           <div class="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
@@ -211,7 +205,7 @@
 
       <dl class="m-0 grid gap-x-5 gap-y-4 text-sm sm:grid-cols-2">
         <div><dt class="text-xs font-bold text-[#718078]">Waktu</dt><dd class="m-0 mt-1 break-words">{formatDate(selectedPrediction.timestamp)}</dd></div>
-        <div><dt class="text-xs font-bold text-[#718078]">ID prediksi</dt><dd class="m-0 mt-1 break-all font-mono text-xs">{selectedPrediction.id}</dd></div>
+        <div><dt class="text-xs font-bold text-[#718078]">ID hasil</dt><dd class="m-0 mt-1 break-all font-mono text-xs">{selectedPrediction.id}</dd></div>
         <div><dt class="text-xs font-bold text-[#718078]">Referensi perangkat</dt><dd class="m-0 mt-1 font-mono text-xs">{selectedPrediction.device_ref}</dd></div>
         <div><dt class="text-xs font-bold text-[#718078]">ID pengguna</dt><dd class="m-0 mt-1 break-all font-mono text-xs">{selectedPrediction.user_id || 'Tidak tersedia'}</dd></div>
         <div><dt class="text-xs font-bold text-[#718078]">Kelas model</dt><dd class="m-0 mt-1">{classDisplayMap[selectedPrediction.predicted_class] ?? selectedPrediction.predicted_class}</dd></div>

@@ -28,7 +28,7 @@
   <section class="w-full max-w-[27rem] rounded-[1.25rem] border border-[#d7e7dc] bg-white p-9 shadow-[0_1.5rem_4rem_rgba(23,49,42,.08)]" aria-labelledby="login-title">
     <p class="mb-1 mt-5 text-xs font-extrabold uppercase tracking-[.14em] text-[#18794e]">SapiKenal</p>
     <h1 id="login-title" class="m-0 text-[2rem] font-bold tracking-[-.04em]">Dashboard</h1>
-    <p class="leading-relaxed text-[#587069]">Kelola operasional dan konten deteksi dini secara aman.</p>
+    <p class="leading-relaxed text-[#587069]">Kelola operasional dan konten profil jenis sapi secara aman.</p>
 
     {#if form?.message}
       <div class="mt-4 rounded-lg border border-[#f1cdd2] bg-[#fbf0f2] px-3 py-3 text-sm text-[#8b2f2f]" role="alert">{form.message}</div>

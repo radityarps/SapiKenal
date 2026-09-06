@@ -12,6 +12,8 @@ from config import settings
 _DROP_STATEMENTS = {
     "disease_contents": 'DROP TABLE "disease_contents"',
     "disease_content_revisions": 'DROP TABLE "disease_content_revisions"',
+    "breed_profiles": 'DROP TABLE "breed_profiles"',
+    "breed_profile_revisions": 'DROP TABLE "breed_profile_revisions"',
     "detection_history": 'DROP TABLE "detection_history"',
     "prediction_events": 'DROP TABLE "prediction_events"',
 }
@@ -56,6 +58,8 @@ def _reset_incompatible_sqlite_tables() -> None:
         {
             "disease_contents",
             "disease_content_revisions",
+            "breed_profiles",
+            "breed_profile_revisions",
             "detection_history",
             "prediction_events",
         },

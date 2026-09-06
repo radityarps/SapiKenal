@@ -7,7 +7,7 @@ import {
   bearerHeaders,
 } from "$lib/server/backend";
 
-const api = (id = "") => `/api/admin/profiles${id ? `/${id}` : ""}`;
+const api = (id = "") => `/api/admin/profiles${id ? `/${encodeURIComponent(id)}` : ""}`;
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
   if (!locals.user) throw redirect(303, "/login");
@@ -37,18 +37,20 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 export const actions: Actions = {
   create: async ({ request, locals, fetch }) => {
     const form = await request.formData();
-    const payload = Object.fromEntries(
-      [
-        "slug",
-        "model_class",
-        "display_name",
-        "summary",
-        "strengths",
-        "limitations",
-        "disclaimer",
-        "locale",
-      ].map((key) => [key, String(form.get(key) || "").trim()]),
-    );
+    const payload = {
+      canonical_key: String(form.get("canonical_key") || "").trim(),
+      display_name: String(form.get("display_name") || "").trim(),
+      summary: String(form.get("summary") || "").trim(),
+      strengths: String(form.get("strengths") || "").trim(),
+      limitations: String(form.get("limitations") || "").trim(),
+      disclaimer: String(form.get("disclaimer") || "").trim(),
+      sources: String(form.get("sources") || "")
+        .split("\n")
+        .map((source) => source.trim())
+        .filter(Boolean),
+      content_reviewed: false,
+      locale: String(form.get("locale") || "id-ID").trim(),
+    };
     try {
       await backendJson(
         api(),
@@ -72,16 +74,18 @@ export const actions: Actions = {
   revise: async ({ request, locals, fetch }) => {
     const form = await request.formData();
     const id = String(form.get("id") || "");
-    const payload = Object.fromEntries(
-      [
-        "model_class",
-        "display_name",
-        "summary",
-        "strengths",
-        "limitations",
-        "disclaimer",
-      ].map((key) => [key, String(form.get(key) || "").trim()]),
-    );
+    const payload = {
+      display_name: String(form.get("display_name") || "").trim(),
+      summary: String(form.get("summary") || "").trim(),
+      strengths: String(form.get("strengths") || "").trim(),
+      limitations: String(form.get("limitations") || "").trim(),
+      disclaimer: String(form.get("disclaimer") || "").trim(),
+      sources: String(form.get("sources") || "")
+        .split("\n")
+        .map((source) => source.trim())
+        .filter(Boolean),
+      content_reviewed: false,
+    };
     try {
       await backendJson(
         api(id),
@@ -102,6 +106,25 @@ export const actions: Actions = {
           error instanceof Error
             ? error.message
             : "Revisi profil gagal disimpan",
+      });
+    }
+  },
+  review: async ({ request, locals, fetch }) => {
+    const form = await request.formData();
+    const id = String(form.get("id") || "");
+    if (!id || form.get("content_reviewed") !== "true") {
+      return fail(422, { error: "Konfirmasi peninjauan isi dan sumber diperlukan." });
+    }
+    try {
+      await backendJson(api(id), {
+        method: "PATCH",
+        headers: { ...bearerHeaders(locals.sessionToken), "content-type": "application/json" },
+        body: JSON.stringify({ content_reviewed: true }),
+      }, fetch);
+      return { success: true };
+    } catch (error) {
+      return fail(error instanceof BackendRequestError ? error.status : 400, {
+        error: error instanceof Error ? error.message : "Review profil gagal disimpan",
       });
     }
   },

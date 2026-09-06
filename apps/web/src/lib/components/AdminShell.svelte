@@ -18,7 +18,7 @@
 
   const links = [
     { href: '/dashboard', label: 'Dashboard', icon: Gauge },
-    { href: '/predictions', label: 'Prediksi', icon: ScanLine },
+    { href: '/predictions', label: 'Hasil identifikasi', icon: ScanLine },
     { href: '/models', label: 'Model AI', icon: BrainCircuit },
     { href: '/profiles', label: 'Profil jenis', icon: Sprout },
     { href: '/audit-logs', label: 'Audit log', icon: ScrollText }

@@ -192,10 +192,10 @@ class PredictionEvent(Base):
 
 class BreedProfile(Base):
     __tablename__ = "breed_profiles"
-    __table_args__ = (UniqueConstraint("slug", "locale"),)
+    __table_args__ = (UniqueConstraint("canonical_key", "locale"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    slug: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    canonical_key: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     locale: Mapped[str] = mapped_column(String(16), nullable=False, default="id-ID")
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_by: Mapped[str | None] = mapped_column(
@@ -223,14 +223,15 @@ class BreedProfileRevision(Base):
         index=True,
     )
     revision: Mapped[int] = mapped_column(Integer, nullable=False)
-    model_class: Mapped[str | None] = mapped_column(
-        String(32), nullable=True, index=True
-    )
     display_name: Mapped[str] = mapped_column(String(120), nullable=False)
     summary: Mapped[str] = mapped_column(String(500), nullable=False)
     strengths: Mapped[str] = mapped_column(Text, nullable=False)
     limitations: Mapped[str] = mapped_column(Text, nullable=False)
     disclaimer: Mapped[str] = mapped_column(Text, nullable=False)
+    sources: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    content_reviewed: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_by: Mapped[str | None] = mapped_column(
         ForeignKey("users.id"), nullable=True

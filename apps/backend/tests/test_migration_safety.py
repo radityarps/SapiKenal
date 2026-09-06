@@ -69,6 +69,16 @@ def test_committed_migration_is_immutable_relative_to_head(revision):
     )
 
 
+def test_profile_review_migration_is_next_and_immutable():
+    path = Path(__file__).parents[1] / "alembic/versions/0008_breed_profile_review.py"
+    assert path.exists()
+    text = path.read_text()
+    assert 'revision: str = "0008_breed_profile_review"' in text
+    assert 'down_revision: str | None = "0007_history_sync_metadata"' in text
+    assert 'new_column_name="canonical_key"' in text
+    assert '"content_reviewed"' in text
+
+
 def test_dev_reset_clears_both_sqlite_stores(monkeypatch, tmp_path):
     monkeypatch.setattr(init_dev_db.settings, "fastapi_env", "development")
     monkeypatch.setattr(init_dev_db.settings, "debug", True)

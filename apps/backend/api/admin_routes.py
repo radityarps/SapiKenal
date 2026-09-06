@@ -15,10 +15,24 @@ from statistics import median
 from threading import RLock
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
-from sqlalchemy import asc, desc, func, or_, select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from fastapi import (  # pyright: ignore[reportMissingImports]
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Query,
+    Request,
+    UploadFile,
+)
+from sqlalchemy import (  # pyright: ignore[reportMissingImports]
+    asc,
+    desc,
+    func,
+    or_,
+    select,
+)
+from sqlalchemy.exc import IntegrityError  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import Session  # pyright: ignore[reportMissingImports]
 
 from config import CANONICAL_LABELS, canonicalize_label, settings
 from db.core import get_db
@@ -76,6 +90,7 @@ content_router = APIRouter(prefix="/api/content", tags=["content"])
 
 _PAGE_SIZE_MAX = 100
 _ALLOWED_MODEL_CLASSES = set(CANONICAL_LABELS)
+_ALLOWED_PROFILE_LOCALES = {"id-ID", "en-US"}
 _MODEL_ACTIVATION_LOCK = RLock()
 _UPLOAD_CHUNK_SIZE = 1024 * 1024
 
@@ -140,7 +155,6 @@ def _prediction_response(row: DetectionHistory) -> dict[str, Any]:
         if math.isfinite(row.confidence) and 0 <= row.confidence <= 1
         else 0.0,
         "scores": scores,
-        "is_reliable": row.is_reliable,
         "inference_mode": row.inference_mode,
         "processing_ms": row.processing_ms,
         "app_version": row.app_version,
@@ -206,7 +220,6 @@ def _prediction_event_response(event: PredictionEvent) -> dict[str, Any]:
         "display_label": display_label,
         "confidence": confidence,
         "scores": _event_scores(event),
-        "is_reliable": not is_failed and confidence >= settings.confidence_threshold,
         "inference_mode": "online",
         "processing_ms": event.processing_ms,
         "app_version": None,
@@ -303,7 +316,6 @@ def _matches_prediction_filters(
     status: str | None,
     min_confidence: float | None,
     max_confidence: float | None,
-    reliable: bool | None,
     inference_mode: str | None,
     model_version: str | None,
 ) -> bool:
@@ -329,8 +341,6 @@ def _matches_prediction_filters(
         return False
     if max_confidence is not None and item["confidence"] > max_confidence:
         return False
-    if reliable is not None and item["is_reliable"] != reliable:
-        return False
     if (
         inference_mode
         and item["inference_mode"].casefold() != inference_mode.casefold()
@@ -352,7 +362,7 @@ def _profile_response(
 ) -> dict[str, Any]:
     return BreedProfileResponse(
         id=profile.id,
-        slug=profile.slug,
+        canonical_key=profile.canonical_key,
         locale=profile.locale,
         status=profile.status,
         revision=BreedProfileRevisionResponse.model_validate(revision),
@@ -530,10 +540,10 @@ def dashboard(
         label = str(item["predicted_class"])
         if label in distribution:
             distribution[label] += 1
-    low_confidence = sum(
-        1
-        for item in accepted_items
-        if item["confidence"] < settings.confidence_threshold
+    average_confidence = (
+        sum(item["confidence"] for item in accepted_items) / accepted
+        if accepted
+        else None
     )
     timings = [
         _safe_int(item["processing_ms"])
@@ -557,8 +567,7 @@ def dashboard(
             "attempts": _safe_int(attempts),
             "accepted": _safe_int(accepted),
             "distribution": distribution,
-            "low_confidence": _safe_int(low_confidence),
-            "low_confidence_rate": (low_confidence / accepted if accepted else None),
+            "average_confidence": average_confidence,
             "failures": _safe_int(failures),
             "median_processing_ms": median(timings) if timings else None,
             "p95_processing_ms": p95,
@@ -809,8 +818,8 @@ def list_predictions(
     status: Literal["success", "failed"] | None = None,
     min_confidence: float | None = Query(default=None, ge=0, le=1),
     max_confidence: float | None = Query(default=None, ge=0, le=1),
-    reliable: bool | None = None,
-    inference_mode: str | None = Query(default=None, max_length=32),
+    inference_mode: Literal["online", "offline", "offline_fallback", "unknown"]
+    | None = None,
     model_version: str | None = Query(default=None, max_length=128),
     date_from: int | None = Query(default=None, ge=0),
     date_to: int | None = Query(default=None, ge=0),
@@ -835,7 +844,6 @@ def list_predictions(
             status=status,
             min_confidence=min_confidence,
             max_confidence=max_confidence,
-            reliable=reliable,
             inference_mode=inference_mode,
             model_version=model_version,
         )
@@ -890,7 +898,7 @@ def list_profiles(
     profiles = db.scalars(
         select(BreedProfile)
         .where(*filters)
-        .order_by(asc(BreedProfile.slug))
+        .order_by(asc(BreedProfile.canonical_key))
         .offset((page - 1) * page_size)
         .limit(page_size)
     ).all()
@@ -915,15 +923,12 @@ def create_profile(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    if (
-        payload.model_class is not None
-        and payload.model_class not in _ALLOWED_MODEL_CLASSES
-    ):
-        raise AdminAPIError(422, "INVALID_MODEL_CLASS", "Unknown model class")
+    if payload.locale not in _ALLOWED_PROFILE_LOCALES:
+        raise AdminAPIError(422, "INVALID_LOCALE", "Unsupported profile locale")
     if (
         db.scalar(
             select(BreedProfile).where(
-                BreedProfile.slug == payload.slug,
+                BreedProfile.canonical_key == payload.canonical_key,
                 BreedProfile.locale == payload.locale,
             )
         )
@@ -931,7 +936,7 @@ def create_profile(
     ):
         raise AdminAPIError(409, "PROFILE_EXISTS", "Breed profile already exists")
     profile = BreedProfile(
-        slug=payload.slug,
+        canonical_key=payload.canonical_key,
         locale=payload.locale,
         status="draft",
         created_by=admin.id,
@@ -942,12 +947,13 @@ def create_profile(
     revision = BreedProfileRevision(
         profile_id=profile.id,
         revision=1,
-        model_class=payload.model_class,
-        display_name=payload.display_name.strip(),
-        summary=payload.summary.strip(),
-        strengths=payload.strengths.strip(),
-        limitations=payload.limitations.strip(),
-        disclaimer=payload.disclaimer.strip(),
+        display_name=payload.display_name,
+        summary=payload.summary,
+        strengths=payload.strengths,
+        limitations=payload.limitations,
+        disclaimer=payload.disclaimer,
+        sources=payload.sources,
+        content_reviewed=payload.content_reviewed,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
@@ -961,7 +967,11 @@ def create_profile(
         resource_id=profile.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
-        changed_fields={"slug": "set", "revision": "created", "status": "draft"},
+        changed_fields={
+            "canonical_key": "set",
+            "revision": "created",
+            "status": "draft",
+        },
     )
     db.commit()
     return {"status": "success", "item": _profile_response(profile, revision)}
@@ -995,19 +1005,50 @@ def update_profile(
     changes = payload.model_dump(exclude_unset=True)
     if not changes:
         raise AdminAPIError(422, "NO_CHANGES", "At least one field must be changed")
-    if "model_class" in changes and changes[
-        "model_class"
-    ] not in _ALLOWED_MODEL_CLASSES | {None}:
-        raise AdminAPIError(422, "INVALID_MODEL_CLASS", "Unknown model class")
+    changed_fields = set(changes)
+    if changes.get("content_reviewed") and changed_fields != {"content_reviewed"}:
+        raise AdminAPIError(
+            422,
+            "PROFILE_REVIEW_INVALID",
+            "Review saved profile content separately from content changes",
+        )
+    locale = changes.pop("locale", None)
+    if locale is not None and locale != profile.locale:
+        if (
+            db.scalar(
+                select(BreedProfile).where(
+                    BreedProfile.canonical_key == profile.canonical_key,
+                    BreedProfile.locale == locale,
+                    BreedProfile.id != profile.id,
+                )
+            )
+            is not None
+        ):
+            raise AdminAPIError(409, "PROFILE_EXISTS", "Breed profile already exists")
+        profile.locale = locale
     values = {
-        "model_class": current.model_class,
         "display_name": current.display_name,
         "summary": current.summary,
         "strengths": current.strengths,
         "limitations": current.limitations,
         "disclaimer": current.disclaimer,
+        "sources": current.sources,
+        "content_reviewed": current.content_reviewed,
     }
     values.update(changes)
+    if any(
+        field in changed_fields
+        for field in (
+            "display_name",
+            "summary",
+            "strengths",
+            "limitations",
+            "disclaimer",
+            "sources",
+            "locale",
+        )
+    ):
+        values["content_reviewed"] = False
     revision = BreedProfileRevision(
         profile_id=profile.id,
         revision=current.revision + 1,
@@ -1027,7 +1068,7 @@ def update_profile(
         resource_id=profile.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
-        changed_fields=dict.fromkeys(changes, "changed"),
+        changed_fields=dict.fromkeys(changed_fields, "changed"),
     )
     db.commit()
     return {"status": "success", "item": _profile_response(profile, revision)}
@@ -1044,15 +1085,11 @@ def activate_profile(
     revision = _latest_revision(db, profile_id) if profile else None
     if profile is None or revision is None:
         raise AdminAPIError(404, "PROFILE_NOT_FOUND", "Breed profile not found")
-    if (
-        not revision.disclaimer.strip()
-        or not revision.strengths.strip()
-        or not revision.limitations.strip()
-    ):
+    if not revision.content_reviewed or not revision.sources:
         raise AdminAPIError(
             422,
-            "PROFILE_CONTENT_INCOMPLETE",
-            "Disclaimer, strengths, and limitations are required",
+            "PROFILE_REVIEW_REQUIRED",
+            "Profile content and sources must be reviewed before activation",
         )
     for previous_revision in db.scalars(
         select(BreedProfileRevision).where(
@@ -1113,7 +1150,7 @@ def public_profiles(db: Session = Depends(get_db)):
     profiles = db.scalars(
         select(BreedProfile)
         .where(BreedProfile.status == "active")
-        .order_by(asc(BreedProfile.slug))
+        .order_by(asc(BreedProfile.canonical_key))
     ).all()
     items = []
     for profile in profiles:
@@ -1127,14 +1164,14 @@ def public_profiles(db: Session = Depends(get_db)):
             continue
         items.append(
             {
-                "slug": profile.slug,
+                "canonical_key": profile.canonical_key,
                 "locale": profile.locale,
-                "model_class": revision.model_class,
                 "display_name": revision.display_name,
                 "summary": revision.summary,
                 "strengths": revision.strengths,
                 "limitations": revision.limitations,
                 "disclaimer": revision.disclaimer,
+                "sources": revision.sources,
                 "revision": revision.revision,
             }
         )

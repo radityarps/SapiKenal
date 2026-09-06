@@ -27,6 +27,7 @@
     { value: '30d', label: '30 hari' }
   ];
 
+  const breedCards = ['bali', 'brahman', 'brangus', 'limusin'];
   const classLabels: Record<string, string> = {
     bali: 'Bali',
     brahman: 'Brahman',
@@ -99,13 +100,15 @@
       <article class="grid min-w-0 gap-2.5 border-b border-[#e7ece9] p-5 xl:border-b-0 xl:border-r">
         <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><Gauge size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Keyakinan rata-rata</span></div>
         <strong class="truncate text-[clamp(1.55rem,2.5vw,2rem)] font-bold leading-none tracking-[-.045em] text-[#17241f]">{formatPercent(data.dashboard.predictions.average_confidence)}</strong>
-        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.low_confidence)} hasil rendah</span><span>Ambang operasional</span></div>
+        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.accepted)} hasil berhasil</span><span>Empat kelas</span></div>
       </article>
-      <article class="grid min-w-0 gap-2.5 border-b border-[#e7ece9] p-5 sm:border-r xl:border-b-0">
-        <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><Gauge size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Keyakinan rendah</span></div>
-        <strong class="truncate text-[clamp(1.55rem,2.5vw,2rem)] font-bold leading-none tracking-[-.045em] text-[#17241f]">{formatPercent(data.dashboard.predictions.low_confidence_rate)}</strong>
-        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.low_confidence)} hasil</span><span>Di bawah ambang</span></div>
-      </article>
+      {#each breedCards as breed}
+        <article class="grid min-w-0 gap-2.5 border-b border-[#e7ece9] p-5 sm:border-r xl:border-b-0">
+          <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><ScanLine size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">{classLabels[breed]}</span></div>
+          <strong class="truncate text-[clamp(1.55rem,2.5vw,2rem)] font-bold leading-none tracking-[-.045em] text-[#17241f]">{formatNumber(data.dashboard.predictions.distribution?.[breed] ?? 0)}</strong>
+          <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{distributionPercent(data.dashboard.predictions.distribution?.[breed] ?? 0)}% distribusi</span><span>Hasil</span></div>
+        </article>
+      {/each}
       <article class="grid min-w-0 gap-2.5 p-5">
         <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><BrainCircuit size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Model aktif</span></div>
         <strong class="truncate text-[1.08rem] font-bold leading-none tracking-[-.02em] text-[#17241f]" title={data.dashboard.model.version}>{data.dashboard.model.version}</strong>

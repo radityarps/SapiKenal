@@ -9,7 +9,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		search: url.searchParams.get("search") || "",
 		predicted_class: url.searchParams.get("predicted_class") || "",
 		inference_mode: url.searchParams.get("inference_mode") || "",
-		reliable: url.searchParams.get("reliable") || "",
 		date_from: url.searchParams.get("date_from") || "",
 		date_to: url.searchParams.get("date_to") || "",
 	};
@@ -22,7 +21,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		query.set("predicted_class", filters.predicted_class);
 	if (filters.inference_mode)
 		query.set("inference_mode", filters.inference_mode);
-	if (filters.reliable) query.set("reliable", filters.reliable);
 	const startTimestamp = filters.date_from
 		? Date.parse(`${filters.date_from}T00:00:00.000Z`)
 		: Number.NaN;

@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import Any, Literal
+from urllib.parse import urlsplit
 
 from pydantic import (  # pyright: ignore[reportMissingImports]
     BaseModel,
@@ -9,6 +10,7 @@ from pydantic import (  # pyright: ignore[reportMissingImports]
     EmailStr,
     Field,
     field_validator,
+    model_validator,
 )
 
 
@@ -61,7 +63,6 @@ class PredictionResponse(BaseModel):
     display_label: str
     confidence: float
     scores: dict[str, float] = Field(default_factory=dict)
-    is_reliable: bool
     inference_mode: str
     processing_ms: int | None
     app_version: str | None
@@ -76,26 +77,79 @@ class DashboardPeriod(BaseModel):
     end_timestamp: int
 
 
+def _profile_sources(value: list[str]) -> list[str]:
+    sources = [source.strip() for source in value]
+    if any(
+        not source
+        or any(character.isspace() for character in source)
+        or (parsed := urlsplit(source)).scheme not in {"http", "https"}
+        or not parsed.hostname
+        for source in sources
+    ):
+        raise ValueError("Sources must be valid HTTP(S) URLs")
+    return sources
+
+
 class BreedProfileRequest(BaseModel):
-    slug: str = Field(
-        min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
-    )
-    model_class: str | None = Field(default=None, max_length=32)
+    canonical_key: Literal["bali", "brahman", "brangus", "limusin"]
     display_name: str = Field(min_length=1, max_length=120)
     summary: str = Field(min_length=1, max_length=500)
     strengths: str = Field(min_length=1, max_length=10_000)
     limitations: str = Field(min_length=1, max_length=10_000)
     disclaimer: str = Field(min_length=1, max_length=1_000)
-    locale: str = Field(default="id-ID", min_length=2, max_length=16)
+    sources: list[str] = Field(min_length=1, max_length=20)
+    content_reviewed: bool = False
+    locale: Literal["id-ID", "en-US"] = "id-ID"
+
+    @field_validator(
+        "display_name", "summary", "strengths", "limitations", "disclaimer"
+    )
+    @classmethod
+    def non_blank_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Profile text must not be blank")
+        return value
+
+    @field_validator("sources")
+    @classmethod
+    def valid_sources(cls, value: list[str]) -> list[str]:
+        return _profile_sources(value)
 
 
 class BreedProfilePatchRequest(BaseModel):
-    model_class: str | None = Field(default=None, max_length=32)
+    locale: Literal["id-ID", "en-US"] | None = None
     display_name: str | None = Field(default=None, min_length=1, max_length=120)
     summary: str | None = Field(default=None, min_length=1, max_length=500)
     strengths: str | None = Field(default=None, min_length=1, max_length=10_000)
     limitations: str | None = Field(default=None, min_length=1, max_length=10_000)
     disclaimer: str | None = Field(default=None, max_length=1_000)
+    sources: list[str] | None = Field(default=None, min_length=1, max_length=20)
+    content_reviewed: bool | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_null_fields(cls, value: Any) -> Any:
+        if isinstance(value, dict) and any(item is None for item in value.values()):
+            raise ValueError("Profile patch fields must not be null")
+        return value
+
+    @field_validator(
+        "display_name", "summary", "strengths", "limitations", "disclaimer"
+    )
+    @classmethod
+    def non_blank_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("Profile text must not be blank")
+        return value
+
+    @field_validator("sources")
+    @classmethod
+    def valid_sources(cls, value: list[str] | None) -> list[str] | None:
+        return None if value is None else _profile_sources(value)
 
 
 class BreedProfileRevisionResponse(BaseModel):
@@ -103,12 +157,13 @@ class BreedProfileRevisionResponse(BaseModel):
 
     id: str
     revision: int
-    model_class: str | None
     display_name: str
     summary: str
     strengths: str
     limitations: str
     disclaimer: str
+    sources: list[str]
+    content_reviewed: bool
     status: str
     created_at: datetime
     updated_at: datetime
@@ -116,7 +171,7 @@ class BreedProfileRevisionResponse(BaseModel):
 
 class BreedProfileResponse(BaseModel):
     id: str
-    slug: str
+    canonical_key: str
     locale: str
     status: str
     revision: BreedProfileRevisionResponse

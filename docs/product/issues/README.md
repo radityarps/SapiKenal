@@ -9,7 +9,7 @@ Issue files ini menguraikan implementasi [PRD Identifikasi Jenis Sapi](../identi
 | 3 | [Reset schema hasil identifikasi](003-schema-dan-riwayat.md) | Selesai | Ya | 001 |
 | 4 | [Migrasikan inferensi mobile](004-mobile-inference.md) | Selesai; verifikasi perangkat tertunda | Ya | 001, 002 |
 | 5 | [Migrasikan pengalaman mobile dan laporan](005-mobile-ui-dan-laporan.md) | Implementasi selesai; verifikasi manual perangkat tertunda | Ya (`6ca4469`) | 003, 004 |
-| 6 | [Migrasikan Web Admin dan profil jenis](006-web-admin-dan-profil.md) | Implementasi dan verifikasi otomatis selesai; review/commit menunggu | Tidak | 002, 003 |
+| 6 | [Migrasikan Web Admin dan profil jenis](006-web-admin-dan-profil.md) | Selesai | Ya (`4c90d47`) | 002, 003 |
 | 7 | [Verifikasi parity dan selesaikan migrasi domain](007-parity-dan-cleanup.md) | Belum dimulai | Tidak | 002–006 |
 
 Status mencatat penyelesaian scope issue secara keseluruhan. Perubahan parsial yang menjadi fondasi issue berikutnya tidak mengubah status issue tersebut menjadi selesai.

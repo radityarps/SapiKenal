@@ -22,14 +22,14 @@ open class OnlineInferenceClient
     constructor(
         private val apiService: InferenceApiService,
     ) : ImageClassifier {
-        open override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
+        open override suspend fun classify(imageBytes: ByteArray): DetectionResult =
             withContext(Dispatchers.IO) {
                 Log.d(
                     "SapiKenal",
-                    "OnlineInferenceClient: sending predict request (${jpegBytes.size} bytes)",
+                    "OnlineInferenceClient: sending predict request (${imageBytes.size} bytes)",
                 )
-                val body = jpegBytes.toRequestBody("image/jpeg".toMediaType())
-                val part = MultipartBody.Part.createFormData("image", "photo.jpg", body)
+                val body = imageBytes.toRequestBody("image/png".toMediaType())
+                val part = MultipartBody.Part.createFormData("image", "photo.png", body)
 
                 try {
                     val response = apiService.predict(part)

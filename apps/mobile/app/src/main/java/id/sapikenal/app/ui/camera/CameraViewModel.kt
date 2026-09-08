@@ -101,7 +101,7 @@ class CameraViewModel
                 // Preprocessing is the trust boundary: every successfully decoded image
                 // continues to inference. The product contract intentionally has no
                 // blur/brightness/size rejection gate.
-                val preprocessedJpegBytes =
+                val preprocessedImageBytes =
                     try {
                         clientPreprocessor.process(imageUri)
                     } catch (e: Exception) {
@@ -117,7 +117,7 @@ class CameraViewModel
 
                 runCatching {
                     classifyImageUseCase.classifyPreprocessed(
-                        preprocessedJpegBytes,
+                        preprocessedImageBytes,
                         imageUri,
                         updateDetectionId,
                         isFromCamera,

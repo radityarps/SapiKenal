@@ -35,6 +35,8 @@ tmp/
 
 # ─── Environment / secrets ────────────────────────────────────────────────────
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 secrets.json
@@ -99,6 +101,12 @@ apps/backend/logs/
 apps/backend/dataset_artifacts/
 dataset_artifacts/
 roboflow.zip
+# Team-provided parity corpus is local-only; no public redistribution license.
+apps/backend/tests/assets/bali/
+apps/backend/tests/assets/brahman/
+apps/backend/tests/assets/brangus/
+apps/backend/tests/assets/limusin/
+.parity/
 
 # Model training run outputs & versioned artifact bundles (copy back deliberately)
 run_out/

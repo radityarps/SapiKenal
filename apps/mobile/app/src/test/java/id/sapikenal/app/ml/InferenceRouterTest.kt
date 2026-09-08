@@ -50,7 +50,7 @@ class InferenceRouterTest {
     private class FakeOnlineClassifier(
         private val shouldThrow: Boolean = false,
     ) : ImageClassifier {
-        override suspend fun classify(jpegBytes: ByteArray): DetectionResult {
+        override suspend fun classify(imageBytes: ByteArray): DetectionResult {
             if (shouldThrow) throw ClassifyFailure.Network("Simulated online failure")
             return DetectionResult(
                 label = "bali",
@@ -73,7 +73,7 @@ class InferenceRouterTest {
     private class FakeOfflineClassifier(
         private val modelVersion: String? = null,
     ) : ImageClassifier {
-        override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
+        override suspend fun classify(imageBytes: ByteArray): DetectionResult =
             DetectionResult(
                 label = "brahman",
                 displayLabel = "Brahman",
@@ -333,7 +333,7 @@ class InferenceRouterTest {
         runTest {
             val breedOnline =
                 object : ImageClassifier {
-                    override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
+                    override suspend fun classify(imageBytes: ByteArray): DetectionResult =
                         DetectionResult(
                             label = "bali",
                             displayLabel = "Bali",

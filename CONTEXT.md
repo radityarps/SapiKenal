@@ -28,6 +28,10 @@ _Avoid_: dataset penyakit
 Model klasifikasi citra yang memetakan citra identifikasi ke salah satu jenis sapi yang didukung.
 _Avoid_: model validasi sapi, model diagnosis penyakit
 
+**Artikel Panduan**:
+Konten edukatif yang dapat dibaca pengguna, mencakup penggunaan aplikasi dan informasi tentang jenis sapi yang didukung.
+_Avoid_: blog, artikel penyakit, saran diagnosis
+
 **Profil Jenis**:
-Informasi tentang kelebihan dan kekurangan suatu jenis sapi yang didukung.
-_Avoid_: panduan penyakit, saran diagnosis
+Artikel Panduan yang membahas karakteristik, kelebihan, dan kekurangan satu jenis sapi yang didukung.
+_Avoid_: entitas profil terpisah, panduan penyakit, rekomendasi mutlak

@@ -20,13 +20,21 @@ Membuktikan bahwa mode online/offline memenuhi kontrak yang sama dan menghapus s
 
 ## Kriteria penerimaan
 
-- [ ] Semua fixture parity memilih kelas yang sama pada Keras dan TFLite, atau setiap pengecualian diblokir dari rilis dan dianalisis.
-- [ ] Toleransi skor didokumentasikan dari baseline terukur.
-- [ ] Tidak ada referensi runtime ke model penyakit lama.
-- [ ] Tidak ada kontrak `disease_class`, kelas PMK/LSD/sehat/non-sapi, atau konten penyakit pada fitur baru.
-- [ ] README tidak lagi menyatakan bahwa model identifikasi belum tersedia.
+- [x] Semua 13 fixture parity memilih kelas yang sama pada Keras dan TFLite; bukti dan baseline tercatat di [`../../model/parity.md`](../../model/parity.md).
+- [x] Toleransi skor didokumentasikan dari baseline terukur.
+- [x] Tidak ada referensi runtime ke model penyakit lama.
+- [x] Tidak ada kontrak `disease_class`, kelas PMK/LSD/sehat/non-sapi, atau konten penyakit pada fitur baru. Referensi tersisa terbatas pada migration immutable, reset/migration safety, negative contract tests, dan histori issue.
+- [x] README tidak lagi menyatakan bahwa model identifikasi belum tersedia.
 - [ ] Backend, mobile, web, build, dan diagnostics lulus.
 - [ ] Working tree hanya berisi artefak yang memang disetujui untuk commit.
+
+## Status verifikasi
+
+Implementasi regression check dan audit domain selesai. Preprocessing
+backend/Android menghasilkan tensor identik pada seluruh corpus, 13/13 winner
+sama, dan baseline terukur diterima. Proyek tetap controlled prototype/MVP,
+bukan production-ready, sampai rehearsal manual/perangkat dan operasional pada
+bagian batasan selesai.
 
 ## Verifikasi
 

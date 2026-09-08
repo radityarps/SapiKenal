@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -26,6 +27,7 @@ class OnlineInferenceClientTest {
     @Test
     fun `breed response maps to accepted domain result`() =
         runTest {
+            var uploaded: MultipartBody.Part? = null
             val api =
                 clientForResponse(
                     responseFor(
@@ -39,6 +41,7 @@ class OnlineInferenceClientTest {
                                 "limusin" to 0.1f,
                             ),
                     ),
+                    onUpload = { uploaded = it },
                 )
 
             val result: DetectionResult = api.classify(byteArrayOf(1, 2, 3))
@@ -51,6 +54,8 @@ class OnlineInferenceClientTest {
                 result.allScores.keys.toList(),
             )
             assertEquals("breed-v1", result.modelVersion)
+            assertTrue(uploaded?.headers?.get("Content-Disposition")?.contains("filename=\"photo.png\"") == true)
+            assertEquals("image/png", uploaded?.body?.contentType().toString())
         }
 
     @Test
@@ -194,11 +199,17 @@ class OnlineInferenceClientTest {
             inferenceTimeMs = 6,
         )
 
-    private fun clientForResponse(response: PredictResponseDto): OnlineInferenceClient =
+    private fun clientForResponse(
+        response: PredictResponseDto,
+        onUpload: (MultipartBody.Part) -> Unit = {},
+    ): OnlineInferenceClient =
         OnlineInferenceClient(
             apiService =
                 object : InferenceApiService {
-                    override suspend fun predict(image: MultipartBody.Part): PredictResponseDto = response
+                    override suspend fun predict(image: MultipartBody.Part): PredictResponseDto {
+                        onUpload(image)
+                        return response
+                    }
 
                     override suspend fun health(): HealthResponseDto = HealthResponseDto("ok", "breed-v1", true)
 

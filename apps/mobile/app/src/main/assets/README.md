@@ -15,12 +15,14 @@ contract metadata is in `model_metadata.json`.
 
 The model contains an internal rescaling operation
 `(input / 127.5) - 1.0`; therefore `ModelPreprocessor` must pass raw pixel
-values and must not apply `/255` scaling. Input resizing uses bilinear
-filtering. `ClientPreprocessor` corrects available EXIF orientation before its
-client resize and JPEG compression.
+values and must not apply `/255` scaling. `ClientPreprocessor` corrects EXIF
+orientation, resizes bilinearly to 224 × 224, and encodes PNG losslessly before
+both local inference and upload.
 
 The backend counterpart is `apps/backend/model/best.keras` with the same
-version, class order, tensor contract, preprocessing, and documented checksum.
+version, class order, tensor contract, and documented checksum. The accepted
+production parity baseline has identical input tensors and matching winners;
+see [`../../../../../../docs/model/parity.md`](../../../../../../docs/model/parity.md).
 The project assigns this contract version because authoritative training/export
 version metadata is unavailable; the checksums identify the exact artifacts.
 

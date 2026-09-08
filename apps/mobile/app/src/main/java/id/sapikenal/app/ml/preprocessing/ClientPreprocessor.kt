@@ -21,10 +21,10 @@ open class ClientPreprocessor
         open override fun process(imageUri: Uri): ByteArray {
             val bitmap = decodeBitmap(imageUri)
             val corrected = correctOrientation(bitmap, imageUri)
-            val resized = resize(corrected, maxDimension = 800)
+            val resized = Bitmap.createScaledBitmap(corrected, 224, 224, true)
 
             val output = ByteArrayOutputStream()
-            resized.compress(Bitmap.CompressFormat.JPEG, 85, output)
+            resized.compress(Bitmap.CompressFormat.PNG, 100, output)
             return output.toByteArray()
         }
 
@@ -82,17 +82,5 @@ open class ClientPreprocessor
                     }
                 }
             return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-        }
-
-        private fun resize(
-            bitmap: Bitmap,
-            maxDimension: Int,
-        ): Bitmap {
-            val width = bitmap.width
-            val height = bitmap.height
-            if (width <= maxDimension && height <= maxDimension) return bitmap
-
-            val ratio = minOf(maxDimension.toFloat() / width, maxDimension.toFloat() / height)
-            return Bitmap.createScaledBitmap(bitmap, (width * ratio).toInt(), (height * ratio).toInt(), true)
         }
     }

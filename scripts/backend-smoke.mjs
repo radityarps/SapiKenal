@@ -19,5 +19,12 @@ function run(command, args) {
 
 // backend:dev is deliberately development-only: it resets only local SQLite,
 // enables the checked-in best.keras fallback, and starts the backend container.
+const smokeArgs = process.argv
+	.slice(2)
+	.filter((arg, index) => arg !== "--" || index > 0);
+if (!smokeArgs.includes("--image")) {
+	throw new Error("Pass a local real-image fixture with --image <path>");
+}
+
 run("pnpm", ["run", "backend:dev"]);
-run("python", ["apps/backend/scripts/smoke_production.py"]);
+run("python", ["apps/backend/scripts/smoke_production.py", ...smokeArgs]);

@@ -37,25 +37,31 @@ class ClientPreprocessorExifTest {
     }
 
     @Test
-    fun `process applies every supported EXIF orientation before JPEG output`() {
-        val expectedDimensions =
-            mapOf(
-                ExifInterface.ORIENTATION_FLIP_HORIZONTAL to (30 to 20),
-                ExifInterface.ORIENTATION_ROTATE_180 to (30 to 20),
-                ExifInterface.ORIENTATION_FLIP_VERTICAL to (30 to 20),
-                ExifInterface.ORIENTATION_TRANSPOSE to (20 to 30),
-                ExifInterface.ORIENTATION_ROTATE_90 to (20 to 30),
-                ExifInterface.ORIENTATION_TRANSVERSE to (20 to 30),
-                ExifInterface.ORIENTATION_ROTATE_270 to (20 to 30),
+    fun `process applies every supported EXIF orientation before model-size PNG output`() {
+        val orientations =
+            listOf(
+                ExifInterface.ORIENTATION_FLIP_HORIZONTAL,
+                ExifInterface.ORIENTATION_ROTATE_180,
+                ExifInterface.ORIENTATION_FLIP_VERTICAL,
+                ExifInterface.ORIENTATION_TRANSPOSE,
+                ExifInterface.ORIENTATION_ROTATE_90,
+                ExifInterface.ORIENTATION_TRANSVERSE,
+                ExifInterface.ORIENTATION_ROTATE_270,
             )
 
-        expectedDimensions.forEach { (orientation, expected) ->
+        orientations.forEach { orientation ->
             writeAsymmetricImage(orientation)
 
-            val result = decode(preprocessor.process(Uri.fromFile(imageFile)))
+            val bytes = preprocessor.process(Uri.fromFile(imageFile))
+            val result = decode(bytes)
 
-            assertEquals("orientation=$orientation width", expected.first, result.width)
-            assertEquals("orientation=$orientation height", expected.second, result.height)
+            assertEquals("orientation=$orientation width", 224, result.width)
+            assertEquals("orientation=$orientation height", 224, result.height)
+            assertEquals(
+                "orientation=$orientation PNG signature",
+                listOf(0x89, 0x50, 0x4E, 0x47),
+                bytes.take(4).map(Byte::toInt).map { it and 0xFF },
+            )
         }
     }
 

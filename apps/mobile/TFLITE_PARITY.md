@@ -44,15 +44,17 @@ before inference. It also validates that every output is finite, lies in
 Both runtimes prepare RGB input at 224 × 224 pixels and write Float32 channel
 values in the raw `[0, 255]` range. No `/255` scaling is applied: the Keras model
 contains `Rescaling(scale=1/127.5, offset=-1.0)`, and the TFLite conversion
-retains that internal operation. Resize uses bilinear filtering. The client
-corrects available EXIF orientation before its resize and JPEG compression.
+retains that internal operation. The Android client corrects EXIF orientation,
+resizes bilinearly to 224 × 224, and encodes PNG losslessly. Both local
+inference and backend upload consume that same PNG.
 
 ## Keras–TFLite parity
 
-Issue 001 establishes the shared tensor and preprocessing contract only. A
-numerical parity baseline requires an agreed held-out image corpus and is
-tracked by the later parity issue. This document intentionally makes no
-accuracy, F1, or top-class agreement claim until that corpus is measured.
+The accepted baseline in [`../../docs/model/parity.md`](../../docs/model/parity.md)
+uses 13 real team-provided fixtures. All input tensors are identical, all
+winner classes match, and the measured maximum score delta is
+`0.000002233688736`. This is runtime-consistency evidence, not an accuracy or
+production-readiness claim.
 
 ## Version traceability
 

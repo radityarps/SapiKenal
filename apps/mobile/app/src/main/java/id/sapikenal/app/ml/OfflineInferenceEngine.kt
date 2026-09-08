@@ -101,9 +101,9 @@ open class OfflineInferenceEngine
             }
         }
 
-        open override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
+        open override suspend fun classify(imageBytes: ByteArray): DetectionResult =
             withContext(Dispatchers.Default) {
-                val inputBuffer = modelPreprocessor.process(jpegBytes)
+                val inputBuffer = modelPreprocessor.process(imageBytes)
                 val output = Array(1) { FloatArray(4) }
                 interpreter.run(inputBuffer, output)
 

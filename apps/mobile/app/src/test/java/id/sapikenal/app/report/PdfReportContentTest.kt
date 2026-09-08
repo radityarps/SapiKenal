@@ -31,7 +31,7 @@ class PdfReportContentTest {
             timestamp = 1700000000000L,
             appVersion = "1.0.0",
             modelVersion = "MobileNetV2-v3",
-            preprocessingSummary = "EXIF correct, resize max 800px, JPEG 85%, then 224×224 float32 raw [0..255]",
+            preprocessingSummary = "EXIF correct, resize 224×224, lossless PNG, then RGB float32 raw [0..255]",
             imageSource = ImageSource.CAMERA,
             latitude = -6.20,
             longitude = 106.85,

@@ -34,7 +34,7 @@ class ClassifyImageUseCase
         }
 
         suspend fun classifyPreprocessed(
-            jpegBytes: ByteArray,
+            imageBytes: ByteArray,
             sourceImageUri: Uri,
             updateDetectionId: Long? = null,
             isFromCamera: Boolean = true,
@@ -42,7 +42,7 @@ class ClassifyImageUseCase
             val consentValue = settingsDataStore.uploadConsent.first()
             val consentStatus = ConsentStatus.fromBoolean(consentValue)
 
-            val response = inferenceRouter.classifyPreprocessed(jpegBytes, consentStatus)
+            val response = inferenceRouter.classifyPreprocessed(imageBytes, consentStatus)
             return saveSuccessfulResponse(response, sourceImageUri, updateDetectionId, isFromCamera)
         }
 
@@ -96,6 +96,6 @@ class ClassifyImageUseCase
 
         companion object {
             /** Stable description of the current preprocessing pipeline. */
-            const val PREPROCESSING_SUMMARY = "EXIF correct, resize max 800px, JPEG 85%, then 224×224 float32 raw [0..255]"
+            const val PREPROCESSING_SUMMARY = "EXIF correct, resize 224×224, lossless PNG, then RGB float32 raw [0..255]"
         }
     }

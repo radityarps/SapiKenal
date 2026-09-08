@@ -1,0 +1,170 @@
+{
+  "status": "accepted",
+  "measured_at": "2026-09-07",
+  "score_tolerance": 3e-06,
+  "same_tensor_score_tolerance": 3e-06,
+  "input_tolerance": 0.0,
+  "identity": {
+    "keras_sha256": "873c54eac9b4cf127ad29486ba6de3d4d0d16d415a3431aa7baa7e46d455434b",
+    "tflite_sha256": "7b71a5a923ae69cf00b390712381c8d437d31e105e1370b0dc2653ba2271a664",
+    "model_version": "sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32",
+    "class_order": [
+      "bali",
+      "brahman",
+      "brangus",
+      "limusin"
+    ],
+    "tensorflow": "2.21.0",
+    "pillow": "12.3.0",
+    "numpy": "2.5.2",
+    "device": "INFINIX Infinix X678B; Android 14; API 34",
+    "tflite_runtime": "2.18.0",
+    "fixtures": [
+      {
+        "id": "fixture-001.png",
+        "sha256": "0f16f2d33db011d08bd37dbcbc5b333ce30d08c5998dedbb892f7dfe6bcb843d"
+      },
+      {
+        "id": "fixture-002.png",
+        "sha256": "da51c02fee40d29718a4f90d9d0ba8dcc7861da9664c7f3a38bbb1298febc6f4"
+      },
+      {
+        "id": "fixture-003.png",
+        "sha256": "dcc27c2b9633bdb202f0e3f362e85cefed481fe17fd6369ced4458e4e0a9559b"
+      },
+      {
+        "id": "fixture-004.png",
+        "sha256": "4d312948633de0c1d455d9a7af28d4e5c07c7d29d9b19e15d4a9407aa9efe961"
+      },
+      {
+        "id": "fixture-005.png",
+        "sha256": "abfe54edc7b948ca4e78523cb6b18b80944fed8110b74d51f4a666bd4d49a3b1"
+      },
+      {
+        "id": "fixture-006.png",
+        "sha256": "51a0fb47fc05506c459730d471bdbff43d5480b1f529f2aaeae15e054b3f1a94"
+      },
+      {
+        "id": "fixture-007.png",
+        "sha256": "06b624ddaf5640591b41dbaac8beeaaec2cb99d739ae489375b4142756c77037"
+      },
+      {
+        "id": "fixture-008.png",
+        "sha256": "e3c375270837a3980f1df1cc2dae28c7a14e72b28cf172ddb10a4541ba5f90f3"
+      },
+      {
+        "id": "fixture-009.png",
+        "sha256": "8b10e91d1f53dedd7908e5c39801cbed5fc88b76c65c3e8c4126477738f1e9c2"
+      },
+      {
+        "id": "fixture-010.png",
+        "sha256": "ab3aabb728fe91737759e27de714a42231c894a6f23f206a92e0ca325eb08385"
+      },
+      {
+        "id": "fixture-011.png",
+        "sha256": "708a92bfb631e55c799efac1bf88e255a9e11e53b371472811e672ec51d99ab8"
+      },
+      {
+        "id": "fixture-012.png",
+        "sha256": "96719573b36be19370a68b9a953db71a5ebf1776110d65f74e4218af82d7e460"
+      },
+      {
+        "id": "fixture-013.png",
+        "sha256": "92f31d7f5b30979acb090cf9d00ef556b675d7277a9e57de5ede0902559a9bce"
+      }
+    ]
+  },
+  "observations": [
+    {
+      "id": "fixture-001.png",
+      "keras_winner": "bali",
+      "tflite_winner": "bali",
+      "score_delta_max": 2.233688735975292e-06,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-002.png",
+      "keras_winner": "bali",
+      "tflite_winner": "bali",
+      "score_delta_max": 2.860260006620763e-08,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-003.png",
+      "keras_winner": "limusin",
+      "tflite_winner": "limusin",
+      "score_delta_max": 5.377181244159424e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-004.png",
+      "keras_winner": "limusin",
+      "tflite_winner": "limusin",
+      "score_delta_max": 6.280845641915e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-005.png",
+      "keras_winner": "limusin",
+      "tflite_winner": "limusin",
+      "score_delta_max": 5.778009796175709e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-006.png",
+      "keras_winner": "limusin",
+      "tflite_winner": "limusin",
+      "score_delta_max": 5.035052490498515e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-007.png",
+      "keras_winner": "brahman",
+      "tflite_winner": "brahman",
+      "score_delta_max": 4.264869689629691e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-008.png",
+      "keras_winner": "brangus",
+      "tflite_winner": "brangus",
+      "score_delta_max": 2.305377674108322e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-009.png",
+      "keras_winner": "brangus",
+      "tflite_winner": "brangus",
+      "score_delta_max": 1.3881530758208527e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-010.png",
+      "keras_winner": "brangus",
+      "tflite_winner": "brangus",
+      "score_delta_max": 2.375625610673282e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-011.png",
+      "keras_winner": "brangus",
+      "tflite_winner": "brangus",
+      "score_delta_max": 3.129938125345788e-08,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-012.png",
+      "keras_winner": "limusin",
+      "tflite_winner": "limusin",
+      "score_delta_max": 5.233566283679991e-07,
+      "input_delta_max": 0.0
+    },
+    {
+      "id": "fixture-013.png",
+      "keras_winner": "limusin",
+      "tflite_winner": "limusin",
+      "score_delta_max": 8.964620972218285e-07,
+      "input_delta_max": 0.0
+    }
+  ]
+}

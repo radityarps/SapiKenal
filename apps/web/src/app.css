@@ -113,7 +113,7 @@
   }
 
   .toast {
-    @apply fixed bottom-5 right-5 z-50 max-w-[calc(100vw-2.5rem)] rounded-lg border border-[#b8d7c6] bg-[#edf8f1] px-4 py-3 text-sm font-semibold text-[#215c42] shadow-[0_14px_34px_rgba(23,49,42,.16)];
+    @apply fixed bottom-5 right-5 z-50 max-w-[calc(100vw - 2.5rem)] rounded-lg border border-[#b8d7c6] bg-[#edf8f1] px-4 py-3 text-sm font-semibold text-[#215c42] shadow-[0_14px_34px_rgba(23,49,42,.16)];
   }
 
   .toast-error {

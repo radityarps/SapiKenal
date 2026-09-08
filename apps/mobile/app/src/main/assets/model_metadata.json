@@ -37,13 +37,14 @@
       "scale": 0.00784313725490196,
       "offset": -1.0
     },
-    "exif_orientation_correction": "applied by ClientPreprocessor before client resize and JPEG compression",
+    "exif_orientation_correction": "applied by ClientPreprocessor before 224x224 resize and lossless PNG encoding",
+    "client_encoding": "PNG",
     "resize_method": "bilinear"
   },
   "parity": {
-    "status": "tensor_contract_verified",
-    "source": "apps/mobile/TFLITE_PARITY.md",
-    "note": "Numerical Keras/TFLite parity requires an agreed image corpus and is not claimed by issue 001."
+    "status": "verified",
+    "source": "docs/model/parity.md",
+    "note": "All 13 real fixtures have identical production input tensors and matching Keras/TFLite winners; measured maximum score delta is 0.000002233689."
   },
   "warning": "Image classification model only; output is not validation that an image contains a cow."
 }

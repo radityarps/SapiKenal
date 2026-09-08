@@ -29,9 +29,9 @@ Both artifacts accept RGB `224 × 224` `float32` input in the raw `[0, 255]`
 range and return four `float32` probabilities in the canonical class order.
 The Keras model contains `Rescaling(scale=1/127.5, offset=-1.0)` followed by a
 four-unit softmax output, so callers must not divide input values by 255.
-Resize uses bilinear filtering. EXIF orientation is corrected before the
-client resize/compression stage; model preprocessing itself only converts RGB,
-resizes to 224 × 224, and adds the batch dimension.
+Resize uses bilinear filtering. The Android client corrects EXIF orientation,
+resizes to 224 × 224, and encodes PNG losslessly; backend model preprocessing
+then converts RGB and adds the batch dimension without changing those pixels.
 
 The complete metadata and checksums are stored in
 `apps/mobile/app/src/main/assets/model_metadata.json`.
@@ -75,4 +75,8 @@ python scripts/verify_model_contract.py
 The verifier checks class order, Keras archive structure and preprocessing,
 TFLite FlatBuffer tensor shape/type/count, source defaults, metadata, artifact
 sizes, and SHA-256 checksums. It uses Python's standard library only and does
-not run UI code or require TensorFlow.
+not run UI code or require TensorFlow. Real Keras–TFLite inference parity is a
+separate device workflow documented in
+[`../../../docs/model/parity.md`](../../../docs/model/parity.md). The accepted
+baseline records identical input tensors, matching winners for 13 real
+fixtures, and a measured maximum score delta of `0.000002233688736`.

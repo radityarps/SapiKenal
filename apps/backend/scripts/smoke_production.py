@@ -13,7 +13,6 @@ from typing import cast
 from urllib.parse import urlparse
 
 CLASSES = ("bali", "brahman", "brangus", "limusin")
-DEFAULT_IMAGE = Path(__file__).resolve().parents[1] / "tests/assets/sapi sehat 1.jpg"
 
 
 def _request_json(
@@ -155,7 +154,12 @@ def _validate_prediction(response: dict[str, object]) -> tuple[str, float]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default="http://localhost:8000")
-    parser.add_argument("--image", type=Path, default=DEFAULT_IMAGE)
+    parser.add_argument(
+        "--image",
+        type=Path,
+        required=True,
+        help="Path to a local real-image fixture that is not added to Git",
+    )
     parser.add_argument("--wait-seconds", type=int, default=90)
     args = parser.parse_args()
 

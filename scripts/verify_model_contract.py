@@ -531,6 +531,8 @@ def validate_metadata(keras: dict[str, Any], tflite: dict[str, Any]) -> None:
         or preprocessing.get("rescale") != "none"
     ):
         fail("Mobile preprocessing metadata must describe raw [0, 255] input")
+    if preprocessing.get("client_encoding") != "PNG":
+        fail("Mobile preprocessing metadata must require lossless PNG encoding")
     internal = preprocessing.get("model_internal_rescaling", {})
     if not isinstance(internal, dict):
         fail("Mobile metadata internal rescaling is missing")
@@ -578,17 +580,37 @@ def validate_source_defaults() -> None:
         ),
         (
             "apps/mobile/app/src/main/java/id/sapikenal/app/ml/OfflineInferenceEngine.kt",
-            r'listOf\("bali",\s*"brahman",\s*"brangus",\s*"limusin"\)',
+            r"val CANONICAL_LABELS = BreedContract\.CANONICAL_LABELS",
+        ),
+        (
+            "apps/mobile/app/src/main/java/id/sapikenal/app/domain/model/BreedContract.kt",
+            r"val CANONICAL_LABELS = definitions\.map\s*\{\s*it\.key\s*\}",
+        ),
+        (
+            "apps/mobile/app/src/main/java/id/sapikenal/app/ml/preprocessing/ClientPreprocessor.kt",
+            r"Bitmap\.createScaledBitmap\(corrected,\s*224,\s*224,\s*true\)[\s\S]*?Bitmap\.CompressFormat\.PNG",
+        ),
+        (
+            "apps/mobile/app/src/main/java/id/sapikenal/app/ml/OnlineInferenceClient.kt",
+            r'"image/png"[\s\S]*?"photo\.png"',
         ),
     ]
-    for relative, pattern in checks:
+    for relative, trusted_pattern in checks:
         path = ROOT / relative
         try:
             content = path.read_text(encoding="utf-8")
         except OSError as exc:
             fail(f"Cannot read {relative}: {exc}")
-        if not re.search(pattern, content):
+        # Patterns are static module constants, never caller-controlled input.
+        if not re.search(trusted_pattern, content):  # noqa: python-unsafe-regex
             fail(f"Contract default missing from {relative}")
+    breed_source = (
+        ROOT
+        / "apps/mobile/app/src/main/java/id/sapikenal/app/domain/model/BreedContract.kt"
+    ).read_text(encoding="utf-8")
+    labels = re.findall(r'BreedDefinition\(\s*"([^"]+)"', breed_source)
+    if labels != CLASSES:
+        fail(f"Mobile BreedContract order is {labels}; expected {CLASSES}")
     print("PASS backend/mobile defaults use the shared model artifacts and class order")
 
 

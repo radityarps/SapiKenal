@@ -114,10 +114,10 @@ The style leans into **Minimalism with Tactile influences**, using soft surfaces
 
 The palette is derived from natural elements: vegetation, soil, and sunlight.
 
-- **Primary (Sage Green):** Used for main actions and representing "Healthy" states. It provides a sense of growth and vitality.
+- **Primary (Sage Green):** Used for main actions and selected identification states. It provides a sense of growth and vitality.
 - **Secondary (Earthy Brown):** Used for accents, navigation elements, and specialized shadows to maintain warmth.
 - **Surface (Soft Cream):** The foundation of the UI, chosen to reduce eye strain compared to pure white.
-- **Status Tones:** We use a semantic scale for livestock health. Healthy is Sage, Warning (PMK/FMD) is a Warm Amber-Orange, and Critical (LSD/Terracotta) is a muted Terracotta Red.
+- **Status Tones:** Use Sage for selected or successful states, Warm Amber-Orange for warnings, and Terracotta Red for errors. Colors must not distinguish identification results without text.
 
 All text should default to **Espresso Black** to ensure high legibility against the cream background while maintaining a softer contrast than true black.
 
@@ -160,6 +160,6 @@ The shape language is ultra-rounded and organic, avoiding sharp corners entirely
 - **Buttons:** Primary buttons use the Sage Green background with white text. They should be 56px in height for easy thumb-tapping.
 - **Cards:** Use the Soft Cream background but are defined by the brown-tinted ambient shadow. Padding inside cards should be 20px.
 - **Input Fields:** Pill-shaped with a 1px border of Warm Grayish-Green. When focused, the border thickens to 2px in Sage Green.
-- **Chips:** Used for livestock tags or health status. Use a 16px radius and a light tint of the status color (e.g., a very pale green for "Healthy").
+- **Chips:** Used for breed, inference-mode, or status tags. Use a 16px radius and a light tint paired with a text label.
 - **Bottom Sheets:** These are the primary navigation pattern for adding data. They must include a "handle" at the top—a 32px wide, 4px thick rounded bar in a light brown tint.
 - **Icons:** Use organic line-art with rounded caps and joins. Avoid "filled" icons unless indicating an active state in the bottom navigation bar.

@@ -15,18 +15,17 @@ import java.io.ByteArrayOutputStream
 @RunWith(AndroidJUnit4::class)
 class OfflineInferenceEngineSmokeTest {
     @Test
-    fun currentTfliteAssetRunsFourClassProbabilitySmokeTest() =
+    fun currentTfliteAssetRunsSixClassProbabilitySmokeTest() =
         runBlocking {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val engine = OfflineInferenceEngine(context, ModelPreprocessor())
 
             val result = engine.classify(createJpeg())
 
-            assertEquals(setOf("FMD", "healthy", "LSD", "non_cattle"), result.allScores.keys)
+            assertEquals(setOf("aceh", "bali", "limusin", "madura", "pasundan", "po"), result.allScores.keys)
             assertTrue(result.allScores.values.all { it.isFinite() && it in 0f..1f })
             assertEquals(1f, result.allScores.values.sum(), 0.01f)
-            assertTrue(result.modelVersion!!.contains("v20260725"))
-            assertTrue(result.outcome == "ACCEPTED" || result.outcome == "REJECTED")
+            assertEquals(OfflineInferenceEngine.MODEL_VERSION, result.modelVersion)
         }
 
     private fun createJpeg(): ByteArray {

@@ -1,6 +1,7 @@
 package id.sapikenal.app.ml
 
 import android.net.Uri
+import id.sapikenal.app.domain.model.ClassifyFailure
 import id.sapikenal.app.domain.model.ClassifyResponse
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
@@ -18,6 +19,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Property-based style tests for InferenceRouter consent routing logic.
@@ -30,6 +32,7 @@ import org.robolectric.RobolectricTestRunner
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class InferenceRouterTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -49,29 +52,49 @@ class InferenceRouterTest {
     private class FakeOnlineClassifier(
         private val shouldThrow: Boolean = false,
     ) : ImageClassifier {
-        override suspend fun classify(jpegBytes: ByteArray): DetectionResult {
-            if (shouldThrow) throw RuntimeException("Simulated online failure")
+        override suspend fun classify(imageBytes: ByteArray): DetectionResult {
+            if (shouldThrow) throw ClassifyFailure.Network("Simulated online failure")
             return DetectionResult(
-                label = "healthy",
-                displayLabel = "Sapi Sehat",
+                label = "bali",
+                displayLabel = "Bali",
                 confidence = 0.95f,
                 isReliable = true,
-                allScores = mapOf("FMD" to 0.02f, "LSD" to 0.03f, "healthy" to 0.95f),
+                allScores =
+                    mapOf(
+                        "aceh" to 0.01f,
+                        "bali" to 0.95f,
+                        "limusin" to 0.01f,
+                        "madura" to 0.01f,
+                        "pasundan" to 0.01f,
+                        "po" to 0.01f,
+                    ),
                 inferenceMode = InferenceMode.ONLINE,
             )
         }
     }
 
     /** Fake offline classifier that returns a deterministic OFFLINE result. */
-    private class FakeOfflineClassifier : ImageClassifier {
-        override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
+    private class FakeOfflineClassifier(
+        private val modelVersion: String? = null,
+    ) : ImageClassifier {
+        override suspend fun classify(imageBytes: ByteArray): DetectionResult =
             DetectionResult(
-                label = "FMD",
-                displayLabel = "Penyakit Mulut dan Kuku (FMD)",
+                label = "madura",
+                displayLabel = "Madura",
                 confidence = 0.80f,
                 isReliable = true,
-                allScores = mapOf("FMD" to 0.80f, "LSD" to 0.10f, "healthy" to 0.10f),
+                allScores =
+                    mapOf(
+                        "aceh" to 0.04f,
+                        "bali" to 0.04f,
+                        "limusin" to 0.04f,
+                        "madura" to 0.80f,
+                        "pasundan" to 0.04f,
+                        "po" to 0.04f,
+                    ),
                 inferenceMode = InferenceMode.OFFLINE,
+                processingMs = 27,
+                modelVersion = modelVersion,
             )
     }
 
@@ -280,35 +303,76 @@ class InferenceRouterTest {
         }
 
     @Test
-    fun `rejection response returns ClassifyResponse Rejected`() =
+    fun `online fallback preserves offline scores confidence timing and model version`() =
         runTest {
-            val rejectedOnline =
+            val preprocessor = FakePreprocessor()
+            val router =
+                InferenceRouter(
+                    clientPreprocessor = preprocessor,
+                    onlineClient = FakeOnlineClassifier(shouldThrow = true),
+                    offlineEngine = FakeOfflineClassifier(modelVersion = "offline-v1"),
+                    networkChecker = FakeNetworkChecker(online = true),
+                )
+
+            val result =
+                (router.classify(testUris.first(), ConsentStatus.ALLOWED) as ClassifyResponse.Success).result
+
+            assertEquals("madura", result.label)
+            assertEquals(0.80f, result.confidence, 0.001f)
+            assertEquals(
+                mapOf(
+                    "aceh" to 0.04f,
+                    "bali" to 0.04f,
+                    "limusin" to 0.04f,
+                    "madura" to 0.80f,
+                    "pasundan" to 0.04f,
+                    "po" to 0.04f,
+                ),
+                result.allScores,
+            )
+            assertEquals(InferenceMode.OFFLINE_FALLBACK, result.inferenceMode)
+            assertEquals(27, result.processingMs)
+            assertEquals("offline-v1", result.modelVersion)
+            assertEquals(ConsentStatus.ALLOWED, result.consentStatus)
+        }
+
+    @Test
+    fun `breed response is always returned as ClassifyResponse Success`() =
+        runTest {
+            val breedOnline =
                 object : ImageClassifier {
-                    override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
+                    override suspend fun classify(imageBytes: ByteArray): DetectionResult =
                         DetectionResult(
-                            label = "non_cattle",
-                            displayLabel = "Objek bukan sapi",
-                            confidence = 0.98f,
+                            label = "bali",
+                            displayLabel = "Bali",
+                            confidence = 0.31f,
                             isReliable = false,
-                            allScores = mapOf("FMD" to 0.01f, "healthy" to 0.01f, "LSD" to 0.0f, "non_cattle" to 0.98f),
+                            allScores =
+                                mapOf(
+                                    "aceh" to 0.31f,
+                                    "bali" to 0.30f,
+                                    "limusin" to 0.20f,
+                                    "madura" to 0.10f,
+                                    "pasundan" to 0.05f,
+                                    "po" to 0.04f,
+                                ),
                             inferenceMode = InferenceMode.ONLINE,
-                            outcome = "REJECTED",
-                            rejectionReason = "non_cattle",
                         )
                 }
             val preprocessor = FakePreprocessor()
             val router =
                 InferenceRouter(
                     clientPreprocessor = preprocessor,
-                    onlineClient = rejectedOnline,
+                    onlineClient = breedOnline,
                     offlineEngine = FakeOfflineClassifier(),
                     networkChecker = FakeNetworkChecker(true),
                 )
 
             val response = router.classify(testUris.first(), ConsentStatus.ALLOWED)
-            assertTrue(response is ClassifyResponse.Rejected)
-            val rejectedResult = (response as ClassifyResponse.Rejected).result
-            assertEquals("REJECTED", rejectedResult.outcome)
-            assertEquals("non_cattle", rejectedResult.rejectionReason)
+            assertTrue(response is ClassifyResponse.Success)
+            assertEquals(
+                "bali",
+                (response as ClassifyResponse.Success).result.label,
+            )
         }
 }

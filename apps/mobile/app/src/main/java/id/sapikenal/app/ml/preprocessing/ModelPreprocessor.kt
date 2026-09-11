@@ -16,9 +16,9 @@ class ModelPreprocessor
             val INPUT_SIZE = BuildConfig.MODEL_INPUT_SIZE
         }
 
-        fun process(jpegBytes: ByteArray): ByteBuffer {
+        fun process(imageBytes: ByteArray): ByteBuffer {
             val bitmap =
-                BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.size)
+                BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                     ?: throw IllegalArgumentException("Unable to decode image bytes")
             val resized = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, true)
 

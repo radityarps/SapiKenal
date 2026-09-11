@@ -21,17 +21,25 @@ class PdfReportContentTest {
         DetectionResult(
             id = 1L,
             imagePath = "/images/test.jpg",
-            label = "FMD",
-            displayLabel = "Penyakit Mulut dan Kuku (FMD)",
+            label = "madura",
+            displayLabel = "Madura",
             confidence = 0.92f,
             isReliable = true,
-            allScores = mapOf("FMD" to 0.92f, "LSD" to 0.05f, "healthy" to 0.03f),
+            allScores =
+                mapOf(
+                    "aceh" to 0.01f,
+                    "bali" to 0.02f,
+                    "limusin" to 0.02f,
+                    "madura" to 0.92f,
+                    "pasundan" to 0.02f,
+                    "po" to 0.01f,
+                ),
             inferenceMode = InferenceMode.ONLINE,
             consentStatus = ConsentStatus.ALLOWED,
             timestamp = 1700000000000L,
             appVersion = "1.0.0",
             modelVersion = "MobileNetV2-v3",
-            preprocessingSummary = "EXIF correct, resize max 800px, JPEG 85%, then 224×224 float32 raw [0..255]",
+            preprocessingSummary = "EXIF correct, resize 224×224, lossless PNG, then RGB float32 raw [0..255]",
             imageSource = ImageSource.CAMERA,
             latitude = -6.20,
             longitude = 106.85,
@@ -53,15 +61,16 @@ class PdfReportContentTest {
     // ── Required fields present ───────────────────────────────────────
 
     @Test
-    fun `report includes disease class`() {
+    fun `report includes breed class`() {
         val content = buildContent()
-        assertTrue(content.contains("Predicted Class: FMD"))
+        assertTrue(content.contains("Predicted Class: Madura"))
     }
 
     @Test
-    fun `report includes confidence`() {
+    fun `report includes confidence without threshold reliability`() {
         val content = buildContent()
         assertTrue(content.contains("92%"))
+        assertFalse(content.contains("Reliable"))
     }
 
     @Test
@@ -71,11 +80,26 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes class scores`() {
+    fun `report distinguishes offline fallback mode`() {
+        val content = buildContent(createResult().copy(inferenceMode = InferenceMode.OFFLINE_FALLBACK))
+        assertTrue(content.contains("Inference Mode: Offline fallback"))
+        assertFalse(content.contains("Inference Mode: Offline\n"))
+    }
+
+    @Test
+    fun `report includes all six canonical class scores`() {
         val content = buildContent()
-        assertTrue(content.contains("FMD: 92%"))
-        assertTrue(content.contains("LSD: 5%"))
-        assertTrue(content.contains("Healthy: 3%"))
+        assertTrue(content.contains("Madura: 92%"))
+        assertTrue(content.contains("Bali: 2%"))
+        assertTrue(content.contains("Limousin: 2%"))
+        assertTrue(content.contains("Aceh: 1%"))
+        assertTrue(content.contains("Pasundan: 2%"))
+        assertTrue(content.contains("PO: 1%"))
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `report rejects incomplete canonical scores`() {
+        buildContent(createResult().copy(allScores = mapOf("madura" to 0.92f)))
     }
 
     @Test
@@ -109,10 +133,13 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes disclaimer`() {
+    fun `report includes breed identification limitations`() {
         val content = buildContent()
-        assertTrue(content.contains("NOT a veterinary diagnosis"))
-        assertTrue(content.contains("certificate"))
+        assertTrue(content.contains("cattle breed identification result"))
+        assertTrue(content.contains("not validation that the image contains cattle"))
+        assertTrue(content.contains("six supported breeds"))
+        assertFalse(content.contains("diagnosis"))
+        assertFalse(content.contains("treatment"))
     }
 
     // ── Excluded fields ───────────────────────────────────────────────
@@ -151,9 +178,9 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report states it is not a certificate`() {
+    fun `report states it is not an official identity document`() {
         val content = buildContent()
-        assertTrue(content.contains("NOT a veterinary diagnosis, certificate, or official document"))
+        assertTrue(content.contains("not proof of an individual animal identity or an official document"))
     }
 
     // ── ReportContent structure ───────────────────────────────────────
@@ -167,10 +194,13 @@ class PdfReportContentTest {
     @Test
     fun `build returns scores sorted by value descending`() {
         val report = ReportContentBuilder.build(createResult(), "1.0.0")
-        assertEquals(3, report.scoreLines.size)
-        assertTrue(report.scoreLines[0].startsWith("FMD"))
-        assertTrue(report.scoreLines[1].startsWith("LSD"))
-        assertTrue(report.scoreLines[2].startsWith("Healthy"))
+        assertEquals(6, report.scoreLines.size)
+        assertTrue(report.scoreLines[0].startsWith("Madura"))
+        assertTrue(report.scoreLines[1].startsWith("Bali"))
+        assertTrue(report.scoreLines[2].startsWith("Limousin"))
+        assertTrue(report.scoreLines[3].startsWith("Pasundan"))
+        assertTrue(report.scoreLines[4].startsWith("Aceh"))
+        assertTrue(report.scoreLines[5].startsWith("PO"))
     }
 
     @Test

@@ -18,11 +18,11 @@
   $: if ((value || '__all__') !== selectedValue) selectedValue = value || '__all__';
 </script>
 
-<div class="grid gap-1.5 text-xs font-bold text-[#52635b]">
+<div class="grid min-w-0 gap-1.5 text-xs font-bold text-[#52635b]">
   <span>{label}</span>
   <Select.Root type="single" value={selectedValue} {items} onValueChange={handleValueChange}>
-    <Select.Trigger class="flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#cfdad4] bg-white px-3 py-2 text-left text-sm font-normal text-[#17241f] transition hover:border-[#aebfb6] focus-visible:border-[#4d8a6c] focus-visible:ring-4 focus-visible:ring-[#18794e]/10">
-      <Select.Value {placeholder} />
+    <Select.Trigger class="flex min-h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-[#cfdad4] bg-white px-3 py-2 text-left text-sm font-normal text-[#17241f] transition hover:border-[#aebfb6] focus-visible:border-[#4d8a6c] focus-visible:ring-4 focus-visible:ring-[#18794e]/10">
+      <Select.Value class="truncate min-w-0" {placeholder} />
       <ChevronDown size={16} strokeWidth={1.8} class="shrink-0 text-[#718078]" aria-hidden="true" />
     </Select.Trigger>
     <Select.Portal>

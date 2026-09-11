@@ -46,7 +46,7 @@ class DetectionDaoTest {
 
     private fun createEntity(
         id: Long = 0,
-        predictedClass: String = "FMD",
+        predictedClass: String = "brangus",
         inferenceMode: String = "ONLINE",
         consentStatus: String = "ALLOWED",
         appVersion: String? = "1.0.0",
@@ -59,20 +59,14 @@ class DetectionDaoTest {
         pdfCachePath: String? = null,
         title: String? = null,
         description: String? = null,
-        scoreNonCattle: Float = 0f,
-        outcome: String = "ACCEPTED",
-        rejectionReason: String? = null,
     ) = DetectionEntity(
         id = id,
         timestamp = System.currentTimeMillis(),
         imagePath = "/images/test.jpg",
         predictedClass = predictedClass,
-        displayLabel = "PMK",
+        displayLabel = "Brangus",
         confidence = 0.92f,
-        scoreHealthy = 0.03f,
-        scoreFmd = 0.92f,
-        scoreLsd = 0.05f,
-        scoreNonCattle = scoreNonCattle,
+        scoresJson = "{\"bali\":0.03,\"brahman\":0.02,\"brangus\":0.92,\"limusin\":0.03}",
         inferenceMode = inferenceMode,
         isReliable = true,
         processingMs = 200,
@@ -87,8 +81,6 @@ class DetectionDaoTest {
         longitude = longitude,
         deletedAt = deletedAt,
         pdfCachePath = pdfCachePath,
-        outcome = outcome,
-        rejectionReason = rejectionReason,
     )
 
     // ── Save and read metadata roundtrip ──────────────────────────────
@@ -178,13 +170,13 @@ class DetectionDaoTest {
     @Test
     fun `observeByClass returns only matching class`() =
         runTest {
-            dao.insert(createEntity(predictedClass = "FMD"))
-            dao.insert(createEntity(predictedClass = "LSD"))
-            dao.insert(createEntity(predictedClass = "FMD"))
+            dao.insert(createEntity(predictedClass = "brangus"))
+            dao.insert(createEntity(predictedClass = "bali"))
+            dao.insert(createEntity(predictedClass = "brangus"))
 
-            val fmdRows = dao.observeByClass("FMD").first()
-            assertEquals(2, fmdRows.size)
-            assertTrue(fmdRows.all { it.predictedClass == "FMD" })
+            val breedRows = dao.observeByClass("brangus").first()
+            assertEquals(2, breedRows.size)
+            assertTrue(breedRows.all { it.predictedClass == "brangus" })
         }
 
     @Test
@@ -217,12 +209,12 @@ class DetectionDaoTest {
     @Test
     fun `soft-deleted rows excluded from observeByClass`() =
         runTest {
-            val id1 = dao.insert(createEntity(predictedClass = "FMD"))
-            dao.insert(createEntity(predictedClass = "FMD"))
+            val id1 = dao.insert(createEntity(predictedClass = "brangus"))
+            dao.insert(createEntity(predictedClass = "brangus"))
 
             dao.softDelete(id1, System.currentTimeMillis())
 
-            val rows = dao.observeByClass("FMD").first()
+            val rows = dao.observeByClass("brangus").first()
             assertEquals(1, rows.size)
         }
 

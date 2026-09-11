@@ -7,20 +7,41 @@ fun localProperty(name: String): String? {
     return Properties().apply { file.inputStream().use(::load) }.getProperty(name)
 }
 
-fun envOrProperty(
-    name: String,
-    defaultValue: String,
-): String =
+fun configuredValue(name: String): String? =
     providers.gradleProperty(name).orNull
         ?: System.getenv(name)
         ?: localProperty(name)
-        ?: defaultValue
+
+fun envOrProperty(
+    name: String,
+    defaultValue: String,
+): String = configuredValue(name) ?: defaultValue
+
+val releaseRequested = gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
 
 fun apiBaseUrl(defaultValue: String): String {
     val raw = envOrProperty("API_BASE_URL", defaultValue)
     val normalized = if (raw.endsWith("/")) raw else "$raw/"
     require(normalized.startsWith("http://") || normalized.startsWith("https://")) {
         "API_BASE_URL must start with http:// or https://"
+    }
+    return "\"$normalized\""
+}
+
+fun releaseApiBaseUrl(): String {
+    val raw = configuredValue("RELEASE_API_BASE_URL")
+    if (releaseRequested) {
+        require(!raw.isNullOrBlank()) { "Set RELEASE_API_BASE_URL" }
+    }
+    val normalized =
+        (raw ?: "https://api.sapikenal.example/").let {
+            if (it.endsWith("/")) it else "$it/"
+        }
+    if (releaseRequested) {
+        require(
+            (normalized.startsWith("http://") || normalized.startsWith("https://")) &&
+                !normalized.contains(".example"),
+        ) { "RELEASE_API_BASE_URL must be a non-placeholder HTTP(S) URL" }
     }
     return "\"$normalized\""
 }
@@ -35,14 +56,14 @@ plugins {
 
 android {
     namespace = "id.sapikenal.app"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "id.sapikenal.app"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        targetSdk = 36
+        versionCode = envOrProperty("VERSION_CODE", "1").toInt().also { require(it > 0) }
+        versionName = envOrProperty("VERSION_NAME", "0.1.0").also { require(it.isNotBlank()) }
 
         // Keep APK/App Bundle on ARM ABIs to avoid shipping incompatible x86_64 native libs.
         ndk {
@@ -55,10 +76,41 @@ android {
         }
 
         buildConfigField("String", "API_BASE_URL", apiBaseUrl("http://10.0.2.2:8000/"))
-        buildConfigField("String", "MODEL_FILE_NAME", "\"${envOrProperty("MODEL_FILE_NAME", "cattle_disease.tflite")}\"")
-        buildConfigField("String", "MODEL_VERSION", "\"${envOrProperty("MODEL_VERSION", "cattle-disease-mobilenetv3-v20260725-fp32")}\"")
+        buildConfigField("String", "MODEL_FILE_NAME", "\"${envOrProperty("MODEL_FILE_NAME", "lokal_fp32.tflite")}\"")
+        buildConfigField(
+            "String",
+            "MODEL_VERSION",
+            "\"${envOrProperty("MODEL_VERSION", "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32")}\"",
+        )
         buildConfigField("int", "MODEL_INPUT_SIZE", envOrProperty("MODEL_INPUT_SIZE", "224"))
         buildConfigField("float", "CONFIDENCE_THRESHOLD", "${envOrProperty("CONFIDENCE_THRESHOLD", "0.60")}f")
+    }
+
+    signingConfigs {
+        if (releaseRequested) {
+            create("release") {
+                val keyStorePath =
+                    requireNotNull(configuredValue("RELEASE_STORE_FILE")) {
+                        "Set RELEASE_STORE_FILE"
+                    }
+                storeFile =
+                    rootProject.file(keyStorePath).also {
+                        require(it.isFile) { "Release keystore not found: $it" }
+                    }
+                storePassword =
+                    requireNotNull(configuredValue("RELEASE_STORE_PASSWORD")) {
+                        "Set RELEASE_STORE_PASSWORD"
+                    }
+                keyAlias =
+                    requireNotNull(configuredValue("RELEASE_KEY_ALIAS")) {
+                        "Set RELEASE_KEY_ALIAS"
+                    }
+                keyPassword =
+                    requireNotNull(configuredValue("RELEASE_KEY_PASSWORD")) {
+                        "Set RELEASE_KEY_PASSWORD"
+                    }
+            }
+        }
     }
 
     buildTypes {
@@ -66,12 +118,13 @@ android {
             buildConfigField("String", "API_BASE_URL", apiBaseUrl("http://10.0.2.2:8000/"))
         }
         release {
+            if (releaseRequested) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            buildConfigField("String", "API_BASE_URL", apiBaseUrl("https://api.sapikenal.example/"))
+            buildConfigField("String", "API_BASE_URL", releaseApiBaseUrl())
         }
     }
 

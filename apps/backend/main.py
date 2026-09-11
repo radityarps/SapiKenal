@@ -10,6 +10,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
+from fastapi import (  # pyright: ignore[reportMissingImports]
+    FastAPI,
+    HTTPException,
+    Request,
+)
+from fastapi.middleware.cors import (  # pyright: ignore[reportMissingImports]
+    CORSMiddleware,
+)
+from sqlalchemy import desc, select  # pyright: ignore[reportMissingImports]
+from starlette.responses import JSONResponse  # pyright: ignore[reportMissingImports]
+
 import db.models  # noqa: F401 - register every model with Base.metadata
 from api.admin_routes import content_router
 from api.admin_routes import router as admin_router
@@ -21,8 +32,6 @@ from config import settings
 from db.base import Base
 from db.core import SessionLocal, engine
 from db.models import ModelActivation, ModelVersion
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
 from inference_server import mark_model_unavailable, reload_active_model
 from model.registry import (  # pyright: ignore[reportMissingImports]
     artifact_name_for,
@@ -34,8 +43,6 @@ from model.validation import (  # pyright: ignore[reportMissingImports]
     validate_model_file,
 )
 from services.audit import record_audit
-from sqlalchemy import desc, select
-from starlette.responses import JSONResponse
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -205,7 +212,7 @@ async def lifespan(_app: FastAPI):
 # Create FastAPI app
 app = FastAPI(
     title="SapiKenal Backend",
-    description="Cattle disease detection API (PMK & LSD)",
+    description="Cattle breed identification API for four supported classes.",
     version=settings.model_version,
     lifespan=lifespan,
     docs_url="/docs",
@@ -298,7 +305,6 @@ async def http_exception_handler(request, exc):
             "message": str(detail.get("message", "Request failed"))[:256],
         }
         for key in (
-            "rejection",
             "model_info",
             "processing_time_ms",
             "preprocessing_time_ms",

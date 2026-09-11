@@ -3,11 +3,17 @@ import time
 from collections.abc import Generator
 from datetime import datetime, timezone
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+import pytest  # pyright: ignore[reportMissingImports]
+from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
+from sqlalchemy import (  # pyright: ignore[reportMissingImports]
+    create_engine,
+    select,
+)
+from sqlalchemy.orm import (  # pyright: ignore[reportMissingImports]
+    Session,
+    sessionmaker,
+)
+from sqlalchemy.pool import StaticPool  # pyright: ignore[reportMissingImports]
 
 import main as backend_main
 from api import admin_routes
@@ -94,134 +100,99 @@ def test_dashboard_and_user_guardrails(
     assert self_demotion.status_code == 409
 
 
-def test_dashboard_separates_non_cattle_rejections(
+def test_dashboard_and_predictions_use_breed_status_and_scores(
     admin_client: tuple[TestClient, sessionmaker[Session]],
 ) -> None:
     client, session_factory = admin_client
     timestamp = round(time.time() * 1_000)
+    bali_scores = {
+        "aceh": 0.02,
+        "bali": 0.91,
+        "limusin": 0.02,
+        "madura": 0.02,
+        "pasundan": 0.02,
+        "po": 0.01,
+    }
+    madura_scores = {
+        "aceh": 0.03,
+        "bali": 0.03,
+        "limusin": 0.03,
+        "madura": 0.85,
+        "pasundan": 0.03,
+        "po": 0.03,
+    }
     with session_factory() as db:
         db.add(
             DetectionHistory(
                 device_id="accepted-device-123456",
                 local_id=1,
                 timestamp=timestamp,
-                predicted_class="healthy",
-                display_label="Sehat",
+                predicted_class="bali",
+                display_label="Bali",
                 confidence=0.91,
-                score_healthy=0.91,
-                score_fmd=0.03,
-                score_lsd=0.04,
-                score_non_cattle=0.02,
-                outcome="accepted",
+                scores=bali_scores,
                 inference_mode="online",
                 is_reliable=True,
-            )
-        )
-        db.add(
-            DetectionHistory(
-                device_id="rejected-device-123456",
-                local_id=2,
-                timestamp=timestamp,
-                predicted_class="non_cattle",
-                display_label="Objek bukan sapi",
-                confidence=0.96,
-                score_healthy=0.02,
-                score_fmd=0.01,
-                score_lsd=0.01,
-                score_non_cattle=0.96,
-                outcome="rejected",
-                rejection_reason="non_cattle",
-                inference_mode="offline",
-                is_reliable=False,
             )
         )
         db.add(
             PredictionEvent(
                 request_id="failed-request",
                 status="failed",
-                outcome="failed",
                 error_code="MODEL_NOT_READY",
+            )
+        )
+        db.add(
+            PredictionEvent(
+                request_id="direct-request",
+                status="success",
+                predicted_class="madura",
+                confidence=0.85,
+                scores=madura_scores,
+                processing_ms=90,
+                model_version="six-class-v2",
             )
         )
         db.commit()
 
     dashboard = client.get("/api/admin/dashboard").json()["predictions"]
     assert dashboard["attempts"] == 3
-    assert dashboard["accepted"] == 1
-    assert dashboard["rejected_non_cattle"] == 1
+    assert dashboard["accepted"] == 2
     assert dashboard["failures"] == 1
-    assert dashboard["distribution"] == {"healthy": 1, "FMD": 0, "LSD": 0}
-    assert dashboard["non_cattle_rate"] == 1 / 3
+    assert dashboard["distribution"] == {
+        "aceh": 0,
+        "bali": 1,
+        "limusin": 0,
+        "madura": 1,
+        "pasundan": 0,
+        "po": 0,
+    }
+    assert set(dashboard["distribution"]) == {
+        "aceh",
+        "bali",
+        "limusin",
+        "madura",
+        "pasundan",
+        "po",
+    }
+    assert "rejected_non_cattle" not in dashboard
+    assert "low_confidence" not in dashboard
+    assert "low_confidence_rate" not in dashboard
+    assert dashboard["average_confidence"] == pytest.approx(0.88)
 
-    rejected = client.get(
+    successful = client.get(
         "/api/admin/predictions",
-        params={"outcome": "rejected", "predicted_class": "non_cattle"},
+        params={"status": "success", "predicted_class": "madura"},
     ).json()
-    assert rejected["total"] == 1
-    assert rejected["items"][0]["error_code"] == "NON_CATTLE_IMAGE"
-    assert rejected["items"][0]["outcome"] == "rejected"
-    assert rejected["items"][0]["scores"]["non_cattle"] == 0.96
+    assert successful["total"] == 1
+    assert successful["items"][0]["scores"]["madura"] == 0.85
+    assert "outcome" not in successful["items"][0]
+    assert "is_reliable" not in successful["items"][0]
 
-    failed = client.get("/api/admin/predictions", params={"outcome": "failed"}).json()
+    failed = client.get("/api/admin/predictions", params={"status": "failed"}).json()
     assert failed["total"] == 1
-    assert failed["items"][0]["outcome"] == "failed"
+    assert failed["items"][0]["status"] == "failed"
     assert failed["items"][0]["error_code"] == "MODEL_NOT_READY"
-
-
-def test_dashboard_and_predictions_include_direct_online_events(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
-) -> None:
-    client, session_factory = admin_client
-    with session_factory() as db:
-        db.add(
-            PredictionEvent(
-                request_id="direct-accepted-request",
-                status="success",
-                outcome="accepted",
-                predicted_class="healthy",
-                confidence=0.91,
-                scores={"FMD": 0.02, "healthy": 0.91, "LSD": 0.05, "non_cattle": 0.02},
-                processing_ms=90,
-                model_version="four-class-v1",
-            )
-        )
-        db.add(
-            PredictionEvent(
-                request_id="direct-rejected-request",
-                status="rejected",
-                outcome="rejected",
-                error_code="NON_CATTLE_IMAGE",
-                predicted_class="non_cattle",
-                confidence=0.96,
-                scores={"FMD": 0.01, "healthy": 0.02, "LSD": 0.01, "non_cattle": 0.96},
-                processing_ms=80,
-                model_version="four-class-v1",
-            )
-        )
-        db.commit()
-
-    predictions = client.get("/api/admin/dashboard").json()["predictions"]
-    assert predictions["attempts"] == 2
-    assert predictions["accepted"] == 1
-    assert predictions["rejected_non_cattle"] == 1
-    assert predictions["failures"] == 0
-    assert predictions["distribution"] == {"healthy": 1, "FMD": 0, "LSD": 0}
-
-    accepted = client.get(
-        "/api/admin/predictions",
-        params={"outcome": "accepted", "predicted_class": "healthy"},
-    ).json()
-    assert accepted["total"] == 1
-    assert accepted["items"][0]["outcome"] == "accepted"
-    assert accepted["items"][0]["display_label"] == "Sehat"
-
-    rejected = client.get(
-        "/api/admin/predictions",
-        params={"outcome": "rejected", "predicted_class": "non_cattle"},
-    ).json()
-    assert rejected["total"] == 1
-    assert rejected["items"][0]["error_code"] == "NON_CATTLE_IMAGE"
-    assert rejected["items"][0]["outcome"] == "rejected"
 
 
 def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
@@ -229,36 +200,39 @@ def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
 ) -> None:
     client, session_factory = admin_client
     timestamp = round(time.time() * 1_000)
+    scores = {
+        "aceh": 0.02,
+        "bali": 0.91,
+        "limusin": 0.02,
+        "madura": 0.02,
+        "pasundan": 0.02,
+        "po": 0.01,
+    }
     with session_factory() as db:
         db.add(
             DetectionHistory(
                 device_id="synced-device-123456",
                 local_id=17,
                 timestamp=timestamp,
-                predicted_class="healthy",
-                display_label="Sehat",
+                predicted_class="bali",
+                display_label="Bali",
                 confidence=0.91,
-                score_healthy=0.91,
-                score_fmd=0.02,
-                score_lsd=0.05,
-                score_non_cattle=0.02,
-                outcome="accepted",
+                scores=scores,
                 inference_mode="online",
                 is_reliable=True,
                 processing_ms=90,
-                model_version="four-class-v1",
+                model_version="six-class-v2",
             )
         )
         db.add(
             PredictionEvent(
                 request_id="mirrored-online-request",
                 status="success",
-                outcome="accepted",
-                predicted_class="healthy",
+                predicted_class="bali",
                 confidence=0.91,
-                scores={"FMD": 0.02, "healthy": 0.91, "LSD": 0.05, "non_cattle": 0.02},
+                scores=scores,
                 processing_ms=90,
-                model_version="four-class-v1",
+                model_version="six-class-v2",
                 created_at=datetime.fromtimestamp(timestamp / 1_000, timezone.utc),
             )
         )
@@ -267,11 +241,10 @@ def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
     predictions = client.get("/api/admin/dashboard").json()["predictions"]
     assert predictions["attempts"] == 1
     assert predictions["accepted"] == 1
-    assert predictions["rejected_non_cattle"] == 0
 
     listed = client.get("/api/admin/predictions").json()
     assert listed["total"] == 1
-    assert listed["items"][0]["outcome"] == "accepted"
+    assert listed["items"][0]["status"] == "success"
 
 
 def test_last_admin_guard_and_prediction_masking(
@@ -286,9 +259,17 @@ def test_last_admin_guard_and_prediction_masking(
                 device_id="raw-device-id-123456",
                 local_id=1,
                 timestamp=1_725_000_000_000,
-                predicted_class="healthy",
-                display_label="Healthy",
+                predicted_class="bali",
+                display_label="Bali",
                 confidence=0.91,
+                scores={
+                    "aceh": 0.02,
+                    "bali": 0.91,
+                    "limusin": 0.02,
+                    "madura": 0.02,
+                    "pasundan": 0.02,
+                    "po": 0.01,
+                },
                 inference_mode="online",
                 is_reliable=True,
                 processing_ms=30,
@@ -307,35 +288,8 @@ def test_last_admin_guard_and_prediction_masking(
     assert predictions["total"] == 1
     assert predictions["items"][0]["device_ref"] != "raw-device-id-123456"
     assert len(predictions["items"][0]["device_ref"]) == 8
-    assert client.get("/api/admin/predictions?search=Healthy").json()["total"] == 1
+    assert client.get("/api/admin/predictions?search=Bali").json()["total"] == 1
     assert client.get("/api/admin/predictions?search=PMK").json()["total"] == 0
-
-
-def test_disease_lifecycle_and_public_read(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
-) -> None:
-    client, _ = admin_client
-    payload = {
-        "slug": "pmk",
-        "model_class": "FMD",
-        "display_name": "PMK",
-        "summary": "Informasi PMK",
-        "description": "Penjelasan edukatif.",
-        "handling_advice": "Pisahkan sementara dan hubungi petugas.",
-        "disclaimer": "Bukan diagnosis klinis final.",
-        "locale": "id-ID",
-    }
-    created = client.post("/api/admin/diseases", json=payload)
-    assert created.status_code == 201
-    content_id = created.json()["item"]["id"]
-    assert client.post(f"/api/admin/diseases/{content_id}/activate").status_code == 200
-    public = client.get("/api/content/diseases")
-    assert public.status_code == 200
-    assert public.json()["items"][0]["slug"] == "pmk"
-    assert (
-        client.post(f"/api/admin/diseases/{content_id}/deactivate").status_code == 200
-    )
-    assert client.get("/api/content/diseases").json()["items"] == []
 
 
 def test_model_registration_rejects_missing_allowlisted_artifact(
@@ -348,7 +302,7 @@ def test_model_registration_rejects_missing_allowlisted_artifact(
             "version": "candidate-1",
             "artifact_name": "candidate.keras",
             "checksum": "0" * 64,
-            "classes": ["FMD", "healthy", "LSD", "non_cattle"],
+            "classes": ["aceh", "bali", "limusin", "madura", "pasundan", "po"],
         },
     )
     assert response.status_code == 422
@@ -413,7 +367,7 @@ def test_model_upload_registers_available_artifact_without_activation(
         data={
             "version": "candidate-upload-1",
             "input_size": "224",
-            "classes": "FMD,healthy,LSD,non_cattle",
+            "classes": "aceh,bali,limusin,madura,pasundan,po",
             "notes": "Candidate upload test",
         },
         files={

@@ -1,8 +1,8 @@
 """Image preprocessing module - Tahap 2 (Model preprocessing)."""
 
-import numpy as np
+import numpy as np  # pyright: ignore[reportMissingImports]
 from PIL import Image
-from typing import Union
+
 from utils.errors import PreprocessingError
 from utils.logger import get_logger
 
@@ -22,7 +22,7 @@ class ModelPreprocessor:
     INPUT_SIZE = 224
 
     @staticmethod
-    def process(image: Union[Image.Image, np.ndarray]) -> np.ndarray:
+    def process(image: Image.Image | np.ndarray) -> np.ndarray:
         """
         Process image to model-ready numpy array.
 
@@ -38,13 +38,13 @@ class ModelPreprocessor:
         try:
             # Ensure PIL Image
             if isinstance(image, np.ndarray):
-                image = Image.fromarray(image.astype('uint8'), 'RGB')
+                image = Image.fromarray(np.asarray(image, dtype=np.uint8), "RGB")
             elif not isinstance(image, Image.Image):
                 raise PreprocessingError(f"Unsupported image type: {type(image)}")
 
             # Ensure RGB
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
+            if image.mode != "RGB":
+                image = image.convert("RGB")
 
             # Match TensorFlow/TFLite's explicit bilinear inference contract.
             image = image.resize(

@@ -1,8 +1,6 @@
 # SapiKenal
 
-Fondasi aplikasi untuk mengidentifikasi jenis sapi dari citra. Branding aplikasi dan identifier teknis utama telah menggunakan nama SapiKenal.
-
-> Status: migrasi domain masih berlangsung. Alur klasifikasi penyakit dan artefak model lama masih dipertahankan sementara sebagai fondasi teknis hingga dataset serta model identifikasi jenis sapi tersedia.
+Controlled prototype/MVP untuk mengidentifikasi jenis sapi dari citra. Backend Keras dan aplikasi Android TFLite memakai artefak identifikasi enam jenis sapi (Aceh, Bali, Limusin, Madura, Pasundan, dan PO); parity nyata lulus pada fixture dengan tensor input identik dan kelas pemenang yang sama. Lihat [`docs/model/parity.md`](docs/model/parity.md). Status ini tidak menyatakan production readiness karena rehearsal operasional dan aksesibilitas masih terpisah.
 
 ## Struktur Repository
 
@@ -40,14 +38,20 @@ pnpm run backend:up      # Build dan jalankan backend
 pnpm run backend:down    # Hentikan backend
 pnpm run backend:logs    # Tampilkan log backend
 pnpm run backend:test    # Jalankan test backend
+pnpm run backend:smoke -- --image /path/to/fixture.jpg  # Reset DB development lalu smoke Keras nyata
 
-pnpm run mobile:build    # Build APK debug
+pnpm run mobile:build    # Build APK debug lokal (bukan artefak Play Store)
+pnpm run mobile:release  # Build AAB release bertanda tangan untuk Play Store
 pnpm run mobile:deploy   # Build dan install APK
 pnpm run mobile:run      # Build, install, dan jalankan aplikasi
 pnpm run mobile:test     # Jalankan unit test Android
+pnpm run web:test        # Jalankan test Web Admin
+pnpm run web:check       # Periksa tipe dan komponen Svelte
+pnpm run test            # Jalankan seluruh unit test
+pnpm run build           # Build backend dan Web Admin
 ```
 
-Backend lokal tersedia di `http://localhost:8000`; dokumentasi OpenAPI tersedia di `http://localhost:8000/docs`.
+Backend lokal tersedia di `http://localhost:8000`; dokumentasi OpenAPI tersedia di `http://localhost:8000/docs`. `backend:smoke` bersifat destruktif terhadap data development karena menjalankan `backend:dev`; gunakan hanya untuk database SQLite development lokal.
 
 ## Konfigurasi Mobile
 
@@ -57,7 +61,7 @@ Salin konfigurasi lokal sebelum build:
 cp apps/mobile/local.properties.example apps/mobile/local.properties
 ```
 
-Atur `API_BASE_URL` di `apps/mobile/local.properties`. Berkas tersebut bersifat lokal dan tidak boleh di-commit.
+Atur `API_BASE_URL` di `apps/mobile/local.properties`. Berkas tersebut bersifat lokal dan tidak boleh di-commit. Konfigurasi upload key dan alur AAB Play Store dijelaskan di [`docs/mobile/README.md`](docs/mobile/README.md).
 
 ## Dokumentasi
 

@@ -50,6 +50,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -64,6 +65,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -75,23 +80,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.sapikenal.app.R
+import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.ui.components.UploadConsentPanel
 import id.sapikenal.app.ui.theme.SapiKenalColors
-import org.json.JSONObject
 import java.io.File
 import java.util.UUID
 
 @Composable
 fun CameraRoute(
-    onShowResult: (
-        label: String,
-        confidence: Float,
-        mode: String,
-        scoresJson: String,
-        imageRef: String,
-        timestamp: Long,
-        detectionId: Long?,
-    ) -> Unit,
+    onShowResult: (DetectionResult) -> Unit,
     onOpenHistory: () -> Unit,
     navigationViewModel: id.sapikenal.app.ui.navigation.NavigationViewModel? = null,
     viewModel: CameraViewModel = hiltViewModel(),
@@ -101,6 +98,14 @@ fun CameraRoute(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val activity = context as ComponentActivity
+
+    val showResult: (DetectionResult) -> Unit =
+        remember(onShowResult, navigationViewModel) {
+            { result ->
+                onShowResult(result)
+                navigationViewModel?.clearUpdateDetectionId()
+            }
+        }
 
     val permissionLauncher =
         rememberLauncherForActivityResult(
@@ -119,19 +124,9 @@ fun CameraRoute(
         rememberLauncherForActivityResult(
             ActivityResultContracts.GetContent(),
         ) { uri ->
-            uri?.let {
-                viewModel.classify(it, updateDetectionId, isFromCamera = false) { result ->
-                    val scoresJson = JSONObject(result.allScores).toString()
-                    onShowResult(
-                        result.label,
-                        result.confidence,
-                        result.inferenceMode.name,
-                        scoresJson,
-                        it.toString(),
-                        System.currentTimeMillis(),
-                        result.id,
-                    )
-                    navigationViewModel?.clearUpdateDetectionId()
+            uri?.let { selectedUri ->
+                viewModel.classify(selectedUri, updateDetectionId, isFromCamera = false) { result ->
+                    showResult(result)
                 }
             }
         }
@@ -160,6 +155,7 @@ fun CameraRoute(
 
     if (!state.hasCameraPermission) {
         CameraPermissionScreen(
+            state = state,
             permanentlyDenied = state.permissionPermanentlyDenied,
             onRequestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
             onOpenSettings = {
@@ -169,23 +165,16 @@ fun CameraRoute(
                     }
                 context.startActivity(intent)
             },
+            onChooseGallery = { galleryLauncher.launch("image/*") },
+            onConsentAllow = { viewModel.onConsentDecision(true, showResult) },
+            onConsentDeny = { viewModel.onConsentDecision(false, showResult) },
         )
     } else {
         CameraActiveScreen(
             state = state,
             onCapture = { uri ->
                 viewModel.classify(uri, updateDetectionId, isFromCamera = true) { result ->
-                    val scoresJson = JSONObject(result.allScores).toString()
-                    onShowResult(
-                        result.label,
-                        result.confidence,
-                        result.inferenceMode.name,
-                        scoresJson,
-                        uri.toString(),
-                        System.currentTimeMillis(),
-                        result.id,
-                    )
-                    navigationViewModel?.clearUpdateDetectionId()
+                    showResult(result)
                 }
             },
             onCaptureError = { viewModel.onCaptureError(it) },
@@ -193,47 +182,8 @@ fun CameraRoute(
             onCycleFlash = viewModel::cycleFlashMode,
             onToggleGrid = viewModel::toggleGrid,
             onDismissError = viewModel::clearError,
-            onConsentAllow = {
-                viewModel.onConsentDecision(true) { result ->
-                    val scoresJson = JSONObject(result.allScores).toString()
-                    onShowResult(
-                        result.label,
-                        result.confidence,
-                        result.inferenceMode.name,
-                        scoresJson,
-                        state.pendingImageUri?.toString().orEmpty(),
-                        System.currentTimeMillis(),
-                        result.id,
-                    )
-                    navigationViewModel?.clearUpdateDetectionId()
-                }
-            },
-            onConsentDeny = {
-                viewModel.onConsentDecision(false) { result ->
-                    val scoresJson = JSONObject(result.allScores).toString()
-                    onShowResult(
-                        result.label,
-                        result.confidence,
-                        result.inferenceMode.name,
-                        scoresJson,
-                        state.pendingImageUri?.toString().orEmpty(),
-                        System.currentTimeMillis(),
-                        result.id,
-                    )
-                    navigationViewModel?.clearUpdateDetectionId()
-                }
-            },
-            onRetake = { viewModel.clearQualityRejection() },
-            onChooseAnother = {
-                viewModel.clearQualityRejection()
-                galleryLauncher.launch("image/*")
-            },
-            onDismissNonCattle = viewModel::clearNonCattleRejection,
-            onRetakeNonCattle = { viewModel.clearNonCattleRejection() },
-            onChooseAnotherNonCattle = {
-                viewModel.clearNonCattleRejection()
-                galleryLauncher.launch("image/*")
-            },
+            onConsentAllow = { viewModel.onConsentDecision(true, showResult) },
+            onConsentDeny = { viewModel.onConsentDecision(false, showResult) },
         )
     }
 }
@@ -253,11 +203,6 @@ private fun CameraActiveScreen(
     onDismissError: () -> Unit,
     onConsentAllow: () -> Unit,
     onConsentDeny: () -> Unit,
-    onRetake: () -> Unit,
-    onChooseAnother: () -> Unit,
-    onDismissNonCattle: () -> Unit,
-    onRetakeNonCattle: () -> Unit,
-    onChooseAnotherNonCattle: () -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -475,7 +420,11 @@ private fun CameraActiveScreen(
                             .size(76.dp)
                             .border(4.dp, Color.White, CircleShape)
                             .padding(4.dp)
-                            .clickable { takePhoto() },
+                            .clickable(onClick = { takePhoto() })
+                            .semantics {
+                                contentDescription = context.getString(R.string.camera_capture)
+                                role = Role.Button
+                            },
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(
@@ -491,8 +440,8 @@ private fun CameraActiveScreen(
                 Spacer(modifier = Modifier.size(52.dp))
             }
 
-            // Loading overlay (hidden when quality warning is shown)
-            if (state.isLoading && state.qualityRejection == null) {
+            // Loading overlay
+            if (state.isLoading) {
                 Box(
                     modifier =
                         Modifier
@@ -523,27 +472,6 @@ private fun CameraActiveScreen(
                     onAllow = onConsentAllow,
                     onDeny = onConsentDeny,
                     modifier = Modifier.fillMaxSize(),
-                )
-            }
-
-            // Quality warning overlay
-            if (state.qualityRejection != null) {
-                ImageQualityWarning(
-                    reasons = state.qualityRejection,
-                    isFromCamera = state.rejectedImageIsFromCamera,
-                    onRetake = onRetake,
-                    onChooseAnother = onChooseAnother,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-
-            // Non-cattle rejection bottom sheet
-            state.nonCattleRejection?.let { rejection ->
-                NonCattleRejectionSheet(
-                    rejection = rejection,
-                    onRetake = onRetakeNonCattle,
-                    onChooseAnother = onChooseAnotherNonCattle,
-                    onDismiss = onDismissNonCattle,
                 )
             }
         }
@@ -580,10 +508,23 @@ private fun rememberSnackbarHostStateForError(
 
 @Composable
 private fun CameraPermissionScreen(
+    state: CameraUiState,
     permanentlyDenied: Boolean,
     onRequestPermission: () -> Unit,
     onOpenSettings: () -> Unit,
+    onChooseGallery: () -> Unit,
+    onConsentAllow: () -> Unit,
+    onConsentDeny: () -> Unit,
 ) {
+    if (state.showConsentPanel) {
+        UploadConsentPanel(
+            onAllow = onConsentAllow,
+            onDeny = onConsentDeny,
+            modifier = Modifier.fillMaxSize(),
+        )
+        return
+    }
+
     Column(
         modifier =
             Modifier
@@ -657,6 +598,21 @@ private fun CameraPermissionScreen(
                     ),
                 style = MaterialTheme.typography.labelLarge,
             )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        TextButton(onClick = onChooseGallery) {
+            Text(
+                text = stringResource(R.string.camera_gallery),
+                style = MaterialTheme.typography.labelLarge,
+                color = SapiKenalColors.Primary,
+            )
+        }
+
+        if (state.isLoading) {
+            Spacer(modifier = Modifier.height(16.dp))
+            CircularProgressIndicator(color = SapiKenalColors.Primary)
+            state.progressText?.let { Text(it, color = SapiKenalColors.TextSecondary) }
         }
     }
 }

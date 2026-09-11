@@ -29,14 +29,20 @@ class LocalizationTest {
             "tab_panduan",
             "tab_lainnya",
             // Result
-            "result_diagnosis",
+            "result_identification",
             "result_confidence",
             "result_btn_save",
             "result_btn_share",
-            "result_btn_retake",
-            "result_disease_sehat",
-            "result_disease_fmd",
-            "result_disease_lsd",
+            "result_btn_export_pdf",
+            "result_breed_bali",
+            "result_breed_brahman",
+            "result_breed_brangus",
+            "result_breed_limusin",
+            "result_mode_online",
+            "result_mode_offline",
+            "result_mode_offline_fallback",
+            "result_mode_unknown",
+            "history_filter_unknown",
             "result_learn_more",
             "result_disclaimer",
             "result_advice_title",
@@ -57,20 +63,6 @@ class LocalizationTest {
             // Camera
             "camera_capture",
             "camera_gallery",
-            // Rejection
-            "rejection_non_cattle_title",
-            "rejection_non_cattle_desc",
-            "rejection_btn_retake",
-            "rejection_btn_gallery",
-            "rejection_btn_back",
-            "rejection_status_badge",
-            "rejection_confidence_label",
-            "history_filter_non_cattle",
-            "history_item_rejected",
-            "result_disease_non_cattle",
-            "result_btn_try_again",
-            // About
-            "about_title",
         )
 
     private fun findProjectRoot(): File {
@@ -127,6 +119,39 @@ class LocalizationTest {
             "Missing strings in values-en/strings.xml: $missing",
             missing.isEmpty(),
         )
+    }
+
+    @Test
+    fun `breed profiles are specific and bilingual`() {
+        val root = findProjectRoot()
+        val defaultFile = File(root, "app/src/main/res/values/strings.xml")
+        val englishFile = File(root, "app/src/main/res/values-en/strings.xml")
+        if (!defaultFile.exists() || !englishFile.exists()) {
+            println("SKIP: profile string resources not found")
+            return
+        }
+        val defaultStrings = defaultFile.readText()
+        val englishStrings = englishFile.readText()
+        val indonesianTraits =
+            mapOf(
+                "bali" to "bagian pantat putih",
+                "brahman" to "punuk di bahu",
+                "brangus" to "komposit Brahman dan Angus",
+                "limusin" to "merah keemasan",
+            )
+        val englishTraits =
+            mapOf(
+                "bali" to "white rump patch",
+                "brahman" to "shoulder hump",
+                "brangus" to "composite of Brahman and Angus",
+                "limusin" to "golden-red",
+            )
+        indonesianTraits.forEach { (breed, trait) ->
+            assertTrue("Missing Indonesian profile for $breed", defaultStrings.contains("guide_${breed}_title_1"))
+            assertTrue("Indonesian profile for $breed is generic", defaultStrings.contains(trait))
+            assertTrue("Missing English profile for $breed", englishStrings.contains("guide_${breed}_title_1"))
+            assertTrue("English profile for $breed is generic", englishStrings.contains(englishTraits.getValue(breed)))
+        }
     }
 
     @Test

@@ -77,6 +77,20 @@ class AcceptanceTestSuite {
     // ══════════════════════════════════════════════════════════════════════
     // Local Scan History (Issue #5)
     // ══════════════════════════════════════════════════════════════════════
+    @Test
+    fun `identification result retains all six breed scores`() {
+        val result = createResult()
+        assertEquals(6, result.allScores.size)
+        assertTrue(result.allScores.keys.containsAll(listOf("aceh", "bali", "limusin", "madura", "pasundan", "po")))
+    }
+
+    @Test
+    fun `identification result retains mode and confidence for history detail`() {
+        val result = createResult(confidence = 0.31f)
+        assertEquals(InferenceMode.ONLINE, result.inferenceMode)
+        assertEquals(0.31f, result.confidence, 0.001f)
+    }
+
     // Room DAO tests are in DetectionDaoTest.kt and DetectionRepositoryTest.kt
 
     @Test
@@ -146,7 +160,7 @@ class AcceptanceTestSuite {
     @Test
     fun `offline model version follows naming convention`() {
         assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("mobilenetv3"))
-        assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("v20260725"))
+        assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("contract-v2"))
         assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("fp32"))
     }
 
@@ -157,10 +171,11 @@ class AcceptanceTestSuite {
     @Test
     fun `all inference modes are defined`() {
         val modes = InferenceMode.entries
-        assertEquals(3, modes.size)
+        assertEquals(4, modes.size)
         assertTrue(modes.contains(InferenceMode.ONLINE))
         assertTrue(modes.contains(InferenceMode.OFFLINE))
         assertTrue(modes.contains(InferenceMode.OFFLINE_FALLBACK))
+        assertTrue(modes.contains(InferenceMode.UNKNOWN))
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -176,11 +191,19 @@ class AcceptanceTestSuite {
         pdfCachePath: String? = null,
     ) = DetectionResult(
         id = 1L,
-        label = "FMD",
-        displayLabel = "PMK",
+        label = "madura",
+        displayLabel = "Madura",
         confidence = confidence,
         isReliable = isReliable,
-        allScores = mapOf("FMD" to 0.92f, "LSD" to 0.05f, "healthy" to 0.03f),
+        allScores =
+            mapOf(
+                "aceh" to 0.01f,
+                "bali" to 0.02f,
+                "limusin" to 0.02f,
+                "madura" to 0.92f,
+                "pasundan" to 0.02f,
+                "po" to 0.01f,
+            ),
         inferenceMode = InferenceMode.ONLINE,
         consentStatus = consentStatus,
         appVersion = appVersion,

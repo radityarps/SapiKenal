@@ -50,6 +50,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,49 +64,34 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import id.sapikenal.app.R
+import id.sapikenal.app.domain.model.BreedContract
+import id.sapikenal.app.domain.model.InferenceMode
 import id.sapikenal.app.ui.theme.SapiKenalColors
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// ── Disease display helpers ──────────────────────────────────────────────
+// ── Breed display helpers ────────────────────────────────────────────────
 
-private val diseaseMap =
+private val breedMap =
     mapOf(
-        "SEHAT" to ("🟢" to SapiKenalColors.Healthy),
-        "sehat" to ("🟢" to SapiKenalColors.Healthy),
-        "healthy" to ("🟢" to SapiKenalColors.Healthy),
-        "PMK" to ("🔴" to SapiKenalColors.DangerPMK),
-        "FMD" to ("🔴" to SapiKenalColors.DangerPMK),
-        "pmk" to ("🔴" to SapiKenalColors.DangerPMK),
-        "fmd" to ("🔴" to SapiKenalColors.DangerPMK),
-        "LSD" to ("🟠" to SapiKenalColors.WarningLSD),
-        "LATO_LATO" to ("🟠" to SapiKenalColors.WarningLSD),
-        "lsd" to ("🟠" to SapiKenalColors.WarningLSD),
-        "lato_lato" to ("🟠" to SapiKenalColors.WarningLSD),
-        "non_cattle" to ("🚫" to SapiKenalColors.TextSecondary),
-        "NON_CATTLE" to ("🚫" to SapiKenalColors.TextSecondary),
+        "aceh" to ("🟤" to SapiKenalColors.Aceh),
+        "bali" to ("🟤" to SapiKenalColors.Bali),
+        "limusin" to ("🟠" to SapiKenalColors.Limusin),
+        "madura" to ("🟤" to SapiKenalColors.Madura),
+        "pasundan" to ("🟤" to SapiKenalColors.Pasundan),
+        "po" to ("⚪" to SapiKenalColors.Po),
+        "brahman" to ("⚪" to SapiKenalColors.Brahman),
+        "brangus" to ("⚫" to SapiKenalColors.Brangus),
     )
 
-private val diseaseDisplayNames =
-    mapOf(
-        "SEHAT" to R.string.result_disease_sehat,
-        "healthy" to R.string.result_disease_sehat,
-        "PMK" to R.string.result_disease_fmd,
-        "FMD" to R.string.result_disease_fmd,
-        "LSD" to R.string.result_disease_lsd,
-        "LATO_LATO" to R.string.result_disease_lsd,
-        "non_cattle" to R.string.result_disease_non_cattle,
-        "NON_CATTLE" to R.string.result_disease_non_cattle,
-    )
+private fun breedEmoji(label: String): String = breedMap[label.trim().lowercase(Locale.ROOT)]?.first ?: "📸"
 
-private fun diseaseEmoji(label: String): String = diseaseMap[label]?.first ?: "📸"
-
-private fun diseaseColor(label: String): Color = diseaseMap[label]?.second ?: SapiKenalColors.TextSecondary
+private fun breedColor(label: String): Color = breedMap[label.trim().lowercase(Locale.ROOT)]?.second ?: SapiKenalColors.TextSecondary
 
 @StringRes
-private fun diseaseDisplayNameRes(label: String): Int? = diseaseDisplayNames[label]
+private fun breedDisplayNameRes(label: String): Int? = BreedContract.find(label)?.displayNameResId
 
 private fun formatTimestamp(
     millis: Long,
@@ -125,6 +114,8 @@ fun HistoryRoute(
         imageRef: String,
         timestamp: Long,
         detectionId: Long,
+        appVersion: String?,
+        modelVersion: String?,
     ) -> Unit,
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
@@ -161,7 +152,7 @@ fun HistoryRoute(
 
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
             window.statusBarColor = statusBarColorArgb
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isLightStatusBar
         }
@@ -273,6 +264,8 @@ fun HistoryRoute(
                                     item.imagePath.orEmpty(),
                                     item.timestamp,
                                     item.id,
+                                    item.appVersion,
+                                    item.modelVersion,
                                 )
                             },
                             onDelete = { deleteTargetId = item.id },
@@ -356,13 +349,8 @@ private fun FilterChipRow(
             label = { Text(stringResource(R.string.history_filter_all)) },
         )
 
-        // Class chips
-        listOf(
-            "healthy" to R.string.history_filter_sehat,
-            "FMD" to R.string.history_filter_fmd,
-            "LSD" to R.string.history_filter_lsd,
-            "non_cattle" to R.string.history_filter_non_cattle,
-        ).forEach { (value, labelRes) ->
+        // Breed chips
+        BreedContract.definitions.map { it.key to it.displayNameResId }.forEach { (value, labelRes) ->
             FilterChip(
                 selected = selectedClass == value && selectedMode == null,
                 onClick = {
@@ -375,8 +363,10 @@ private fun FilterChipRow(
 
         // Mode chips
         listOf(
-            "ONLINE" to R.string.history_filter_online,
-            "OFFLINE" to R.string.history_filter_offline,
+            InferenceMode.ONLINE.name to R.string.history_filter_online,
+            InferenceMode.OFFLINE.name to R.string.history_filter_offline,
+            InferenceMode.OFFLINE_FALLBACK.name to R.string.history_filter_offline_fallback,
+            InferenceMode.UNKNOWN.name to R.string.history_filter_unknown,
         ).forEach { (value, labelRes) ->
             FilterChip(
                 selected = selectedMode == value && selectedClass == null,
@@ -396,27 +386,35 @@ private fun HistoryCard(
     onTap: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val isRejected = item.outcome.equals("REJECTED", ignoreCase = true) || item.label.equals("non_cattle", ignoreCase = true)
-    val emoji = diseaseEmoji(item.label)
-    val color = diseaseColor(item.label)
-    val displayNameRes = diseaseDisplayNameRes(item.label)
+    val emoji = breedEmoji(item.label)
+    val color = breedColor(item.label)
+    val displayNameRes = breedDisplayNameRes(item.label)
     val displayName = displayNameRes?.let { stringResource(it) } ?: item.displayLabel
     val noteTitle = item.title?.takeIf { it.isNotBlank() }
     val noteDescription = item.description?.takeIf { it.isNotBlank() }
     val locale = LocalConfiguration.current.locales[0]
-    val isOnline = item.mode.equals("ONLINE", ignoreCase = true)
-    val modeLabel =
-        if (isOnline) {
-            stringResource(R.string.result_mode_online)
-        } else {
-            stringResource(R.string.result_mode_offline)
+    val inferenceMode = InferenceMode.parse(item.mode)
+    val modeLabel = stringResource(inferenceMode.labelResId)
+    val modeColor =
+        when (inferenceMode) {
+            InferenceMode.ONLINE -> SapiKenalColors.Primary
+            InferenceMode.OFFLINE, InferenceMode.OFFLINE_FALLBACK -> SapiKenalColors.Secondary
+            InferenceMode.UNKNOWN -> SapiKenalColors.TextSecondary
         }
+
+    val accessibilityDescription =
+        stringResource(
+            R.string.result_accessibility_summary,
+            displayName,
+            (item.confidence * 100).toInt(),
+            modeLabel,
+        )
+    val detailTapDescription = stringResource(R.string.history_detail_tap)
 
     Card(
         modifier =
             Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onTap),
+                .fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
     ) {
         Row(
@@ -426,89 +424,88 @@ private fun HistoryCard(
                     .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Thumbnail placeholder
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
+            Row(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .clickable(onClick = onTap)
+                        .clearAndSetSemantics {
+                            contentDescription = "$accessibilityDescription. $detailTapDescription"
+                            role = Role.Button
+                        },
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                val imagePath = item.imagePath
-                if (!imagePath.isNullOrBlank() && File(imagePath).exists()) {
-                    AsyncImage(
-                        model = File(imagePath),
-                        contentDescription = displayName,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(emoji, fontSize = 24.sp)
+                // Thumbnail placeholder
+                Surface(
+                    modifier = Modifier.size(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                ) {
+                    val imagePath = item.imagePath
+                    if (!imagePath.isNullOrBlank() && File(imagePath).exists()) {
+                        AsyncImage(
+                            model = File(imagePath),
+                            contentDescription = displayName,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    } else {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(emoji, fontSize = 24.sp)
+                        }
                     }
                 }
-            }
 
-            Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = noteTitle ?: displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = SapiKenalColors.TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                if (noteDescription != null) {
-                    Spacer(Modifier.height(2.dp))
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = noteDescription,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SapiKenalColors.TextSecondary,
-                        maxLines = 2,
+                        text = noteTitle ?: displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = SapiKenalColors.TextPrimary,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                }
 
-                Spacer(Modifier.height(6.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = color.copy(alpha = 0.14f),
-                    ) {
+                    if (noteDescription != null) {
+                        Spacer(Modifier.height(2.dp))
                         Text(
-                            text = if (isRejected) stringResource(R.string.rejection_status_badge) else displayName,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = color,
-                            fontWeight = FontWeight.SemiBold,
+                            text = noteDescription,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SapiKenalColors.TextSecondary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    Text(
-                        text =
-                            if (isRejected) {
-                                stringResource(R.string.history_item_rejected, modeLabel)
-                            } else {
-                                stringResource(R.string.history_confidence_percent, (item.confidence * 100).toInt())
-                            },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SapiKenalColors.TextSecondary,
-                    )
-                }
 
-                Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(6.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!isRejected) {
-                        val modeColor =
-                            if (isOnline) {
-                                SapiKenalColors.Healthy
-                            } else {
-                                SapiKenalColors.WarningLSD
-                            }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = color.copy(alpha = 0.14f),
+                        ) {
+                            Text(
+                                text = displayName,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = color,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.history_confidence_percent, (item.confidence * 100).toInt()),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SapiKenalColors.TextSecondary,
+                        )
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             shape = RoundedCornerShape(4.dp),
                             color = modeColor.copy(alpha = 0.15f),
@@ -522,15 +519,15 @@ private fun HistoryCard(
                         }
 
                         Spacer(Modifier.width(8.dp))
-                    }
 
-                    Text(
-                        text = formatTimestamp(item.timestamp, locale),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SapiKenalColors.TextSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                        Text(
+                            text = formatTimestamp(item.timestamp, locale),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SapiKenalColors.TextSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
 
@@ -539,7 +536,7 @@ private fun HistoryCard(
                 Icon(
                     Icons.Filled.Delete,
                     contentDescription = stringResource(R.string.btn_delete),
-                    tint = SapiKenalColors.DangerPMK.copy(alpha = 0.7f),
+                    tint = SapiKenalColors.Error.copy(alpha = 0.7f),
                 )
             }
         }

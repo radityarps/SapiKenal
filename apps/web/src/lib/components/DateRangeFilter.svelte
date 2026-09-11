@@ -52,12 +52,15 @@
   }
 </script>
 
-<div class="grid gap-1.5 text-xs font-bold text-[#52635b]">
+<div class="grid min-w-0 gap-1.5 text-xs font-bold text-[#52635b]">
   <span>{label}</span>
   <DateRangePicker.Root bind:value={getRange, setRange} placeholder={today(getLocalTimeZone()) as CalendarDate} locale="id-ID" weekStartsOn={1} weekdayFormat="short" numberOfMonths={1}>
-    <div class="relative">
-      <DateRangePicker.Trigger class="flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#cfdad4] bg-white px-3 py-2 pr-10 text-left text-sm font-normal text-[#17241f] transition hover:border-[#aebfb6] focus-visible:border-[#4d8a6c] focus-visible:ring-4 focus-visible:ring-[#18794e]/10">
-        <span class="flex min-w-0 items-center gap-2 truncate"><CalendarDays size={16} strokeWidth={1.8} class="shrink-0 text-[#718078]" aria-hidden="true" />{displayValue()}</span>
+    <div class="relative min-w-0">
+      <DateRangePicker.Trigger class={`flex min-h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-[#cfdad4] bg-white px-3 py-2 text-left text-sm font-normal text-[#17241f] transition hover:border-[#aebfb6] focus-visible:border-[#4d8a6c] focus-visible:ring-4 focus-visible:ring-[#18794e]/10 ${range.start && range.end ? 'pr-9' : ''}`} title={displayValue()}>
+        <span class="flex min-w-0 items-center gap-2">
+          <CalendarDays size={16} strokeWidth={1.8} class="shrink-0 text-[#718078]" aria-hidden="true" />
+          <span class="truncate">{displayValue()}</span>
+        </span>
       </DateRangePicker.Trigger>
       {#if range.start && range.end}<button class="absolute right-2 top-1/2 grid size-6 min-h-0 -translate-y-1/2 place-items-center rounded-md bg-transparent p-0 text-[#718078] hover:bg-[#edf5f1] hover:text-[#176b49]" type="button" aria-label="Hapus rentang tanggal" onclick={clearRange}><X size={14} aria-hidden="true" /></button>{/if}
     </div>

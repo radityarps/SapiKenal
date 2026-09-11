@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import id.sapikenal.app.di.OfflineClassifier
 import id.sapikenal.app.di.OnlineClassifier
+import id.sapikenal.app.domain.model.ClassifyFailure
 import id.sapikenal.app.domain.model.ClassifyResponse
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
@@ -46,22 +47,22 @@ class InferenceRouter
                 return ClassifyResponse.ConsentRequired
             }
 
-            val jpegBytes =
+            val imageBytes =
                 withContext(Dispatchers.IO) {
                     clientPreprocessor.process(imageUri)
                 }
-            Log.d("SapiKenal", "InferenceRouter: preprocessed image — ${jpegBytes.size} bytes")
+            Log.d("SapiKenal", "InferenceRouter: preprocessed image — ${imageBytes.size} bytes")
 
-            return classifyPreprocessed(jpegBytes, consentStatus, online)
+            return classifyPreprocessed(imageBytes, consentStatus, online)
         }
 
         /**
-         * Classifies already-preprocessed JPEG bytes.
+         * Classifies already-preprocessed image bytes.
          * Use this when upstream code must inspect the exact inference input first
          * (for example, the image quality gate).
          */
         suspend fun classifyPreprocessed(
-            jpegBytes: ByteArray,
+            imageBytes: ByteArray,
             consentStatus: ConsentStatus,
         ): ClassifyResponse {
             val online = networkChecker.isOnline()
@@ -72,11 +73,11 @@ class InferenceRouter
                 return ClassifyResponse.ConsentRequired
             }
 
-            return classifyPreprocessed(jpegBytes, consentStatus, online)
+            return classifyPreprocessed(imageBytes, consentStatus, online)
         }
 
         private suspend fun classifyPreprocessed(
-            jpegBytes: ByteArray,
+            imageBytes: ByteArray,
             consentStatus: ConsentStatus,
             online: Boolean,
         ): ClassifyResponse {
@@ -84,51 +85,46 @@ class InferenceRouter
                 if (online && consentStatus == ConsentStatus.ALLOWED) {
                     Log.d("SapiKenal", "InferenceRouter: routing to ONLINE (consent ALLOWED)")
                     try {
-                        onlineClient.classify(jpegBytes)
-                    } catch (e: Exception) {
+                        onlineClient.classify(imageBytes)
+                    } catch (e: ClassifyFailure) {
                         Log.e("SapiKenal", "InferenceRouter: online failed, falling back to offline", e)
                         offlineEngine
-                            .classify(jpegBytes)
+                            .classify(imageBytes)
                             .copy(inferenceMode = InferenceMode.OFFLINE_FALLBACK)
                     }
                 } else {
                     // !isOnline() OR consentStatus == DENIED
                     Log.d("SapiKenal", "InferenceRouter: routing to OFFLINE (online=$online, consent=$consentStatus)")
-                    offlineEngine.classify(jpegBytes)
+                    offlineEngine.classify(imageBytes)
                 }
 
-            val finalResult = result.copy(consentStatus = consentStatus)
-            return if (finalResult.outcome == "REJECTED" || finalResult.label == "non_cattle") {
-                ClassifyResponse.Rejected(finalResult)
-            } else {
-                ClassifyResponse.Success(finalResult)
-            }
+            return ClassifyResponse.Success(result.copy(consentStatus = consentStatus))
         }
 
         /**
-         * Legacy classify method for backward compatibility during migration.
-         * Assumes consent is ALLOWED (old callers did not have consent gating).
+         * Compatibility overload for callers that do not need consent-aware routing.
+         * Assumes consent is ALLOWED.
          */
         suspend fun classify(imageUri: Uri): DetectionResult {
             Log.d("SapiKenal", "InferenceRouter: classify() started, uri=$imageUri")
-            val jpegBytes =
+            val imageBytes =
                 withContext(Dispatchers.IO) {
                     clientPreprocessor.process(imageUri)
                 }
-            Log.d("SapiKenal", "InferenceRouter: preprocessed image — ${jpegBytes.size} bytes")
+            Log.d("SapiKenal", "InferenceRouter: preprocessed image — ${imageBytes.size} bytes")
 
             val online = networkChecker.isOnline()
             Log.d("SapiKenal", "InferenceRouter: isOnline=$online, routing to ${if (online) "ONLINE" else "OFFLINE"}")
 
             return if (online) {
                 try {
-                    onlineClient.classify(jpegBytes)
+                    onlineClient.classify(imageBytes)
                 } catch (e: Exception) {
                     Log.e("SapiKenal", "InferenceRouter: online failed, falling back to offline", e)
-                    offlineEngine.classify(jpegBytes).copy(inferenceMode = InferenceMode.OFFLINE_FALLBACK)
+                    offlineEngine.classify(imageBytes).copy(inferenceMode = InferenceMode.OFFLINE_FALLBACK)
                 }
             } else {
-                offlineEngine.classify(jpegBytes)
+                offlineEngine.classify(imageBytes)
             }
         }
     }

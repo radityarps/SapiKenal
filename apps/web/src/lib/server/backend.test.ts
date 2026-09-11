@@ -21,24 +21,25 @@ describe("backend client", () => {
 		expect(requestedUrl).toBe("http://localhost:8000/api/health");
 	});
 
-	it("serializes prediction queries with outcome and class filters", async () => {
+	it("serializes prediction queries with a canonical breed filter", async () => {
 		let requestedUrl = "";
 		const requestFetch = async (input: RequestInfo | URL) => {
 			requestedUrl = String(input);
-			return new Response(JSON.stringify({ status: "success", items: [], total: 0 }));
+			return new Response(
+				JSON.stringify({ status: "success", items: [], total: 0 }),
+			);
 		};
 
 		const query = new URLSearchParams({
 			page: "1",
 			page_size: "25",
-			outcome: "rejected",
-			predicted_class: "non_cattle",
+			predicted_class: "brangus",
 		});
 
 		await backendFetch(`/api/admin/predictions?${query}`, {}, requestFetch);
 
 		expect(requestedUrl).toBe(
-			"http://localhost:8000/api/admin/predictions?page=1&page_size=25&outcome=rejected&predicted_class=non_cattle"
+			"http://localhost:8000/api/admin/predictions?page=1&page_size=25&predicted_class=brangus",
 		);
 	});
 });

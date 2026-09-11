@@ -6,7 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -30,9 +31,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import id.sapikenal.app.BuildConfig
 import id.sapikenal.app.R
-import id.sapikenal.app.ui.about.AboutRoute
+import id.sapikenal.app.domain.model.InferenceMode
 import id.sapikenal.app.ui.camera.CameraRoute
 import id.sapikenal.app.ui.guide.GuideDetailRoute
 import id.sapikenal.app.ui.guide.GuideRoute
@@ -51,9 +51,8 @@ object Routes {
     const val Camera = "camera"
     const val Guide = "guide"
     const val History = "history"
-    const val About = "about"
     const val Settings = "settings"
-    const val Result = "result?label={label}&confidence={confidence}&mode={mode}&allScoresJson={allScoresJson}&imageRef={imageRef}&timestamp={timestamp}&detectionId={detectionId}&fromHistory={fromHistory}"
+    const val Result = "result?label={label}&confidence={confidence}&mode={mode}&allScoresJson={allScoresJson}&imageRef={imageRef}&timestamp={timestamp}&detectionId={detectionId}&fromHistory={fromHistory}&appVersion={appVersion}&modelVersion={modelVersion}&resultKey={resultKey}"
     const val GuideDetail = "guide_detail/{articleId}"
 
     fun result(
@@ -65,6 +64,9 @@ object Routes {
         timestamp: Long,
         detectionId: Long? = null,
         fromHistory: Boolean = false,
+        appVersion: String? = null,
+        modelVersion: String? = null,
+        resultKey: String? = null,
     ): String =
         buildString {
             append("result")
@@ -76,6 +78,9 @@ object Routes {
             append("&timestamp=$timestamp")
             append("&detectionId=${detectionId ?: -1}")
             append("&fromHistory=$fromHistory")
+            append("&appVersion=${Uri.encode(appVersion.orEmpty())}")
+            append("&modelVersion=${Uri.encode(modelVersion.orEmpty())}")
+            append("&resultKey=${Uri.encode(resultKey.orEmpty())}")
         }
 
     fun guideDetail(articleId: String): String = "guide_detail/$articleId"
@@ -92,7 +97,7 @@ val tabs =
         TabItem(Routes.Camera, Icons.Filled.CameraAlt, R.string.tab_periksa),
         TabItem(Routes.History, Icons.Filled.History, R.string.tab_riwayat),
         TabItem(Routes.Guide, Icons.Filled.MenuBook, R.string.tab_panduan),
-        TabItem(Routes.About, Icons.Filled.Person, R.string.tab_lainnya),
+        TabItem(Routes.Settings, Icons.Filled.Settings, R.string.settings_title),
     )
 
 @Composable
@@ -150,16 +155,35 @@ fun SapiKenalNavHost() {
                         type = NavType.BoolType
                         defaultValue = false
                     },
+                    navArgument("appVersion") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument("modelVersion") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument("resultKey") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
                 ),
         ) { backStackEntry ->
             val label = backStackEntry.arguments?.getString("label") ?: "UNKNOWN"
             val confidence = backStackEntry.arguments?.getString("confidence")?.toFloatOrNull() ?: 0f
-            val mode = backStackEntry.arguments?.getString("mode") ?: "OFFLINE"
+            val mode = backStackEntry.arguments?.getString("mode") ?: InferenceMode.UNKNOWN.name
             val allScoresJson = backStackEntry.arguments?.getString("allScoresJson") ?: "{}"
             val imageRef = backStackEntry.arguments?.getString("imageRef") ?: ""
             val timestamp = backStackEntry.arguments?.getLong("timestamp") ?: 0L
             val detectionId = backStackEntry.arguments?.getLong("detectionId") ?: -1L
             val fromHistory = backStackEntry.arguments?.getBoolean("fromHistory") ?: false
+            val appVersion = backStackEntry.arguments?.getString("appVersion")?.takeIf { it.isNotBlank() }
+            val modelVersion = backStackEntry.arguments?.getString("modelVersion")?.takeIf { it.isNotBlank() }
+            val resultKey = backStackEntry.arguments?.getString("resultKey")?.takeIf { it.isNotBlank() }
+            val initialResult =
+                remember(resultKey) {
+                    resultKey?.let(navigationViewModel::takePendingResult)
+                }
             ResultRoute(
                 label = label,
                 confidence = confidence,
@@ -169,26 +193,13 @@ fun SapiKenalNavHost() {
                 scanTimestamp = timestamp,
                 detectionId = if (detectionId >= 0) detectionId else null,
                 fromHistory = fromHistory,
-                appVersion = BuildConfig.VERSION_NAME,
-                navigationViewModel = navigationViewModel,
+                appVersion = appVersion,
+                modelVersion = modelVersion,
+                initialResult = initialResult,
                 onBack = { rootNavController.popBackStack() },
-                onRetake = {
-                    // If this is an update scenario (viewing existing scan), set updateDetectionId
-                    if (detectionId >= 0) {
-                        navigationViewModel.setUpdateDetectionId(detectionId)
-                    }
-                    rootNavController.popBackStack()
-                    navigationViewModel.triggerNavigateToCamera()
-                },
                 onNavigateToGuide = { articleId ->
                     rootNavController.navigate(Routes.GuideDetail.replace("{articleId}", articleId))
                 },
-            )
-        }
-        composable(Routes.About) {
-            AboutRoute(
-                onBack = { rootNavController.popBackStack() },
-                onNavigateToSettings = { rootNavController.navigate(Routes.Settings) },
             )
         }
         composable(Routes.Settings) {
@@ -234,7 +245,6 @@ fun MainTabScreen(
     val isOnRootScreen =
         rootBackStackEntry?.destination?.route in
             listOf(
-                Routes.Settings,
                 Routes.GuideDetail,
             )
 
@@ -291,9 +301,22 @@ fun MainTabScreen(
             composable(Routes.Camera) {
                 CameraRoute(
                     navigationViewModel = navigationViewModel,
-                    onShowResult = { label, confidence, mode, scoresJson, imageRef, timestamp, detectionId ->
+                    onShowResult = { result ->
+                        val resultKey = "${result.id}:${result.timestamp}:${System.nanoTime()}"
+                        navigationViewModel.setPendingResult(resultKey, result)
                         rootNavController.navigate(
-                            Routes.result(label, confidence, mode, scoresJson, imageRef, timestamp, detectionId),
+                            Routes.result(
+                                result.label,
+                                result.confidence,
+                                result.inferenceMode.name,
+                                org.json.JSONObject(result.allScores).toString(),
+                                result.imagePath.orEmpty(),
+                                result.timestamp,
+                                result.id,
+                                appVersion = result.appVersion,
+                                modelVersion = result.modelVersion,
+                                resultKey = resultKey,
+                            ),
                         )
                     },
                     onOpenHistory = {
@@ -309,9 +332,20 @@ fun MainTabScreen(
             }
             composable(Routes.History) {
                 HistoryRoute(
-                    onOpenDetail = { label, confidence, mode, scoresJson, imageRef, timestamp, detectionId ->
+                    onOpenDetail = { label, confidence, mode, scoresJson, imageRef, timestamp, detectionId, appVersion, modelVersion ->
                         rootNavController.navigate(
-                            Routes.result(label, confidence, mode, scoresJson, imageRef, timestamp, detectionId, fromHistory = true),
+                            Routes.result(
+                                label,
+                                confidence,
+                                mode,
+                                scoresJson,
+                                imageRef,
+                                timestamp,
+                                detectionId,
+                                fromHistory = true,
+                                appVersion = appVersion,
+                                modelVersion = modelVersion,
+                            ),
                         )
                     },
                 )
@@ -323,11 +357,8 @@ fun MainTabScreen(
                     },
                 )
             }
-            composable(Routes.About) {
-                AboutRoute(
-                    onBack = { tabNavController.popBackStack() },
-                    onNavigateToSettings = { rootNavController.navigate(Routes.Settings) },
-                )
+            composable(Routes.Settings) {
+                SettingsRoute()
             }
         }
     }

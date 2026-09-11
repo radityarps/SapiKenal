@@ -5,10 +5,14 @@ from __future__ import annotations
 from collections.abc import Generator
 from pathlib import Path
 
+from sqlalchemy import create_engine  # pyright: ignore[reportMissingImports]
+from sqlalchemy.engine import Engine  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import (  # pyright: ignore[reportMissingImports]
+    Session,
+    sessionmaker,
+)
+
 from config import settings
-from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session, sessionmaker
 
 
 def _prepare_sqlite_path(database_url: str) -> None:

@@ -15,13 +15,14 @@ import org.junit.Test
 class HistoryViewModelTest {
     private fun createDetectionResult(
         id: Long = 1L,
-        label: String = "FMD",
-        displayLabel: String = "PMK",
+        label: String = "madura",
+        displayLabel: String = "Madura",
         confidence: Float = 0.85f,
         inferenceMode: InferenceMode = InferenceMode.ONLINE,
         consentStatus: ConsentStatus = ConsentStatus.ALLOWED,
         imageSource: ImageSource? = ImageSource.CAMERA,
         appVersion: String? = "1.0.0",
+        modelVersion: String? = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
         title: String? = null,
         description: String? = null,
     ) = DetectionResult(
@@ -30,12 +31,21 @@ class HistoryViewModelTest {
         displayLabel = displayLabel,
         confidence = confidence,
         isReliable = true,
-        allScores = mapOf("FMD" to 0.85f, "LSD" to 0.10f, "healthy" to 0.05f),
+        allScores =
+            mapOf(
+                "aceh" to 0.03f,
+                "bali" to 0.03f,
+                "limusin" to 0.03f,
+                "madura" to 0.85f,
+                "pasundan" to 0.03f,
+                "po" to 0.03f,
+            ),
         inferenceMode = inferenceMode,
         consentStatus = consentStatus,
         timestamp = 1700000000000L,
         imageSource = imageSource,
         appVersion = appVersion,
+        modelVersion = modelVersion,
         title = title,
         description = description,
     )
@@ -55,9 +65,8 @@ class HistoryViewModelTest {
             description = description,
             imageSource = imageSource?.name,
             appVersion = appVersion,
+            modelVersion = modelVersion,
             consentStatus = consentStatus.name,
-            outcome = outcome,
-            rejectionReason = rejectionReason,
         )
 
     @Test
@@ -86,6 +95,13 @@ class HistoryViewModelTest {
         val result = createDetectionResult(appVersion = "2.1.0")
         val ui = result.toHistoryItemUiFields()
         assertEquals("2.1.0", ui.appVersion)
+    }
+
+    @Test
+    fun `mapping preserves modelVersion`() {
+        val result = createDetectionResult(modelVersion = "model-v2")
+        val ui = result.toHistoryItemUiFields()
+        assertEquals("model-v2", ui.modelVersion)
     }
 
     @Test
@@ -140,14 +156,16 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `mapping preserves outcome REJECTED and rejectionReason`() {
-        val result =
-            createDetectionResult().copy(
-                outcome = "REJECTED",
-                rejectionReason = "non_cattle",
-            )
+    fun `mapping preserves mode OFFLINE_FALLBACK`() {
+        val result = createDetectionResult(inferenceMode = InferenceMode.OFFLINE_FALLBACK)
         val ui = result.toHistoryItemUiFields()
-        assertEquals("REJECTED", ui.outcome)
-        assertEquals("non_cattle", ui.rejectionReason)
+        assertEquals("OFFLINE_FALLBACK", ui.mode)
+    }
+
+    @Test
+    fun `mapping preserves canonical breed label`() {
+        val ui = createDetectionResult(label = "madura").toHistoryItemUiFields()
+        assertEquals("madura", ui.label)
+        assertEquals("Madura", ui.displayLabel)
     }
 }

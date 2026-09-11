@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import id.sapikenal.app.data.local.dao.DetectionDao
 import id.sapikenal.app.data.local.entity.DetectionEntity
 import id.sapikenal.app.data.sync.HistorySyncScheduler
+import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.ImageSource
@@ -13,6 +14,7 @@ import id.sapikenal.app.domain.model.InferenceMode
 import id.sapikenal.app.domain.model.LocationSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.json.JSONObject
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,10 +40,7 @@ class DetectionRepository
                     predictedClass = result.label,
                     displayLabel = result.displayLabel,
                     confidence = result.confidence,
-                    scoreHealthy = result.allScores["healthy"] ?: result.allScores["Healthy"] ?: 0f,
-                    scoreFmd = result.allScores["FMD"] ?: result.allScores["fmd"] ?: 0f,
-                    scoreLsd = result.allScores["LSD"] ?: result.allScores["lsd"] ?: 0f,
-                    scoreNonCattle = result.allScores["non_cattle"] ?: 0f,
+                    scoresJson = scoresJson(result.allScores),
                     inferenceMode = result.inferenceMode.name,
                     isReliable = result.isReliable,
                     processingMs = result.processingMs,
@@ -54,8 +53,6 @@ class DetectionRepository
                     longitude = result.longitude,
                     locationSource = result.locationSource?.name,
                     pdfCachePath = result.pdfCachePath,
-                    outcome = result.outcome,
-                    rejectionReason = result.rejectionReason,
                 )
             val id = detectionDao.insert(detectionEntity)
             if (result.consentStatus == ConsentStatus.ALLOWED) {
@@ -116,11 +113,7 @@ class DetectionRepository
                     detectionDao.observeAll().map { rows ->
                         rows
                             .filter {
-                                (
-                                    it.predictedClass.equals(classFilter, ignoreCase = true) ||
-                                        it.outcome.equals(classFilter, ignoreCase = true)
-                                ) &&
-                                    it.inferenceMode.equals(modeFilter, ignoreCase = true)
+                                it.predictedClass.equals(classFilter, ignoreCase = true) && it.matchesMode(modeFilter)
                             }.map { it.toDomain() }
                     }
                 }
@@ -129,15 +122,20 @@ class DetectionRepository
                     detectionDao.observeAll().map { rows ->
                         rows
                             .filter {
-                                it.predictedClass.equals(classFilter, ignoreCase = true) ||
-                                    it.outcome.equals(classFilter, ignoreCase = true)
+                                it.predictedClass.equals(classFilter, ignoreCase = true)
                             }.map { it.toDomain() }
                     }
                 }
 
                 modeFilter != null -> {
-                    detectionDao.observeByMode(modeFilter).map { rows ->
-                        rows.map { it.toDomain() }
+                    if (InferenceMode.parse(modeFilter) == InferenceMode.UNKNOWN) {
+                        detectionDao.observeAll().map { rows ->
+                            rows.filter { it.matchesMode(modeFilter) }.map { it.toDomain() }
+                        }
+                    } else {
+                        detectionDao.observeByMode(modeFilter).map { rows ->
+                            rows.map { it.toDomain() }
+                        }
                     }
                 }
 
@@ -147,7 +145,7 @@ class DetectionRepository
             }
 
         private fun DetectionEntity.toDomain(): DetectionResult {
-            val mode = runCatching { InferenceMode.valueOf(inferenceMode) }.getOrDefault(InferenceMode.OFFLINE)
+            val mode = InferenceMode.parse(inferenceMode)
             val consent = runCatching { ConsentStatus.valueOf(consentStatus) }.getOrDefault(ConsentStatus.UNDECIDED)
             val source = imageSource?.let { runCatching { ImageSource.valueOf(it) }.getOrNull() }
             val locSource = locationSource?.let { runCatching { LocationSource.valueOf(it) }.getOrNull() }
@@ -158,13 +156,7 @@ class DetectionRepository
                 displayLabel = displayLabel,
                 confidence = confidence,
                 isReliable = isReliable,
-                allScores =
-                    mapOf(
-                        "FMD" to scoreFmd,
-                        "healthy" to scoreHealthy,
-                        "LSD" to scoreLsd,
-                        "non_cattle" to scoreNonCattle,
-                    ),
+                allScores = parseScores(scoresJson),
                 inferenceMode = mode,
                 consentStatus = consent,
                 timestamp = timestamp,
@@ -180,9 +172,32 @@ class DetectionRepository
                 locationSource = locSource,
                 deletedAt = deletedAt,
                 pdfCachePath = pdfCachePath,
-                outcome = outcome,
-                rejectionReason = rejectionReason,
             )
+        }
+
+        private fun DetectionEntity.matchesMode(modeFilter: String): Boolean {
+            val parsedFilter = InferenceMode.parse(modeFilter)
+            return if (parsedFilter == InferenceMode.UNKNOWN) {
+                InferenceMode.parse(inferenceMode) == InferenceMode.UNKNOWN
+            } else {
+                inferenceMode.equals(parsedFilter.name, ignoreCase = true)
+            }
+        }
+
+        private fun scoresJson(scores: Map<String, Float>): String {
+            val json = JSONObject()
+            SCORE_KEYS.forEach { key -> json.put(key, scores[key] ?: 0f) }
+            return json.toString()
+        }
+
+        private fun parseScores(raw: String): Map<String, Float> =
+            runCatching {
+                val json = JSONObject(raw)
+                SCORE_KEYS.associateWith { json.getDouble(it).toFloat() }
+            }.getOrDefault(emptyMap())
+
+        private companion object {
+            val SCORE_KEYS = BreedContract.CANONICAL_LABELS
         }
 
         private fun copyImageToLocalHistory(imageUri: Uri): String? =

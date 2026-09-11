@@ -2,53 +2,61 @@ package id.sapikenal.app.ui.guide
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class GuideViewModel
     @Inject
     constructor(
-        @ApplicationContext private val context: Context,
+        private val repository: GuideRepository,
     ) : ViewModel() {
-        private val _articles = MutableStateFlow<List<GuideArticle>>(emptyList())
-
+        private val locale = MutableStateFlow("id-ID")
         val searchQuery = MutableStateFlow("")
         val selectedCategory = MutableStateFlow<GuideCategory?>(null)
+        val isRefreshing = MutableStateFlow(false)
+
+        private val articles = locale.flatMapLatest(repository::articles)
 
         val filteredArticles: StateFlow<List<GuideArticle>> =
-            combine(
-                _articles,
-                searchQuery,
-                selectedCategory,
-            ) { articles, query, category ->
-                articles.filter { article ->
+            combine(articles, searchQuery, selectedCategory) { items, query, category ->
+                items.filter { article ->
                     val matchesQuery =
                         query.isBlank() ||
                             article.title.contains(query, ignoreCase = true) ||
                             article.summary.contains(query, ignoreCase = true) ||
                             article.body.contains(query, ignoreCase = true)
-                    val matchesCategory = category == null || article.category == category
-                    matchesQuery && matchesCategory
+                    matchesQuery && (category == null || article.category == category)
                 }
             }.stateIn(
-                scope = kotlinx.coroutines.MainScope(),
+                scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = emptyList(),
             )
 
-        /**
-         * Called from the composable with the Activity context (locale-aware).
-         * This ensures guide articles use the correct language.
-         */
-        fun loadArticles(activityContext: Context) {
-            _articles.value = GuideDataSource.articles(activityContext)
+        fun loadArticles(context: Context) {
+            val target = context.guideLocale()
+            locale.value = target
+            refreshArticles()
+        }
+
+        fun refreshArticles() {
+            viewModelScope.launch {
+                isRefreshing.value = true
+                try {
+                    repository.refresh(locale.value)
+                } finally {
+                    isRefreshing.value = false
+                }
+            }
         }
 
         fun onSearchQueryChange(query: String) {
@@ -58,4 +66,14 @@ class GuideViewModel
         fun onCategoryFilter(category: GuideCategory?) {
             selectedCategory.value = category
         }
+    }
+
+internal fun Context.guideLocale(): String =
+    if (resources.configuration.locales[0]
+            .language
+            .equals("en", ignoreCase = true)
+    ) {
+        "en-US"
+    } else {
+        "id-ID"
     }

@@ -7,5 +7,5 @@ import id.sapikenal.app.domain.model.DetectionResult
  * unit testing without Android framework dependencies.
  */
 interface ImageClassifier {
-    suspend fun classify(jpegBytes: ByteArray): DetectionResult
+    suspend fun classify(imageBytes: ByteArray): DetectionResult
 }

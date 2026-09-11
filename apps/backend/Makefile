@@ -1,10 +1,13 @@
-.PHONY: install test run docker-build docker-run docker-stop clean
+.PHONY: install test verify-model-contract run docker-build docker-run docker-stop clean
 
 install:
 	pip install -r requirements.txt
 
 test:
 	python -m pytest tests/ -v
+
+verify-model-contract:
+	python ../../scripts/verify_model_contract.py
 
 run:
 	python main.py

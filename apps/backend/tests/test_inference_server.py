@@ -2,52 +2,65 @@ from __future__ import annotations
 
 from unittest.mock import Mock
 
-import numpy as np
-from inference_server import InferenceService
+import numpy as np  # pyright: ignore[reportMissingImports]
+import pytest  # pyright: ignore[reportMissingImports]
 from PIL import Image
 
-
-def test_predict_preserves_model_probabilities():
-    service = InferenceService.__new__(InferenceService)
-    service.model_loader = Mock()
-    service.model_loader.predict.return_value = np.array(
-        [[0.01, 0.96, 0.02, 0.01]], dtype=np.float32
-    )
-    service.preprocessor = Mock()
-    service.preprocessor.process.return_value = np.zeros(
-        (1, 224, 224, 3), dtype=np.float32
-    )
-
-    result = service.predict(Image.new("RGB", (224, 224)))
-
-    assert result["status"] == "success"
-    assert result["prediction"]["disease_class"] == "healthy"
-    assert result["prediction"]["confidence"] == 0.96
-    assert result["prediction"]["is_reliable"] is True
-    assert result["prediction"]["scores"] == {
-        "FMD": 0.01,
-        "healthy": 0.96,
-        "LSD": 0.02,
-        "non_cattle": 0.01,
-    }
-    assert result["prediction"]["outcome"] == "accepted"
+from inference_server import InferenceService
 
 
-def test_predict_marks_non_cattle_as_rejected() -> None:
-    service = InferenceService.__new__(InferenceService)
-    service.model_loader = Mock()
-    service.model_loader.predict.return_value = np.array(
-        [[0.01, 0.02, 0.01, 0.96]], dtype=np.float32
-    )
-    service.preprocessor = Mock()
-    service.preprocessor.process.return_value = np.zeros(
-        (1, 224, 224, 3), dtype=np.float32
-    )
+def test_predict_returns_breed_contract_without_rounding_scores():
+        service = InferenceService.__new__(InferenceService)
+        service.model_loader = Mock()
+        service.model_loader.predict.return_value = np.array(
+                [[0.01, 0.96, 0.01, 0.01, 0.005, 0.005]], dtype=np.float32
+        )
+        service.preprocessor = Mock()
+        service.preprocessor.process.return_value = np.zeros(
+                (1, 224, 224, 3), dtype=np.float32
+        )
 
-    result = service.predict(Image.new("RGB", (224, 224)))
+        result = service.predict(Image.new("RGB", (224, 224)))
 
-    assert result["prediction"]["disease_class"] == "non_cattle"
-    assert result["prediction"]["display_label_key"] == "validation.non_cattle"
-    assert result["prediction"]["outcome"] == "rejected"
-    assert result["prediction"]["is_reliable"] is False
-    assert result["prediction"]["scores"]["non_cattle"] == 0.96
+        assert result["status"] == "success"
+        prediction = result["prediction"]
+        assert prediction["predicted_class"] == "bali"
+        assert prediction["confidence"] == pytest.approx(0.96)
+        assert prediction["scores"] == pytest.approx(
+                {
+                        "aceh": 0.01,
+                        "bali": 0.96,
+                        "limusin": 0.01,
+                        "madura": 0.01,
+                        "pasundan": 0.005,
+                        "po": 0.005,
+                }
+        )
+
+
+def test_predict_keeps_low_confidence_as_success() -> None:
+        service = InferenceService.__new__(InferenceService)
+        service.model_loader = Mock()
+        service.model_loader.predict.return_value = np.array(
+                [[0.31, 0.30, 0.20, 0.10, 0.05, 0.04]], dtype=np.float32
+        )
+        service.preprocessor = Mock()
+        service.preprocessor.process.return_value = np.zeros(
+                (1, 224, 224, 3), dtype=np.float32
+        )
+
+        result = service.predict(Image.new("RGB", (224, 224)))
+
+        assert result["status"] == "success"
+        assert result["prediction"]["predicted_class"] == "aceh"
+        assert result["prediction"]["confidence"] == pytest.approx(0.31)
+        assert result["prediction"]["scores"] == pytest.approx(
+                {
+                        "aceh": 0.31,
+                        "bali": 0.30,
+                        "limusin": 0.20,
+                        "madura": 0.10,
+                        "pasundan": 0.05,
+                        "po": 0.04,
+                }
+        )

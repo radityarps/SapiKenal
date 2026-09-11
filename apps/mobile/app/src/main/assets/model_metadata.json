@@ -1,22 +1,27 @@
 {
-  "model_version": "cattle-disease-mobilenetv3-v20260725-fp32",
-  "base_model_version": "cattle-disease-mobilenetv3-v20260725-fp32",
+  "model_version": "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
   "architecture": "mobilenetv3",
-  "asset": "cattle_disease.tflite",
-  "sha256": "ed9598c56b5dc5a5788c0d8376e8d6d2b80277aeca1931183f78cc968eae4bf9",
-  "size_bytes": 12381284,
-  "size_mb": 11.8077125549,
-  "class_order": ["FMD", "healthy", "LSD", "non_cattle"],
+  "asset": "lokal_fp32.tflite",
+  "sha256": "cc1b9a74af5ef44a7dead8848d6c41795aef9399c76e647f434277867eb113d9",
+  "size_bytes": 12382316,
+  "backend_artifact": {
+    "path": "apps/backend/model/best.keras",
+    "sha256": "0d92bc9afec8ce8b57f3637720720fb6530664b8c38391ecf3b380df614b8f65",
+    "size_bytes": 14159179
+  },
+  "class_order": ["aceh", "bali", "limusin", "madura", "pasundan", "po"],
   "class_indices": {
-    "0": "FMD",
-    "1": "healthy",
-    "2": "LSD",
-    "3": "non_cattle"
+    "0": "aceh",
+    "1": "bali",
+    "2": "limusin",
+    "3": "madura",
+    "4": "pasundan",
+    "5": "po"
   },
   "tensor_contract": {
     "input_shape": [1, 224, 224, 3],
     "input_dtype": "float32",
-    "output_shape": [1, 4],
+    "output_shape": [1, 6],
     "output_dtype": "float32",
     "input_tensor_count": 1,
     "output_tensor_count": 1,
@@ -26,14 +31,16 @@
     "input_size": [224, 224],
     "channels": 3,
     "color_mode": "RGB",
-    "rescale": "none (raw [0..255] float32 input due to internal MobileNetV3 Rescaling layer)",
-    "exif_orientation_correction": "applied by ClientPreprocessor before client resize when EXIF is available",
-    "resize_method": "Bitmap.createScaledBitmap filtering"
+    "input_dtype": "float32",
+    "input_range": [0, 255],
+    "rescale": "none",
+    "model_internal_rescaling": {
+      "scale": 0.00784313725490196,
+      "offset": -1.0
+    },
+    "exif_orientation_correction": "applied by ClientPreprocessor before 224x224 resize and lossless PNG encoding",
+    "client_encoding": "PNG",
+    "resize_method": "bilinear"
   },
-  "parity": {
-    "status": "tensor_contract_verified",
-    "source": "apps/mobile/TFLITE_PARITY.md",
-    "note": "Accuracy and F1 parity deltas are not recorded in this repository snapshot."
-  },
-  "warning": "Image classification model only; not a clinical diagnosis or veterinarian replacement."
+  "warning": "Image classification model only; output is not validation that an image contains a cow."
 }

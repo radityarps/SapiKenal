@@ -28,7 +28,7 @@ class ModelLoader:
     _initialized: bool = False
     model: Any
 
-    def __new__(cls, model_path: str = "./model/tes1_best_v3.keras"):
+    def __new__(cls, model_path: str = "./model/best.keras"):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False

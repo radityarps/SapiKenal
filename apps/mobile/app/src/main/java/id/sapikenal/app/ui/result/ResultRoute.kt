@@ -1,6 +1,5 @@
 package id.sapikenal.app.ui.result
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.StringRes
@@ -55,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -68,17 +68,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import id.sapikenal.app.R
+import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
-import id.sapikenal.app.domain.model.ImageSource
 import id.sapikenal.app.domain.model.InferenceMode
-import id.sapikenal.app.domain.model.LocationSource
 import id.sapikenal.app.ui.theme.SapiKenalColors
 import id.sapikenal.app.ui.theme.SapiKenalTheme
 import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 // ════════════════════════════════════════════════════════════════════════
 // Data helpers
@@ -94,30 +94,18 @@ private data class ClassDisplayConfig(
 
 private val classConfigs =
     mapOf(
-        "sehat" to ClassDisplayConfig("sehat", R.string.result_disease_sehat, "●", SapiKenalColors.Healthy, R.string.result_advice_sehat),
-        "healthy" to ClassDisplayConfig("sehat", R.string.result_disease_sehat, "●", SapiKenalColors.Healthy, R.string.result_advice_sehat),
-        "pmk" to ClassDisplayConfig("pmk", R.string.result_disease_fmd, "●", SapiKenalColors.DangerPMK, R.string.result_advice_fmd),
-        "fmd" to ClassDisplayConfig("pmk", R.string.result_disease_fmd, "●", SapiKenalColors.DangerPMK, R.string.result_advice_fmd),
-        "lsd" to ClassDisplayConfig("lsd", R.string.result_disease_lsd, "●", SapiKenalColors.WarningLSD, R.string.result_advice_lsd),
-        "lato_lato" to ClassDisplayConfig("lsd", R.string.result_disease_lsd, "●", SapiKenalColors.WarningLSD, R.string.result_advice_lsd),
-        "lumpy_skin_disease" to
-            ClassDisplayConfig("lsd", R.string.result_disease_lsd, "●", SapiKenalColors.WarningLSD, R.string.result_advice_lsd),
-        "non_cattle" to
-            ClassDisplayConfig(
-                "non_cattle",
-                R.string.result_disease_non_cattle,
-                "🚫",
-                SapiKenalColors.TextSecondary,
-                R.string.rejection_non_cattle_desc,
-            ),
-        "non cattle" to
-            ClassDisplayConfig(
-                "non_cattle",
-                R.string.result_disease_non_cattle,
-                "🚫",
-                SapiKenalColors.TextSecondary,
-                R.string.rejection_non_cattle_desc,
-            ),
+        "aceh" to ClassDisplayConfig("aceh", R.string.result_breed_aceh, "🟤", SapiKenalColors.Aceh, R.string.result_advice_breed),
+        "bali" to ClassDisplayConfig("bali", R.string.result_breed_bali, "🟤", SapiKenalColors.Bali, R.string.result_advice_breed),
+        "limusin" to
+            ClassDisplayConfig("limusin", R.string.result_breed_limusin, "🟠", SapiKenalColors.Limusin, R.string.result_advice_breed),
+        "madura" to ClassDisplayConfig("madura", R.string.result_breed_madura, "🟤", SapiKenalColors.Madura, R.string.result_advice_breed),
+        "pasundan" to
+            ClassDisplayConfig("pasundan", R.string.result_breed_pasundan, "🟤", SapiKenalColors.Pasundan, R.string.result_advice_breed),
+        "po" to ClassDisplayConfig("po", R.string.result_breed_po, "⚪", SapiKenalColors.Po, R.string.result_advice_breed),
+        "brahman" to
+            ClassDisplayConfig("brahman", R.string.result_breed_brahman, "⚪", SapiKenalColors.Brahman, R.string.result_advice_breed),
+        "brangus" to
+            ClassDisplayConfig("brangus", R.string.result_breed_brangus, "⚫", SapiKenalColors.Brangus, R.string.result_advice_breed),
     )
 
 private val defaultClassConfig =
@@ -126,40 +114,20 @@ private val defaultClassConfig =
         R.string.result_unknown,
         "●",
         SapiKenalColors.TextSecondary,
-        R.string.result_advice_sehat,
+        R.string.result_advice_breed,
     )
 
-private enum class ConfidenceLevel { HIGH, MEDIUM, LOW }
-
-private fun confidenceLevel(value: Float): ConfidenceLevel =
-    when {
-        value >= 0.80f -> ConfidenceLevel.HIGH
-        value >= 0.60f -> ConfidenceLevel.MEDIUM
-        else -> ConfidenceLevel.LOW
-    }
+@StringRes
+private fun scoreDisplayNameRes(key: String): Int? = BreedContract.find(key)?.displayNameResId
 
 @StringRes
-private fun scoreDisplayNameRes(key: String): Int? =
-    when (key.lowercase()) {
-        "sehat", "healthy" -> R.string.result_disease_sehat
-        "pmk", "fmd" -> R.string.result_disease_fmd
-        "lsd", "lato_lato", "lumpy_skin_disease" -> R.string.result_disease_lsd
-        "non_cattle", "non cattle", "objek bukan sapi" -> R.string.result_disease_non_cattle
-        else -> null
-    }
+internal fun modeLabelRes(mode: String): Int = InferenceMode.parse(mode).labelResId
 
-@StringRes
-private fun modeLabelRes(mode: String): Int =
-    when (mode.uppercase()) {
-        "ONLINE" -> R.string.result_mode_online
-        else -> R.string.result_mode_offline
-    }
-
-private fun modeColor(mode: String): Color =
-    if (mode.uppercase() == "ONLINE") {
-        SapiKenalColors.Healthy
-    } else {
-        SapiKenalColors.WarningLSD
+internal fun modeColor(mode: String): Color =
+    when (InferenceMode.parse(mode)) {
+        InferenceMode.ONLINE -> SapiKenalColors.Primary
+        InferenceMode.OFFLINE, InferenceMode.OFFLINE_FALLBACK -> SapiKenalColors.Secondary
+        InferenceMode.UNKNOWN -> SapiKenalColors.TextSecondary
     }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -179,50 +147,31 @@ fun ResultRoute(
     fromHistory: Boolean = false,
     appVersion: String? = null,
     modelVersion: String? = null,
+    initialResult: DetectionResult? = null,
     consentStatus: ConsentStatus = ConsentStatus.UNDECIDED,
-    navigationViewModel: id.sapikenal.app.ui.navigation.NavigationViewModel? = null,
     onBack: () -> Unit,
-    onRetake: () -> Unit,
     onNavigateToGuide: (String) -> Unit = {},
     viewModel: ResultViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
     val selectedDetection by viewModel.selectedDetection.collectAsStateWithLifecycle()
-    val isRejected =
-        label.equals("non_cattle", ignoreCase = true) ||
-            selectedDetection?.outcome == "REJECTED" ||
-            selectedDetection?.label.equals("non_cattle", ignoreCase = true)
-    val confidencePercent = (confidence.coerceIn(0f, 1f) * 100).toInt()
-    val level = confidenceLevel(confidence)
-    val config =
-        if (isRejected) {
-            classConfigs["non_cattle"] ?: defaultClassConfig
-        } else {
-            classConfigs[label.lowercase()] ?: defaultClassConfig
-        }
-    val scannedAt = if (scanTimestamp > 0L) Date(scanTimestamp) else Date()
+    val displayedResult = selectedDetection ?: initialResult
+    val isHistoryRecordLoading = fromHistory && detectionId != null && selectedDetection == null
+    val displayLabelKey = displayedResult?.label ?: label
+    val confidencePercent = ((displayedResult?.confidence ?: confidence).coerceIn(0f, 1f) * 100).toInt()
+    val config = classConfigs[displayLabelKey.trim().lowercase(Locale.ROOT)] ?: defaultClassConfig
+    val scannedAt =
+        Date(
+            (displayedResult?.timestamp ?: scanTimestamp).takeIf { it > 0L } ?: System.currentTimeMillis(),
+        )
     val scannedAtText = SimpleDateFormat("dd MMM yyyy, HH:mm", locale).format(scannedAt)
-    val modeLabel = stringResource(modeLabelRes(mode))
+    val modeName = displayedResult?.inferenceMode?.name ?: mode
+    val modeLabel = stringResource(displayedResult?.inferenceMode?.labelResId ?: modeLabelRes(mode))
     val displayName = stringResource(config.displayNameResId)
-    val modeBadgeColor = modeColor(mode)
+    val modeBadgeColor = modeColor(modeName)
 
-    val levelTextId =
-        when (level) {
-            ConfidenceLevel.HIGH -> R.string.result_confidence_high
-            ConfidenceLevel.MEDIUM -> R.string.result_confidence_medium
-            ConfidenceLevel.LOW -> R.string.result_confidence_low
-        }
-    val levelColor =
-        when (level) {
-            ConfidenceLevel.HIGH -> SapiKenalColors.Healthy
-            ConfidenceLevel.MEDIUM -> SapiKenalColors.WarningLSD
-            ConfidenceLevel.LOW -> SapiKenalColors.DangerPMK
-        }
-    val isUnreliable = confidence < 0.60f
-
-    // Parse scores map
-    val allScores: Map<String, Float> =
+    val routeScores: Map<String, Float> =
         remember(allScoresJson) {
             try {
                 val json = JSONObject(allScoresJson)
@@ -233,44 +182,22 @@ fun ResultRoute(
                 emptyMap()
             }
         }
+    val allScores = displayedResult?.allScores ?: routeScores
 
     val snackbarHostState = androidx.compose.runtime.remember { SnackbarHostState() }
     val noteSaved by viewModel.noteSaved.collectAsStateWithLifecycle()
-    val noteTitle = selectedDetection?.title?.takeIf { it.isNotBlank() }
-    val noteDescription = selectedDetection?.description?.takeIf { it.isNotBlank() }
-    // Resolve metadata from persisted detection when viewing from history
-    val resolvedConsentStatus = selectedDetection?.consentStatus ?: consentStatus
-    val resolvedAppVersion = selectedDetection?.appVersion ?: appVersion
-    val resolvedModelVersion = selectedDetection?.modelVersion ?: modelVersion
-    val resolvedPreprocessingSummary = selectedDetection?.preprocessingSummary
-    val resolvedImageSource = selectedDetection?.imageSource
-    val resolvedLatitude = selectedDetection?.latitude
-    val resolvedLongitude = selectedDetection?.longitude
-    val resolvedLocationSource = selectedDetection?.locationSource
+    val noteTitle = displayedResult?.title?.takeIf { it.isNotBlank() }
+    val noteDescription = displayedResult?.description?.takeIf { it.isNotBlank() }
+    val isExportReady = selectResultForExport(fromHistory, selectedDetection, initialResult) != null
+    val exportLoadingMessage = stringResource(R.string.result_export_loading)
     val savedMessage = stringResource(R.string.result_saved)
 
-    // Build the DetectionResult used for PDF export/share. Prefer the persisted
-    // detection (richest metadata); fall back to route params for a freshly
-    // produced result that may not be loaded from the DB yet.
-    fun buildExportResult(): DetectionResult {
-        selectedDetection?.let { return it }
-        return DetectionResult(
-            id = detectionId ?: 0L,
-            imagePath = imageRef.takeIf { it.isNotBlank() },
-            label = label,
-            displayLabel = displayName,
-            confidence = confidence,
-            isReliable = confidence >= 0.60f,
-            allScores = allScores,
-            inferenceMode =
-                runCatching { InferenceMode.valueOf(mode.uppercase()) }
-                    .getOrDefault(InferenceMode.OFFLINE),
-            consentStatus = consentStatus,
-            timestamp = if (scanTimestamp > 0L) scanTimestamp else System.currentTimeMillis(),
-            appVersion = appVersion,
-            modelVersion = modelVersion,
+    fun buildExportResult(): DetectionResult? =
+        selectResultForExport(
+            fromHistory = fromHistory,
+            persistedResult = selectedDetection,
+            freshResult = initialResult,
         )
-    }
     LaunchedEffect(detectionId) {
         viewModel.setDetectionId(detectionId)
     }
@@ -285,30 +212,35 @@ fun ResultRoute(
     val pdfError by viewModel.pdfError.collectAsStateWithLifecycle()
     val pdfExportedMessage = stringResource(R.string.result_pdf_exported)
     val pdfFailedMessage = stringResource(R.string.result_pdf_failed)
+    var shareRequested by rememberSaveable { mutableStateOf(false) }
+
+    fun exportPdf(share: Boolean) {
+        buildExportResult()?.let {
+            shareRequested = share
+            viewModel.exportPdf(it)
+        }
+    }
 
     LaunchedEffect(pdfPath) {
         pdfPath?.let { path ->
-            // Share the generated PDF
-            val file = java.io.File(path)
-            if (file.exists()) {
-                val uri =
-                    androidx.core.content.FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.fileprovider",
-                        file,
-                    )
-                val intent =
-                    Intent(Intent.ACTION_SEND).apply {
-                        type = "application/pdf"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.result_share_title))
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (shareRequested) {
+                val file = File(path)
+                if (file.exists()) {
+                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                    val intent =
+                        Intent(Intent.ACTION_SEND).apply {
+                            type = "application/pdf"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.result_share_title))
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                    runCatching {
+                        context.startActivity(Intent.createChooser(intent, context.getString(R.string.result_share_chooser)))
                     }
-                runCatching {
-                    context.startActivity(Intent.createChooser(intent, context.getString(R.string.result_share_chooser)))
                 }
             }
             snackbarHostState.showSnackbar(pdfExportedMessage)
+            shareRequested = false
             viewModel.consumePdfPath()
         }
     }
@@ -374,7 +306,7 @@ fun ResultRoute(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(R.string.result_diagnosis),
+                        stringResource(R.string.result_identification),
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
@@ -407,7 +339,7 @@ fun ResultRoute(
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
             ) {
-                val model = resolveImageModel(imageRef)
+                val model = resolveImageModel(displayedResult?.imagePath ?: imageRef)
                 if (model != null) {
                     AsyncImage(
                         model = model,
@@ -445,19 +377,12 @@ fun ResultRoute(
 
             // Accessibility: full summary description for screen readers
             val accessibilitySummary =
-                if (isRejected) {
-                    "${stringResource(
-                        R.string.rejection_non_cattle_title,
-                    )}, ${stringResource(R.string.rejection_confidence_label, confidencePercent)}, $modeLabel"
-                } else {
-                    stringResource(
-                        R.string.result_accessibility_summary,
-                        displayName,
-                        confidencePercent,
-                        stringResource(levelTextId),
-                        modeLabel,
-                    )
-                }
+                stringResource(
+                    R.string.result_accessibility_summary,
+                    displayName,
+                    confidencePercent,
+                    modeLabel,
+                )
 
             if (noteTitle != null || noteDescription != null) {
                 Spacer(Modifier.height(16.dp))
@@ -501,72 +426,33 @@ fun ResultRoute(
             Spacer(Modifier.height(16.dp))
 
             // ── 2. Confidence summary ─────────────────────────────────
-            if (isRejected) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = SapiKenalColors.SurfaceVariant,
-                ) {
-                    Text(
-                        text = stringResource(R.string.rejection_status_badge),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = SapiKenalColors.TextSecondary,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.rejection_non_cattle_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = SapiKenalColors.TextPrimary,
-                    modifier =
-                        Modifier.semantics {
-                            heading()
-                            contentDescription = accessibilitySummary
-                        },
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.rejection_confidence_label, confidencePercent),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = SapiKenalColors.TextSecondary,
-                )
-            } else {
-                Text(
-                    text = displayName,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = config.color,
-                    modifier =
-                        Modifier.semantics {
-                            heading()
-                            contentDescription = accessibilitySummary
-                        },
-                )
+            Text(
+                text = displayName,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = config.color,
+                modifier =
+                    Modifier.semantics {
+                        heading()
+                        contentDescription = accessibilitySummary
+                    },
+            )
 
-                Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(4.dp))
 
-                Text(
-                    text = "${stringResource(R.string.result_confidence)} $confidencePercent%",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-
-                Text(
-                    text = stringResource(levelTextId),
-                    color = levelColor,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
+            Text(
+                text = "${stringResource(R.string.result_confidence)} $confidencePercent%",
+                style = MaterialTheme.typography.titleMedium,
+            )
 
             Spacer(Modifier.height(12.dp))
 
             // ── 3. Confidence bar ─────────────────────────────────────
-            ConfidenceBar(confidence = confidence, color = if (isRejected) SapiKenalColors.TextSecondary else config.color)
+            ConfidenceBar(confidence = confidence, color = config.color)
 
             Spacer(Modifier.height(24.dp))
 
-            // ── 4. All scores ─────────────────────────────────────────
+            // ── 4. Top 3 scores ───────────────────────────────────────
             Text(
                 text = stringResource(R.string.result_all_scores),
                 style = MaterialTheme.typography.titleMedium,
@@ -574,345 +460,141 @@ fun ResultRoute(
             )
             Spacer(Modifier.height(12.dp))
 
-            val sortedScores = allScores.entries.sortedByDescending { it.value }
-            if (sortedScores.isEmpty()) {
-                Text(
-                    text = "—",
-                    color = SapiKenalColors.TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium,
+            val sortedScores =
+                (BreedContract.CANONICAL_LABELS + allScores.keys)
+                    .distinct()
+                    .mapNotNull { key -> allScores[key]?.let { score -> key to score } }
+                    .sortedByDescending { it.second }
+                    .take(3)
+            sortedScores.forEach { (key, score) ->
+                val isHighlighted = isLabelMatch(key, config.labelKey)
+                val displayName = scoreDisplayNameRes(key)?.let { stringResource(it) } ?: key.replaceFirstChar { it.uppercase() }
+                ScoreRow(
+                    label = displayName,
+                    score = score,
+                    isHighlighted = isHighlighted,
+                    color = config.color,
+                    accessibilityDescription =
+                        "$displayName, ${stringResource(R.string.result_confidence)} ${(score.coerceIn(0f, 1f) * 100).toInt()}%" +
+                            if (isHighlighted) ", ${stringResource(R.string.result_identification)}" else "",
                 )
-            } else {
-                sortedScores.forEach { (key, score) ->
-                    val isHighlighted = isLabelMatch(key, config.labelKey)
-                    ScoreRow(
-                        label = scoreDisplayNameRes(key)?.let { stringResource(it) } ?: key.replace("_", " "),
-                        score = score,
-                        isHighlighted = isHighlighted,
-                        color = config.color,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                }
+                Spacer(Modifier.height(8.dp))
             }
 
-            if (!isRejected) {
-                Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
-                Card(
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = SapiKenalColors.SecondaryContainer.copy(alpha = 0.5f),
-                        ),
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = stringResource(R.string.result_advice_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        stringResource(config.adviceResId).split("\n").forEach { line ->
-                            Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                                Text(
-                                    "•  ",
-                                    color = config.color,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                                Text(line, style = MaterialTheme.typography.bodyLarge)
-                            }
-                        }
-                    }
-                }
-
-                // "Learn More" cross-link to Guide
-                TextButton(
-                    onClick = {
-                        // Use canonical label and fall back to substring matching for robustness
-                        val canonicalLabel = (selectedDetection?.label ?: label).lowercase()
-                        val guideArticleId =
-                            when {
-                                canonicalLabel == "pmk" || canonicalLabel == "fmd" -> "fmd_1"
-                                canonicalLabel == "lsd" || canonicalLabel == "lato_lato" -> "lsd_1"
-                                canonicalLabel == "sehat" || canonicalLabel == "healthy" -> "healthy_1"
-                                canonicalLabel.contains("fmd") || canonicalLabel.contains("pmk") -> "fmd_1"
-                                canonicalLabel.contains("lsd") || canonicalLabel.contains("lato") -> "lsd_1"
-                                canonicalLabel.contains("healthy") || canonicalLabel.contains("sehat") -> "healthy_1"
-                                else -> "fmd_1"
-                            }
-                        onNavigateToGuide(guideArticleId)
-                    },
-                ) {
-                    Text(
-                        text = stringResource(R.string.result_learn_more),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = config.color,
-                    )
-                }
-
-                if (level != ConfidenceLevel.HIGH) {
-                    Spacer(Modifier.height(12.dp))
-                    if (isUnreliable) {
-                        // Low confidence: explicit unreliable state with retake prompt
-                        Card(
-                            colors =
-                                CardDefaults.cardColors(
-                                    containerColor = SapiKenalColors.ErrorContainer,
-                                ),
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = stringResource(R.string.result_unreliable_title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SapiKenalColors.DangerPMK,
-                                )
-                                Spacer(Modifier.height(8.dp))
-                                Text(
-                                    text = stringResource(R.string.result_unreliable_body),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                                if (!fromHistory) {
-                                    Spacer(Modifier.height(12.dp))
-                                    Button(
-                                        onClick = onRetake,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors =
-                                            ButtonDefaults.buttonColors(
-                                                containerColor = SapiKenalColors.DangerPMK,
-                                            ),
-                                    ) {
-                                        Text(stringResource(R.string.result_btn_retake_low))
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // Medium confidence: warning only
-                        Card(
-                            colors =
-                                CardDefaults.cardColors(
-                                    containerColor = SapiKenalColors.WarningLSD.copy(alpha = 0.15f),
-                                ),
-                        ) {
-                            Row(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = stringResource(R.string.result_warning_medium),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-                Spacer(Modifier.height(20.dp))
-                Card(
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        ),
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = stringResource(R.string.rejection_non_cattle_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = SapiKenalColors.TextPrimary,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = stringResource(R.string.rejection_non_cattle_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = SapiKenalColors.TextSecondary,
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // ── Disclaimer ────────────────────────────────────────────
             Card(
                 colors =
                     CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        containerColor = SapiKenalColors.SecondaryContainer.copy(alpha = 0.5f),
                     ),
             ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.result_advice_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    stringResource(config.adviceResId).split("\n").forEach { line ->
+                        Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                            Text(
+                                "•  ",
+                                color = config.color,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Text(line, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            }
+
+            // "Learn More" cross-link to Guide
+            TextButton(
+                onClick = {
+                    // Use canonical label and fall back to substring matching for robustness
+                    val canonicalLabel = (displayedResult?.label ?: label).lowercase()
+                    val guideArticleId = BreedContract.find(canonicalLabel)?.guideArticleId
+                    guideArticleId?.let(onNavigateToGuide)
+                },
+            ) {
                 Text(
-                    text = stringResource(R.string.result_disclaimer),
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = SapiKenalColors.TextSecondary,
+                    text = stringResource(R.string.result_learn_more),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = config.color,
                 )
             }
+        }
 
-            // ── Metadata section ──────────────────────────────────────
-            val hasMetadata =
-                resolvedAppVersion != null || resolvedModelVersion != null ||
-                    resolvedConsentStatus != ConsentStatus.UNDECIDED ||
-                    resolvedPreprocessingSummary != null || resolvedImageSource != null
-            if (hasMetadata) {
-                Spacer(Modifier.height(16.dp))
-                Card(
+        Spacer(Modifier.height(16.dp))
+
+        // ── Disclaimer ────────────────────────────────────────────
+        Card(
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                ),
+        ) {
+            Text(
+                text = stringResource(R.string.result_disclaimer),
+                modifier = Modifier.padding(12.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = SapiKenalColors.TextSecondary,
+            )
+        }
+
+
+        Spacer(Modifier.height(24.dp))
+
+        // ── 5. Action buttons ─────────────────────────────────────
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            // Share now generates and shares a PDF report (not plain text)
+            OutlinedButton(
+                onClick = { exportPdf(share = false) },
+                modifier = Modifier.weight(1f),
+                enabled = isExportReady && !isHistoryRecordLoading,
+            ) {
+                Text(if (isHistoryRecordLoading) exportLoadingMessage else stringResource(R.string.result_btn_export_pdf))
+            }
+            if (detectionId != null) {
+                Button(
+                    onClick = {
+                        saveTitle = displayedResult?.title.orEmpty()
+                        saveDesc = displayedResult?.description.orEmpty()
+                        showSaveDialog = true
+                    },
+                    modifier = Modifier.weight(1f),
                     colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        ButtonDefaults.buttonColors(
+                            containerColor = SapiKenalColors.Primary,
                         ),
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = stringResource(R.string.result_metadata_title),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = SapiKenalColors.TextSecondary,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        resolvedAppVersion?.let {
-                            Text(
-                                text = stringResource(R.string.result_metadata_app_version, it),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SapiKenalColors.TextSecondary,
-                            )
-                        }
-                        resolvedModelVersion?.let {
-                            Text(
-                                text = stringResource(R.string.result_metadata_model_version, it),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SapiKenalColors.TextSecondary,
-                            )
-                        }
-                        resolvedPreprocessingSummary?.let {
-                            Text(
-                                text = stringResource(R.string.result_metadata_preprocessing, it),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SapiKenalColors.TextSecondary,
-                            )
-                        }
-                        resolvedImageSource?.let { source ->
-                            val sourceLabel =
-                                if (source.name == "CAMERA") {
-                                    stringResource(R.string.result_source_camera)
-                                } else {
-                                    stringResource(R.string.result_source_gallery)
-                                }
-                            Text(
-                                text = stringResource(R.string.result_metadata_source, sourceLabel),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SapiKenalColors.TextSecondary,
-                            )
-                        }
-                        if (resolvedLatitude != null && resolvedLongitude != null) {
-                            val sourceLabel =
-                                when (resolvedLocationSource) {
-                                    LocationSource.GPS -> stringResource(R.string.result_location_source_gps)
-                                    LocationSource.MANUAL -> stringResource(R.string.result_location_source_manual)
-                                    else -> ""
-                                }
-                            val locationText =
-                                "%.2f, %.2f".format(resolvedLatitude, resolvedLongitude) +
-                                    if (sourceLabel.isNotEmpty()) " ($sourceLabel)" else ""
-                            Text(
-                                text = stringResource(R.string.result_metadata_location, locationText),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SapiKenalColors.TextSecondary,
-                            )
-                        }
-                        val consentLabel =
-                            when (resolvedConsentStatus) {
-                                ConsentStatus.ALLOWED -> stringResource(R.string.result_consent_allowed)
-                                ConsentStatus.DENIED -> stringResource(R.string.result_consent_denied)
-                                ConsentStatus.UNDECIDED -> stringResource(R.string.result_consent_undecided)
-                            }
-                        Text(
-                            text = stringResource(R.string.result_metadata_consent, consentLabel),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SapiKenalColors.TextSecondary,
-                        )
-                    }
+                    Text(stringResource(if (fromHistory) R.string.result_btn_edit else R.string.result_btn_save))
                 }
             }
+        }
 
-            Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
 
-            // ── 5. Action buttons ─────────────────────────────────────
-            if (isRejected) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Button(
-                        onClick = onRetake,
-                        modifier = Modifier.weight(1f),
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = SapiKenalColors.Primary,
-                            ),
-                    ) {
-                        Text(stringResource(R.string.result_btn_try_again))
-                    }
-                    if (detectionId != null) {
-                        OutlinedButton(
-                            onClick = {
-                                saveTitle = selectedDetection?.title.orEmpty()
-                                saveDesc = selectedDetection?.description.orEmpty()
-                                showSaveDialog = true
-                            },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(if (fromHistory) R.string.result_btn_edit else R.string.result_btn_save))
-                        }
-                    }
-                }
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    // Share now generates and shares a PDF report (not plain text)
-                    OutlinedButton(
-                        onClick = {
-                            selectedDetection?.let { viewModel.exportPdf(it) }
-                        },
-                        modifier = Modifier.weight(1f),
-                        enabled = selectedDetection != null,
-                    ) {
-                        Text(stringResource(R.string.result_btn_share))
-                    }
-                    if (detectionId != null) {
-                        Button(
-                            onClick = {
-                                saveTitle = selectedDetection?.title.orEmpty()
-                                saveDesc = selectedDetection?.description.orEmpty()
-                                showSaveDialog = true
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors =
-                                ButtonDefaults.buttonColors(
-                                    containerColor = SapiKenalColors.Primary,
-                                ),
-                        ) {
-                            Text(stringResource(if (fromHistory) R.string.result_btn_edit else R.string.result_btn_save))
-                        }
-                    }
-                }
-                if (!fromHistory) {
-                    Spacer(Modifier.height(12.dp))
-                    Button(
-                        onClick = onRetake,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = SapiKenalColors.Primary,
-                            ),
-                    ) {
-                        Text(stringResource(R.string.result_btn_retake))
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = { exportPdf(share = true) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = isExportReady && !isHistoryRecordLoading,
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = SapiKenalColors.Primary,
+                ),
+        ) {
+            Text(if (isHistoryRecordLoading) exportLoadingMessage else stringResource(R.string.result_btn_share))
         }
     }
+
+    Spacer(Modifier.height(12.dp))
+
+    Spacer(Modifier.height(16.dp))
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -969,9 +651,14 @@ private fun ScoreRow(
     score: Float,
     isHighlighted: Boolean,
     color: Color,
+    accessibilityDescription: String,
 ) {
+    val percentage = (score.coerceIn(0f, 1f) * 100).toInt()
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clearAndSetSemantics { contentDescription = accessibilityDescription },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Highlighted / normal circle
@@ -1006,7 +693,7 @@ private fun ScoreRow(
 
         // Percentage
         Text(
-            text = "${(score * 100).toInt()}%",
+            text = "$percentage%",
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.width(38.dp),
             textAlign = TextAlign.End,
@@ -1021,16 +708,7 @@ private fun ScoreRow(
 private fun isLabelMatch(
     key: String,
     targetKey: String,
-): Boolean {
-    val k = key.lowercase()
-    val t = targetKey.lowercase()
-    if (k == t) return true
-    // Handle known aliases
-    if (t == "pmk" && (k == "pmk" || k == "fmd")) return true
-    if (t == "lsd" && (k == "lsd" || k == "lato_lato" || k == "lumpy_skin_disease")) return true
-    if (t == "sehat" && (k == "sehat" || k == "healthy")) return true
-    return false
-}
+): Boolean = key.equals(targetKey, ignoreCase = true)
 
 @Composable
 private fun remember(
@@ -1051,17 +729,16 @@ private fun remember(
 private fun ResultRoutePreview() {
     SapiKenalTheme {
         ResultRoute(
-            label = "PMK",
+            label = "brangus",
             confidence = 0.87f,
             mode = "ONLINE",
-            allScoresJson = """{"PMK":0.87,"Sehat":0.08,"Lato-Lato":0.05}""",
+            allScoresJson = """{"bali":0.08,"brahman":0.03,"brangus":0.87,"limusin":0.02}""",
             imageRef = "",
             scanTimestamp = System.currentTimeMillis(),
             appVersion = "1.0.0",
             modelVersion = "MobileNetV2-v3",
             consentStatus = ConsentStatus.ALLOWED,
             onBack = {},
-            onRetake = {},
         )
     }
 }

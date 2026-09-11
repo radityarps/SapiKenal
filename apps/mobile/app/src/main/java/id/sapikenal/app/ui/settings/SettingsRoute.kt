@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -40,6 +42,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,10 +50,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -180,7 +188,7 @@ class SettingsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsRoute(
-    onBack: () -> Unit,
+    onBack: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -207,19 +215,44 @@ fun SettingsRoute(
         }
     }
 
+    val view = LocalView.current
+    val statusBarColorArgb = MaterialTheme.colorScheme.surface.toArgb()
+    val isLightStatusBar = ColorUtils.calculateLuminance(statusBarColorArgb) > 0.5
+
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
+            window.statusBarColor = statusBarColorArgb
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isLightStatusBar
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.settings_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = SapiKenalColors.TextPrimary,
+                    )
+                },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.nav_back),
+                            )
+                        }
                     }
                 },
                 colors =
                     TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                     ),
+                windowInsets = TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Horizontal),
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -276,7 +309,7 @@ fun SettingsRoute(
             PreferenceRow(
                 title = stringResource(R.string.settings_clear_history),
                 onClick = { showClearHistoryDialog = true },
-                titleColor = SapiKenalColors.DangerPMK,
+                titleColor = SapiKenalColors.Error,
             )
 
             // Purge deleted records
@@ -284,7 +317,7 @@ fun SettingsRoute(
                 title = stringResource(R.string.settings_purge_deleted),
                 value = stringResource(R.string.settings_purge_deleted_description),
                 onClick = { showPurgeDialog = true },
-                titleColor = SapiKenalColors.DangerPMK,
+                titleColor = SapiKenalColors.Error,
             )
 
             // Reset onboarding
@@ -666,12 +699,12 @@ private fun LocationRow(
 
                     hasPermission -> {
                         statusText = stringResource(R.string.settings_location_status_granted)
-                        statusColor = SapiKenalColors.Healthy
+                        statusColor = SapiKenalColors.Primary
                     }
 
                     else -> {
                         statusText = stringResource(R.string.settings_location_status_denied)
-                        statusColor = SapiKenalColors.WarningLSD
+                        statusColor = SapiKenalColors.Secondary
                     }
                 }
                 Text(

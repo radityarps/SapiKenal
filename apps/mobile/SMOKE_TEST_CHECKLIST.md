@@ -4,7 +4,7 @@ Manual smoke test flow to verify core functionality before release.
 
 ## Prerequisites
 
-- [ ] Device or emulator with Android 8+ (API 26+)
+- [ ] Device or emulator with Android 7+ (API 24+)
 - [ ] Backend server running (or offline mode available)
 - [ ] Camera permission grantable
 
@@ -24,15 +24,16 @@ Manual smoke test flow to verify core functionality before release.
 - [ ] Grid overlay toggles on/off
 - [ ] Capture button takes a photo
 - [ ] Gallery picker opens and selects an image
-- [ ] Quality gate rejects blurry/dark images with appropriate message
+- [ ] Every image that decodes successfully continues to identification
+- [ ] Invalid or undecodable image shows an error
 
 ## 3. Result Screen
 
-- [ ] Result displays disease label, confidence %, and level badge
+- [ ] Result displays cattle-breed label and confidence %
 - [ ] Confidence bar renders correctly
 - [ ] All class scores shown sorted by value
-- [ ] Advice card shows relevant handling advice
-- [ ] "Learn More" button navigates to correct guide article
+- [ ] Breed profile card shows the relevant advantages and limitations
+- [ ] "Learn More" button navigates to the correct breed profile
 - [ ] Disclaimer text is visible
 - [ ] Share button opens share sheet with text + image
 - [ ] Save/Edit button opens note dialog
@@ -42,7 +43,7 @@ Manual smoke test flow to verify core functionality before release.
 ## 4. History
 
 - [ ] Saved scan appears in history list
-- [ ] Filter by class (Healthy/FMD/LSD) works
+- [ ] Filter by class (Bali/Brahman/Brangus/Limusin) works
 - [ ] Filter by mode (Online/Offline) works
 - [ ] Tapping a history item opens result detail
 - [ ] Swipe-to-delete soft-deletes the record
@@ -50,7 +51,7 @@ Manual smoke test flow to verify core functionality before release.
 
 ## 5. Guide
 
-- [ ] Guide tab shows article list with tabs (App Usage, FMD, LSD, Healthy)
+- [ ] Guide tab shows application guidance and four breed profiles
 - [ ] Search filters articles by title/summary
 - [ ] Tapping an article opens detail view
 - [ ] Article content renders correctly (headings, bullets)
@@ -83,8 +84,8 @@ Manual smoke test flow to verify core functionality before release.
 
 ## 9. Edge Cases
 
-- [ ] Very low confidence (<60%) shows unreliable warning
-- [ ] Medium confidence (60-79%) shows medium warning
+- [ ] Low-confidence result still shows its selected breed and confidence without a special warning
+- [ ] Non-cattle or unsupported-breed image still returns one of the four supported labels without a cattle-validation claim
 - [ ] Rotating device doesn't crash
 - [ ] Back navigation works from all screens
 - [ ] App survives process death (check saved state)

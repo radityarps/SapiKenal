@@ -1,9 +1,17 @@
-"""Schemas for the protected admin MVP API."""
+"""Schemas for the protected admin API."""
 
 from datetime import datetime
 from typing import Any, Literal
+from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 
 class PageResponse(BaseModel):
@@ -51,18 +59,15 @@ class PredictionResponse(BaseModel):
     device_ref: str
     user_id: str | None
     timestamp: int
-    predicted_class: str
+    predicted_class: str | None
     display_label: str
     confidence: float
     scores: dict[str, float] = Field(default_factory=dict)
-    outcome: Literal["accepted", "rejected", "failed"] = "accepted"
-    rejection_reason: str | None = None
-    is_reliable: bool
     inference_mode: str
     processing_ms: int | None
     app_version: str | None
     model_version: str | None
-    status: str = "success"
+    status: Literal["success", "failed"]
     error_code: str | None = None
 
 
@@ -72,50 +77,140 @@ class DashboardPeriod(BaseModel):
     end_timestamp: int
 
 
-class DiseaseContentRequest(BaseModel):
-    slug: str = Field(
-        min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
+def _article_sources(value: list[str]) -> list[str]:
+    sources = [source.strip() for source in value]
+    if any(
+        not source
+        or any(character.isspace() for character in source)
+        or (parsed := urlsplit(source)).scheme not in {"http", "https"}
+        or not parsed.hostname
+        for source in sources
+    ):
+        raise ValueError("Sources must be valid HTTP(S) URLs")
+    return sources
+
+
+class GuideArticleRequest(BaseModel):
+    article_key: str = Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
     )
-    model_class: str | None = Field(default=None, max_length=32)
-    display_name: str = Field(min_length=1, max_length=120)
+    locale: Literal["id-ID", "en-US"] = "id-ID"
+    category: Literal[
+        "app_usage",
+        "aceh",
+        "bali",
+        "brahman",
+        "brangus",
+        "limusin",
+        "madura",
+        "pasundan",
+        "po",
+    ]
+    sort_order: int = Field(default=0, ge=0, le=100_000)
+    title: str = Field(min_length=1, max_length=120)
     summary: str = Field(min_length=1, max_length=500)
-    description: str = Field(min_length=1, max_length=10_000)
-    handling_advice: str = Field(min_length=1, max_length=10_000)
-    disclaimer: str = Field(min_length=1, max_length=1_000)
-    locale: str = Field(default="id-ID", min_length=2, max_length=16)
+    body: str = Field(min_length=1, max_length=50_000)
+    sources: list[str] = Field(min_length=1, max_length=20)
+    content_reviewed: Literal[False] = False
+
+    @field_validator("article_key", "title", "summary", "body")
+    @classmethod
+    def non_blank_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Article text must not be blank")
+        return value
+
+    @field_validator("sources")
+    @classmethod
+    def valid_sources(cls, value: list[str]) -> list[str]:
+        return _article_sources(value)
 
 
-class DiseaseContentPatchRequest(BaseModel):
-    model_class: str | None = Field(default=None, max_length=32)
-    display_name: str | None = Field(default=None, min_length=1, max_length=120)
+class GuideArticlePatchRequest(BaseModel):
+    article_key: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
+    )
+    locale: Literal["id-ID", "en-US"] | None = None
+    category: (
+        Literal[
+            "app_usage",
+            "aceh",
+            "bali",
+            "brahman",
+            "brangus",
+            "limusin",
+            "madura",
+            "pasundan",
+            "po",
+        ]
+        | None
+    ) = None
+    sort_order: int | None = Field(default=None, ge=0, le=100_000)
+    title: str | None = Field(default=None, min_length=1, max_length=120)
     summary: str | None = Field(default=None, min_length=1, max_length=500)
-    description: str | None = Field(default=None, min_length=1, max_length=10_000)
-    handling_advice: str | None = Field(default=None, min_length=1, max_length=10_000)
-    disclaimer: str | None = Field(default=None, min_length=1, max_length=1_000)
+    body: str | None = Field(default=None, min_length=1, max_length=50_000)
+    sources: list[str] | None = Field(default=None, min_length=1, max_length=20)
+    content_reviewed: bool | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_null_fields(cls, value: Any) -> Any:
+        if isinstance(value, dict) and any(item is None for item in value.values()):
+            raise ValueError("Article patch fields must not be null")
+        return value
+
+    @field_validator("article_key", "title", "summary", "body")
+    @classmethod
+    def non_blank_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("Article text must not be blank")
+        return value
+
+    @field_validator("sources")
+    @classmethod
+    def valid_sources(cls, value: list[str] | None) -> list[str] | None:
+        return None if value is None else _article_sources(value)
 
 
-class DiseaseRevisionResponse(BaseModel):
+class GuideArticleRevisionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     revision: int
-    model_class: str | None
-    display_name: str
+    category: str
+    sort_order: int
+    title: str
     summary: str
-    description: str
-    handling_advice: str
-    disclaimer: str
+    body: str
+    sources: list[str]
+    content_reviewed: bool
     status: str
     created_at: datetime
     updated_at: datetime
 
 
-class DiseaseContentResponse(BaseModel):
+class GuideArticleLocalePairResponse(BaseModel):
+    locale: Literal["id-ID", "en-US"]
+    status: Literal["missing", "inactive", "active"]
+
+
+class GuideArticleResponse(BaseModel):
     id: str
-    slug: str
+    article_key: str
     locale: str
-    status: str
-    revision: DiseaseRevisionResponse
+    publication_status: Literal["draft", "active", "inactive"]
+    revision: GuideArticleRevisionResponse
+    active_revision: GuideArticleRevisionResponse | None
+    locale_pair: GuideArticleLocalePairResponse | None = None
     created_at: datetime
     updated_at: datetime
 

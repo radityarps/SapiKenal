@@ -1,14 +1,15 @@
 package id.sapikenal.app.ml
 
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import id.sapikenal.app.data.remote.api.InferenceApiService
 import id.sapikenal.app.data.remote.dto.HealthResponseDto
 import id.sapikenal.app.data.remote.dto.HistorySyncRequestDto
+import id.sapikenal.app.data.remote.dto.ModelInfoDto
 import id.sapikenal.app.data.remote.dto.PredictResponseDto
+import id.sapikenal.app.data.remote.dto.PredictionDto
 import id.sapikenal.app.domain.model.ClassifyFailure
+import id.sapikenal.app.domain.model.DetectionResult
+import id.sapikenal.app.domain.model.InferenceMode
 import kotlinx.coroutines.test.runTest
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -23,59 +24,211 @@ import retrofit2.Response
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], manifest = Config.NONE)
 class OnlineInferenceClientTest {
-    private val rejectionJson =
-        """
-        {
-          "status": "error",
-          "error_code": "NON_CATTLE_IMAGE",
-          "message": "No cattle detected",
-          "rejection": {
-            "outcome": "rejected",
-            "reason": "non_cattle",
-            "display_label_key": "validation.non_cattle",
-            "confidence": 0.96,
-            "scores": {
-              "FMD": 0.01,
-              "healthy": 0.02,
-              "LSD": 0.01,
-              "non_cattle": 0.96
+    @Test
+    fun `breed response maps to accepted domain result`() =
+        runTest {
+            var uploaded: MultipartBody.Part? = null
+            val api =
+                clientForResponse(
+                    responseFor(
+                        predictedClass = "madura",
+                        confidence = 0.7f,
+                        scores =
+                            mapOf(
+                                "aceh" to 0.05f,
+                                "bali" to 0.05f,
+                                "limusin" to 0.05f,
+                                "madura" to 0.7f,
+                                "pasundan" to 0.05f,
+                                "po" to 0.1f,
+                            ),
+                    ),
+                    onUpload = { uploaded = it },
+                )
+
+            val result: DetectionResult = api.classify(byteArrayOf(1, 2, 3))
+
+            assertEquals("madura", result.label)
+            assertEquals("Madura", result.displayLabel)
+            assertEquals(0.7f, result.confidence, 0.001f)
+            assertEquals(
+                listOf("aceh", "bali", "limusin", "madura", "pasundan", "po"),
+                result.allScores.keys.toList(),
+            )
+            assertEquals("sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32", result.modelVersion)
+            assertTrue(uploaded?.headers?.get("Content-Disposition")?.contains("filename=\"photo.png\"") == true)
+            assertEquals("image/png", uploaded?.body?.contentType().toString())
+        }
+
+    @Test
+    fun `online response preserves low confidence as a successful six class result`() =
+        runTest {
+            val api =
+                clientForResponse(
+                    responseFor(
+                        predictedClass = " aceh ",
+                        confidence = 0.31f,
+                        scores =
+                            mapOf(
+                                "aceh" to 0.31f,
+                                "bali" to 0.30f,
+                                "limusin" to 0.20f,
+                                "madura" to 0.10f,
+                                "pasundan" to 0.05f,
+                                "po" to 0.04f,
+                            ),
+                    ),
+                )
+
+            val result = api.classify(byteArrayOf(1, 2, 3))
+
+            assertEquals("aceh", result.label)
+            assertEquals(InferenceMode.ONLINE, result.inferenceMode)
+            assertEquals("sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32", result.modelVersion)
+            assertEquals(0.31f, result.confidence, 0.001f)
+            assertEquals(false, result.isReliable)
+            assertEquals(6, result.allScores.size)
+        }
+
+    @Test
+    fun `online response rejects a non-success status`() =
+        runTest {
+            val api =
+                clientForResponse(
+                    responseFor(
+                        status = "error",
+                        predictedClass = "bali",
+                        confidence = 1.0f,
+                        scores = canonicalScores("bali", 1.0f),
+                    ),
+                )
+
+            try {
+                api.classify(byteArrayOf(1, 2, 3))
+                throw AssertionError("Expected ClassifyFailure.Unknown")
+            } catch (error: ClassifyFailure.Unknown) {
+                assertEquals("Invalid prediction status", error.message)
             }
-          },
-          "model_info": {"version": "four-class-v1"},
-          "processing_time_ms": 175
-        }
-        """.trimIndent()
-
-    @Test
-    fun `HTTP 422 non-cattle response maps to rejected domain result`() =
-        runTest {
-            val client = clientFor(HttpException(Response.error<PredictResponseDto>(422, rejectionJson.body())))
-
-            val result = client.classify(byteArrayOf(1, 2, 3))
-
-            assertEquals("non_cattle", result.label)
-            assertEquals("REJECTED", result.outcome)
-            assertEquals("non_cattle", result.rejectionReason)
-            assertEquals(0.96f, result.confidence, 0.001f)
-            assertEquals(4, result.allScores.size)
-            assertEquals(0.96f, result.allScores["non_cattle"] ?: 0f, 0.001f)
-            assertEquals("four-class-v1", result.modelVersion)
-            assertEquals(175, result.processingMs)
         }
 
     @Test
-    fun `HTTP 422 with missing canonical score is treated as invalid image`() =
+    fun `online response rejects an unknown predicted class`() =
         runTest {
-            val invalidJson = rejectionJson.replace("\"LSD\": 0.01,", "")
-            val client = clientFor(HttpException(Response.error<PredictResponseDto>(422, invalidJson.body())))
+            val api =
+                clientForResponse(
+                    responseFor(
+                        predictedClass = "unknown",
+                        confidence = 1.0f,
+                        scores = canonicalScores("bali", 1.0f),
+                    ),
+                )
+
+            try {
+                api.classify(byteArrayOf(1, 2, 3))
+                throw AssertionError("Expected ClassifyFailure.Unknown")
+            } catch (error: ClassifyFailure.Unknown) {
+                assertEquals("Invalid predicted class", error.message)
+            }
+        }
+
+    @Test
+    fun `online response rejects confidence that does not match top score`() =
+        runTest {
+            val api =
+                clientForResponse(
+                    responseFor(
+                        predictedClass = "bali",
+                        confidence = 0.6f,
+                        scores =
+                            canonicalScores(
+                                "bali",
+                                0.9f,
+                                "aceh" to 0.05f,
+                                "limusin" to 0.02f,
+                                "madura" to 0.01f,
+                                "pasundan" to 0.01f,
+                                "po" to 0.01f,
+                            ),
+                    ),
+                )
+
+            try {
+                api.classify(byteArrayOf(1, 2, 3))
+                throw AssertionError("Expected ClassifyFailure.Unknown")
+            } catch (error: ClassifyFailure.Unknown) {
+                assertEquals("Invalid prediction confidence", error.message)
+            }
+        }
+
+    @Test
+    fun `HTTP 422 is treated as invalid image`() =
+        runTest {
+            val client =
+                clientFor(
+                    HttpException(
+                        Response.error<PredictResponseDto>(422, "".toResponseBody()),
+                    ),
+                )
 
             try {
                 client.classify(byteArrayOf(1))
                 throw AssertionError("Expected ClassifyFailure.InvalidImage")
             } catch (error: ClassifyFailure.InvalidImage) {
-                assertTrue(error.message!!.contains("Invalid image data"))
+                assertEquals("Invalid image data", error.message)
             }
         }
+
+    private fun canonicalScores(
+        top: String,
+        topScore: Float,
+        vararg others: Pair<String, Float>,
+    ): Map<String, Float> =
+        linkedMapOf(
+            "aceh" to 0f,
+            "bali" to 0f,
+            "limusin" to 0f,
+            "madura" to 0f,
+            "pasundan" to 0f,
+            "po" to 0f,
+        ).apply {
+            this[top] = topScore
+            others.forEach { (key, score) -> this[key] = score }
+        }
+
+    private fun responseFor(
+        status: String = "success",
+        predictedClass: String,
+        confidence: Float,
+        scores: Map<String, Float>,
+        modelVersion: String = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
+    ): PredictResponseDto =
+        PredictResponseDto(
+            status = status,
+            prediction = PredictionDto(predictedClass, confidence, scores),
+            modelInfo = ModelInfoDto(modelVersion),
+            processingTimeMs = 8,
+            preprocessingTimeMs = 2,
+            inferenceTimeMs = 6,
+        )
+
+    private fun clientForResponse(
+        response: PredictResponseDto,
+        onUpload: (MultipartBody.Part) -> Unit = {},
+    ): OnlineInferenceClient =
+        OnlineInferenceClient(
+            apiService =
+                object : InferenceApiService {
+                    override suspend fun predict(image: MultipartBody.Part): PredictResponseDto {
+                        onUpload(image)
+                        return response
+                    }
+
+                    override suspend fun health(): HealthResponseDto =
+                        HealthResponseDto("ok", "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32", true)
+
+                    override suspend fun upsertHistory(payload: HistorySyncRequestDto) = Response.success("{}".toResponseBody())
+                },
+        )
 
     private fun clientFor(error: HttpException): OnlineInferenceClient {
         val api =
@@ -85,17 +238,12 @@ class OnlineInferenceClientTest {
                 override suspend fun health(): HealthResponseDto =
                     HealthResponseDto(
                         status = "ok",
-                        modelVersion = "four-class-v1",
+                        modelVersion = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
                         modelLoaded = true,
                     )
 
-                override suspend fun upsertHistory(payload: HistorySyncRequestDto) = Response.success("{}".body())
+                override suspend fun upsertHistory(payload: HistorySyncRequestDto) = Response.success("{}".toResponseBody())
             }
-        return OnlineInferenceClient(
-            apiService = api,
-            moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build(),
-        )
+        return OnlineInferenceClient(apiService = api)
     }
-
-    private fun String.body(): okhttp3.ResponseBody = toResponseBody("application/json".toMediaType())
 }

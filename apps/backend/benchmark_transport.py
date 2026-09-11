@@ -19,7 +19,12 @@ import sys
 import time
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+try:
+    from datetime import UTC, datetime
+except ImportError:
+    from datetime import datetime, timezone
+
+    UTC = timezone.utc
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse, urlunparse

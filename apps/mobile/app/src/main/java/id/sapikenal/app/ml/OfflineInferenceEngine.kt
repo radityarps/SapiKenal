@@ -3,6 +3,7 @@ package id.sapikenal.app.ml
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import id.sapikenal.app.BuildConfig
+import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.InferenceMode
 import id.sapikenal.app.ml.preprocessing.ModelPreprocessor
@@ -14,7 +15,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.abs
 
 @Singleton
 open class OfflineInferenceEngine
@@ -24,26 +24,24 @@ open class OfflineInferenceEngine
         private val modelPreprocessor: ModelPreprocessor,
     ) : ImageClassifier {
         companion object {
+            private const val EXPECTED_MODEL_FILE = "lokal_fp32.tflite"
             private val MODEL_FILE = BuildConfig.MODEL_FILE_NAME
 
             /** Offline model version identifier. Configured via BuildConfig / local.properties. */
             val MODEL_VERSION = BuildConfig.MODEL_VERSION
             private val EXPECTED_INPUT_SHAPE = intArrayOf(1, 224, 224, 3)
-            private val EXPECTED_OUTPUT_SHAPE = intArrayOf(1, 4)
+            private val EXPECTED_OUTPUT_SHAPE = intArrayOf(1, 6)
 
-            // Canonical labels matching backend class_names.json: {"0": "FMD", "1": "Healthy", "2": "LSD", "3": "non_cattle"}
-            private val LABELS = listOf("FMD", "healthy", "LSD", "non_cattle")
-            private val LABEL_DISPLAY =
-                mapOf(
-                    "FMD" to "Penyakit Mulut dan Kuku (FMD)",
-                    "LSD" to "Penyakit Lumpy Skin (LSD)",
-                    "healthy" to "Sapi Sehat",
-                    "Healthy" to "Sapi Sehat",
-                    "non_cattle" to "Objek bukan sapi",
-                )
+            // Canonical labels matching backend model/class_names.json.
+            val CANONICAL_LABELS = BreedContract.CANONICAL_LABELS
+            private val LABELS = CANONICAL_LABELS
+            val DISPLAY_LABELS = BreedContract.DISPLAY_LABELS
         }
 
         private val interpreter: Interpreter by lazy {
+            require(MODEL_FILE == EXPECTED_MODEL_FILE) {
+                "Unsupported offline model asset: $MODEL_FILE; expected $EXPECTED_MODEL_FILE"
+            }
             val bytes = context.assets.open(MODEL_FILE).use { it.readBytes() }
             val modelBuffer =
                 ByteBuffer.allocateDirect(bytes.size).apply {
@@ -92,42 +90,43 @@ open class OfflineInferenceEngine
         }
 
         private fun validateScores(scores: FloatArray) {
-            if (scores.size != LABELS.size || scores.any { !it.isFinite() || it < 0f || it > 1f }) {
-                throw IllegalStateException("TFLite output must contain four finite probabilities in [0, 1]")
+            if (
+                scores.size != LABELS.size ||
+                scores.any { !it.isFinite() || it < 0f || it > 1f }
+            ) {
+                throw IllegalStateException("TFLite output must contain ${LABELS.size} finite probabilities in [0, 1]")
             }
-            if (abs(scores.sum() - 1f) > 0.01f) {
+            if (scores.sum() !in 0.99f..1.01f) {
                 throw IllegalStateException("TFLite output probabilities must sum to 1")
             }
         }
 
-        open override suspend fun classify(jpegBytes: ByteArray): DetectionResult =
+        open override suspend fun classify(imageBytes: ByteArray): DetectionResult =
             withContext(Dispatchers.Default) {
-                val inputBuffer = modelPreprocessor.process(jpegBytes)
-                val output = Array(1) { FloatArray(4) }
+                val inputBuffer = modelPreprocessor.process(imageBytes)
+                val output = Array(1) { FloatArray(LABELS.size) }
                 interpreter.run(inputBuffer, output)
 
                 val scores = output[0]
                 validateScores(scores)
                 val maxIdx = scores.indices.maxByOrNull { scores[it] } ?: 0
-                val label = LABELS.getOrElse(maxIdx) { "unknown" }
-                val isRejected = label == "non_cattle"
+                if (maxIdx !in LABELS.indices) {
+                    throw IllegalStateException("TFLite output selected an invalid class index")
+                }
+                val label =
+                    LABELS.getOrElse(maxIdx) { error("Unknown model class index: $maxIdx") }
 
                 DetectionResult(
                     label = label,
-                    displayLabel = LABEL_DISPLAY[label] ?: label,
+                    displayLabel = DISPLAY_LABELS.getValue(label),
                     confidence = scores[maxIdx],
-                    isReliable = if (isRejected) false else scores[maxIdx] >= BuildConfig.CONFIDENCE_THRESHOLD,
+                    isReliable = scores[maxIdx] >= BuildConfig.CONFIDENCE_THRESHOLD,
                     allScores =
-                        mapOf(
-                            "FMD" to scores[0],
-                            "healthy" to scores[1],
-                            "LSD" to scores[2],
-                            "non_cattle" to scores[3],
-                        ),
+                        LABELS
+                            .mapIndexed { index, className -> className to scores[index] }
+                            .toMap(),
                     inferenceMode = InferenceMode.OFFLINE,
                     modelVersion = MODEL_VERSION,
-                    outcome = if (isRejected) "REJECTED" else "ACCEPTED",
-                    rejectionReason = if (isRejected) "non_cattle" else null,
                 )
             }
     }

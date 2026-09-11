@@ -6,6 +6,7 @@
     Gauge,
     LogOut,
     ScanLine,
+    BookOpen,
     ScrollText,
     X
   } from 'lucide-svelte';
@@ -17,8 +18,9 @@
 
   const links = [
     { href: '/dashboard', label: 'Dashboard', icon: Gauge },
-    { href: '/predictions', label: 'Prediksi', icon: ScanLine },
+    { href: '/predictions', label: 'Hasil identifikasi', icon: ScanLine },
     { href: '/models', label: 'Model AI', icon: BrainCircuit },
+    { href: '/articles', label: 'Artikel Panduan', icon: BookOpen },
     { href: '/audit-logs', label: 'Audit log', icon: ScrollText }
   ];
 

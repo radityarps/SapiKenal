@@ -1,40 +1,53 @@
 """Create or explicitly rotate the first admin account.
 
-Usage is documented in the repository PRD. Credentials are supplied through
-ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_NAME; no defaults are provided.
+Usage is documented in the repository PRD. Credentials default to
+ADMIN_EMAIL (admin@example.com), ADMIN_PASSWORD (password), and ADMIN_NAME (Administrator).
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
+from pathlib import Path
+from typing import Literal
+from urllib.parse import urlsplit
+
+from pydantic import (  # pyright: ignore[reportMissingImports]
+    BaseModel,
+    EmailStr,
+    Field,
+    TypeAdapter,
+    ValidationError,
+    field_validator,
+)
+from sqlalchemy import inspect, select  # pyright: ignore[reportMissingImports]
+from sqlalchemy.exc import SQLAlchemyError  # pyright: ignore[reportMissingImports]
 
 from api.auth_security import hash_password, revoke_all_sessions, validate_password
 from config import settings
 from db.core import SessionLocal, engine
-from db.models import User
-from pydantic import EmailStr, TypeAdapter, ValidationError
+from db.models import GuideArticle, GuideArticleRevision, User
 from services.audit import record_audit
-from sqlalchemy import inspect, select
 
-
-def _required_env(name: str) -> str:
-    value = os.getenv(name, "").strip()
-    if not value:
-        raise ValueError(f"{name} must be provided through the environment")
-    return value
+GUIDE_ARTICLE_SEED_PATH = (
+    Path(__file__).parents[1] / "data" / "guide_articles_seed.json"
+)
 
 
 def _admin_credentials(
     *, allow_weak_password: bool = False
 ) -> tuple[EmailStr, str, str]:
+    raw_email = (
+        os.getenv("ADMIN_EMAIL", "admin@example.com").strip() or "admin@example.com"
+    )
     try:
-        email = TypeAdapter(EmailStr).validate_python(_required_env("ADMIN_EMAIL"))
+        email = TypeAdapter(EmailStr).validate_python(raw_email)
     except ValidationError as exc:
         raise ValueError("ADMIN_EMAIL must be a valid email address") from exc
-    password = _required_env("ADMIN_PASSWORD")
-    display_name = _required_env("ADMIN_NAME")
+    password = os.getenv("ADMIN_PASSWORD", "password").strip() or "password"
+    display_name = os.getenv("ADMIN_NAME", "Administrator").strip() or "Administrator"
     if allow_weak_password:
         if settings.fastapi_env != "development" or not settings.debug:
             raise ValueError(
@@ -43,6 +56,154 @@ def _admin_credentials(
     else:
         validate_password(password)
     return email, password, display_name
+
+
+class GuideArticleSeed(BaseModel):
+    article_key: str = Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
+    )
+    locale: Literal["id-ID", "en-US"]
+    category: Literal[
+        "app_usage",
+        "aceh",
+        "bali",
+        "brahman",
+        "brangus",
+        "limusin",
+        "madura",
+        "pasundan",
+        "po",
+    ]
+    sort_order: int = Field(ge=0, le=100_000)
+    title: str = Field(min_length=1, max_length=120)
+    summary: str = Field(min_length=1, max_length=500)
+    body: str = Field(min_length=1, max_length=50_000)
+    sources: list[str] = Field(max_length=20)
+
+    @field_validator("article_key", "title", "summary", "body")
+    @classmethod
+    def non_blank_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("article text must not be blank")
+        return value
+
+    @field_validator("sources")
+    @classmethod
+    def valid_sources(cls, sources: list[str]) -> list[str]:
+        for source in sources:
+            parsed = urlsplit(source)
+            if (
+                not source
+                or len(source) > 2_048
+                or any(character.isspace() for character in source)
+                or parsed.scheme not in {"http", "https"}
+                or not parsed.hostname
+            ):
+                raise ValueError("sources must contain only HTTP(S) URLs")
+        return sources
+
+
+def _guide_article_seeds(path: Path) -> list[GuideArticleSeed]:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Guide article seed is unreadable: {path}") from exc
+    if not isinstance(raw, list):
+        raise RuntimeError(f"Guide article seed root must be a list: {path}")
+    if len(raw) > 200:
+        raise RuntimeError(f"Guide article seed exceeds 200 items: {path}")
+
+    seeds: list[GuideArticleSeed] = []
+    seen: set[tuple[str, str]] = set()
+    for index, item in enumerate(raw):
+        try:
+            seed = GuideArticleSeed.model_validate(item)
+        except ValidationError as exc:
+            raise RuntimeError(
+                f"Guide article seed item {index} is invalid in {path}: {exc}"
+            ) from exc
+        identity = (seed.article_key, seed.locale)
+        if identity in seen:
+            raise RuntimeError(
+                f"Guide article seed item {index} duplicates "
+                f"({seed.article_key}, {seed.locale}) in {path}"
+            )
+        seen.add(identity)
+        seeds.append(seed)
+    return seeds
+
+
+def seed_guide_articles(*, activate: bool = False) -> int:
+    """Insert bundled articles as unreviewed drafts (or active) without changing existing CMS data."""
+    path = GUIDE_ARTICLE_SEED_PATH
+    seeds = _guide_article_seeds(path)
+    created = 0
+    try:
+        with SessionLocal() as db:
+            for seed in seeds:
+                existing = db.scalar(
+                    select(GuideArticle).where(
+                        GuideArticle.article_key == seed.article_key,
+                        GuideArticle.locale == seed.locale,
+                    )
+                )
+                if existing is not None:
+                    continue
+                status = "active" if activate else "draft"
+                article = GuideArticle(
+                    article_key=seed.article_key,
+                    locale=seed.locale,
+                    status=status,
+                )
+                db.add(article)
+                db.flush()
+                db.add(
+                    GuideArticleRevision(
+                        article_id=article.id,
+                        revision=1,
+                        category=seed.category,
+                        sort_order=seed.sort_order,
+                        title=seed.title,
+                        summary=seed.summary,
+                        body=seed.body,
+                        sources=seed.sources,
+                        content_reviewed=activate,
+                        status=status,
+                    )
+                )
+                created += 1
+            db.commit()
+    except SQLAlchemyError as exc:
+        raise RuntimeError(f"Guide article seed could not be stored: {path}") from exc
+    return created
+
+
+def activate_guide_articles() -> int:
+    """Activate all draft guide articles so they are published and synced to mobile."""
+    activated = 0
+    try:
+        with SessionLocal() as db:
+            articles = db.scalars(select(GuideArticle)).all()
+            for article in articles:
+                revisions = db.scalars(
+                    select(GuideArticleRevision).where(
+                        GuideArticleRevision.article_id == article.id
+                    )
+                ).all()
+                for rev in revisions:
+                    if rev.status != "active":
+                        rev.content_reviewed = True
+                        rev.status = "active"
+                        activated += 1
+                article.status = "active"
+            db.commit()
+    except SQLAlchemyError as exc:
+        raise RuntimeError("Failed to activate guide articles") from exc
+    return activated
+
 
 
 def seed_admin(
@@ -117,6 +278,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Allow a weak password for an explicit local development bootstrap",
     )
+    parser.add_argument(
+        "--activate-articles",
+        action="store_true",
+        help="Activate all seeded guide articles so they are published to mobile",
+    )
     args = parser.parse_args(argv)
     try:
         print(
@@ -125,6 +291,11 @@ def main(argv: list[str] | None = None) -> int:
                 allow_weak_password=args.allow_weak_password,
             )
         )
+        print(
+            f"guide article drafts created: {seed_guide_articles(activate=args.activate_articles)}"
+        )
+        if args.activate_articles:
+            print(f"guide articles activated: {activate_guide_articles()}")
     except (RuntimeError, ValueError) as exc:
         print(f"seed-admin failed: {exc}", file=sys.stderr)
         return 1

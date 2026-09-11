@@ -13,20 +13,34 @@ from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
 from threading import RLock
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
-from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
-from sqlalchemy import asc, desc, func, or_, select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from fastapi import (  # pyright: ignore[reportMissingImports]
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Query,
+    Request,
+    UploadFile,
+)
+from sqlalchemy import (  # pyright: ignore[reportMissingImports]
+    asc,
+    desc,
+    func,
+    or_,
+    select,
+)
+from sqlalchemy.exc import IntegrityError  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import Session, aliased  # pyright: ignore[reportMissingImports]
 
-from config import canonicalize_label, settings
+from config import CANONICAL_LABELS, canonicalize_label, settings
 from db.core import get_db
 from db.models import (
     AuditLog,
     DetectionHistory,
-    DiseaseContent,
-    DiseaseContentRevision,
+    GuideArticle,
+    GuideArticleRevision,
     ModelActivation,
     ModelVersion,
     PredictionEvent,
@@ -54,10 +68,11 @@ from services.audit import mask_device_id, period_start, record_audit
 
 from .admin_schemas import (  # pyright: ignore[reportMissingImports]
     AuditLogResponse,
-    DiseaseContentPatchRequest,
-    DiseaseContentRequest,
-    DiseaseContentResponse,
-    DiseaseRevisionResponse,
+    GuideArticleLocalePairResponse,
+    GuideArticlePatchRequest,
+    GuideArticleRequest,
+    GuideArticleResponse,
+    GuideArticleRevisionResponse,
     ModelActivationRequest,
     ModelRegisterRequest,
     ModelVersionResponse,
@@ -69,12 +84,14 @@ from .admin_schemas import (  # pyright: ignore[reportMissingImports]
 from .auth_dependencies import require_admin
 from .auth_security import hash_password, revoke_all_sessions
 from .errors import AdminAPIError
+from .schemas import HistoryCreate, _canonical_scores
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 content_router = APIRouter(prefix="/api/content", tags=["content"])
 
 _PAGE_SIZE_MAX = 100
-_ALLOWED_MODEL_CLASSES = {"FMD", "LSD", "healthy"}
+_ALLOWED_MODEL_CLASSES = set(CANONICAL_LABELS)
+_ALLOWED_ARTICLE_LOCALES = {"id-ID", "en-US"}
 _MODEL_ACTIVATION_LOCK = RLock()
 _UPLOAD_CHUNK_SIZE = 1024 * 1024
 
@@ -119,110 +136,100 @@ def _model_response(model: ModelVersion) -> dict[str, Any]:
 
 
 def _prediction_response(row: DetectionHistory) -> dict[str, Any]:
-    outcome = (row.outcome or "accepted").casefold()
-    is_rejected = outcome == "rejected" or row.predicted_class == "non_cattle"
+    try:
+        scores = _canonical_scores(row.scores)
+    except (TypeError, ValueError):
+        scores = {}
+    predicted_class = (
+        row.predicted_class if row.predicted_class in CANONICAL_LABELS else "unknown"
+    )
     return {
         "id": row.id,
         "device_ref": mask_device_id(row.device_id),
         "user_id": row.user_id,
         "timestamp": row.timestamp,
-        "predicted_class": row.predicted_class,
-        "display_label": row.display_label,
-        "confidence": row.confidence,
-        "scores": {
-            "FMD": row.score_fmd,
-            "healthy": row.score_healthy,
-            "LSD": row.score_lsd,
-            "non_cattle": row.score_non_cattle,
-        },
-        "outcome": "rejected" if is_rejected else "accepted",
-        "rejection_reason": row.rejection_reason,
-        "is_reliable": False if is_rejected else row.is_reliable,
+        "predicted_class": predicted_class,
+        "display_label": row.display_label
+        if predicted_class != "unknown"
+        else "Tidak tersedia",
+        "confidence": row.confidence
+        if math.isfinite(row.confidence) and 0 <= row.confidence <= 1
+        else 0.0,
+        "scores": scores,
         "inference_mode": row.inference_mode,
         "processing_ms": row.processing_ms,
         "app_version": row.app_version,
         "model_version": row.model_version,
-        "status": "rejected" if is_rejected else "success",
-        "error_code": "NON_CATTLE_IMAGE" if is_rejected else None,
+        "status": "success",
+        "error_code": None,
     }
 
 
-def _event_outcome(event: PredictionEvent) -> str:
-    if event.outcome in {"accepted", "rejected", "failed"}:
-        return event.outcome
-    return {
-        "success": "accepted",
-        "rejected": "rejected",
-        "failed": "failed",
-    }.get(event.status, "failed")
+def _event_status(event: PredictionEvent) -> str:
+    return "success" if str(event.status).casefold() == "success" else "failed"
 
 
-def _event_score(scores: dict[str, Any], label: str) -> float:
-    for raw_label, raw_score in scores.items():
-        if canonicalize_label(str(raw_label)) == label:
-            try:
-                return float(raw_score)
-            except (TypeError, ValueError):
-                return 0.0
-    return 0.0
+def _event_scores(event: PredictionEvent) -> dict[str, float]:
+    """Return only a complete, contract-valid score object."""
+    if event.predicted_class not in CANONICAL_LABELS or event.confidence is None:
+        return {}
+    try:
+        return HistoryCreate.model_validate(
+            {
+                "device_id": "audit-event",
+                "timestamp": 0,
+                "predicted_class": event.predicted_class,
+                "display_label": event.predicted_class,
+                "confidence": event.confidence,
+                "scores": event.scores,
+                "inference_mode": "online",
+                "is_reliable": False,
+            }
+        ).scores
+    except (TypeError, ValueError):
+        return {}
 
 
 def _prediction_event_response(event: PredictionEvent) -> dict[str, Any]:
-    outcome = _event_outcome(event)
-    predicted_class = event.predicted_class or (
-        "non_cattle" if outcome == "rejected" else "unknown"
+    is_failed = _event_status(event) == "failed"
+    predicted_class: str | None = (
+        event.predicted_class if event.predicted_class in CANONICAL_LABELS else None
     )
-    is_rejected = outcome == "rejected" or predicted_class == "non_cattle"
-    is_failed = outcome == "failed"
-    display_labels = {
-        "healthy": "Sehat",
-        "FMD": "PMK",
-        "LSD": "Lato-Lato",
-        "non_cattle": "Objek bukan sapi",
-    }
     try:
         confidence = float(event.confidence) if event.confidence is not None else 0.0
     except (TypeError, ValueError):
         confidence = 0.0
+    if not math.isfinite(confidence) or not 0 <= confidence <= 1:
+        confidence = 0.0
+    display_labels = {
+        "aceh": "Aceh",
+        "bali": "Bali",
+        "limusin": "Limusin",
+        "madura": "Madura",
+        "pasundan": "Pasundan",
+        "po": "PO",
+    }
+    display_label = (
+        "Gagal teknis"
+        if is_failed
+        else display_labels.get(predicted_class or "", "Tidak tersedia")
+    )
     return {
         "id": event.id,
         "device_ref": mask_device_id(event.request_id),
         "user_id": event.user_id,
         "timestamp": _event_timestamp_ms(event),
-        "predicted_class": predicted_class,
-        "display_label": (
-            "Gagal teknis"
-            if is_failed
-            else display_labels.get(predicted_class, predicted_class)
-        ),
+        "predicted_class": predicted_class or "unknown",
+        "display_label": display_label,
         "confidence": confidence,
-        "scores": {
-            "FMD": _event_score(event.scores or {}, "FMD"),
-            "healthy": _event_score(event.scores or {}, "healthy"),
-            "LSD": _event_score(event.scores or {}, "LSD"),
-            "non_cattle": _event_score(event.scores or {}, "non_cattle"),
-        },
-        "outcome": "rejected" if is_rejected and not is_failed else outcome,
-        "rejection_reason": "non_cattle" if is_rejected and not is_failed else None,
-        "is_reliable": outcome == "accepted"
-        and confidence >= settings.confidence_threshold,
+        "scores": _event_scores(event),
         "inference_mode": "online",
         "processing_ms": event.processing_ms,
         "app_version": None,
         "model_version": event.model_version,
-        "status": "failed" if is_failed else ("rejected" if is_rejected else "success"),
-        "error_code": event.error_code
-        or ("NON_CATTLE_IMAGE" if is_rejected and not is_failed else None),
+        "status": "failed" if is_failed else "success",
+        "error_code": event.error_code,
     }
-
-
-def _history_outcome(row: DetectionHistory) -> str:
-    return (
-        "rejected"
-        if (row.outcome or "").casefold() == "rejected"
-        or row.predicted_class == "non_cattle"
-        else "accepted"
-    )
 
 
 def _event_timestamp_ms(event: PredictionEvent) -> int:
@@ -236,38 +243,36 @@ def _event_timestamp_ms(event: PredictionEvent) -> int:
 
 def _event_matches_history(event: PredictionEvent, row: DetectionHistory) -> bool:
     """Identify an online event later mirrored by mobile history sync."""
-    if _event_outcome(event) not in {"accepted", "rejected"}:
+    if _event_status(event) != "success":
         return False
     if event.history_id is not None:
         return event.history_id == row.id
-    if _event_outcome(event) != _history_outcome(row):
-        return False
     if row.inference_mode.casefold() not in {"online", "backend"}:
         return False
     if event.predicted_class != row.predicted_class:
         return False
-    if abs(_event_timestamp_ms(event) - row.timestamp) > 10 * 60 * 1_000:
-        return False
-    if event.confidence is None or abs(event.confidence - row.confidence) > 0.01:
-        return False
-    if (
-        event.processing_ms is not None
-        and row.processing_ms is not None
-        and abs(event.processing_ms - row.processing_ms) > 1_000
-    ):
-        return False
-    event_scores = event.scores or {}
-    for label, value in (
-        ("FMD", row.score_fmd),
-        ("healthy", row.score_healthy),
-        ("LSD", row.score_lsd),
-        ("non_cattle", row.score_non_cattle),
-    ):
-        if not any(canonicalize_label(str(raw)) == label for raw in event_scores):
+    try:
+        if abs(_event_timestamp_ms(event) - row.timestamp) > 10 * 60 * 1_000:
             return False
-        if abs(_event_score(event_scores, label) - value) > 0.01:
+        if (
+            event.confidence is None
+            or abs(float(event.confidence) - float(row.confidence)) > 0.01
+        ):
             return False
-    return True
+        if (
+            event.processing_ms is not None
+            and row.processing_ms is not None
+            and abs(float(event.processing_ms) - float(row.processing_ms)) > 1_000
+        ):
+            return False
+        event_scores = _event_scores(event)
+        row_scores = _canonical_scores(row.scores)
+    except (TypeError, ValueError):
+        return False
+    return bool(event_scores) and all(
+        abs(event_scores[label] - row_scores[label]) <= 0.01
+        for label in CANONICAL_LABELS
+    )
 
 
 def _prediction_sources(
@@ -277,9 +282,7 @@ def _prediction_sources(
     date_to: int | None = None,
 ) -> list[tuple[dict[str, Any], DetectionHistory | PredictionEvent]]:
     history_filters: list[Any] = []
-    event_filters: list[Any] = [
-        PredictionEvent.outcome.in_(["accepted", "rejected", "failed"])
-    ]
+    event_filters: list[Any] = [PredictionEvent.status.in_(["success", "failed"])]
     if date_from is not None:
         history_filters.append(DetectionHistory.timestamp >= date_from)
         event_filters.append(
@@ -299,7 +302,7 @@ def _prediction_sources(
         (_prediction_response(row), row) for row in histories
     ]
     for event in events:
-        if _event_outcome(event) in {"accepted", "rejected"} and any(
+        if _event_status(event) == "success" and any(
             _event_matches_history(event, row) for row in histories
         ):
             continue
@@ -313,10 +316,9 @@ def _matches_prediction_filters(
     *,
     search: str | None,
     predicted_class: str | None,
-    outcome: str | None,
+    status: str | None,
     min_confidence: float | None,
     max_confidence: float | None,
-    reliable: bool | None,
     inference_mode: str | None,
     model_version: str | None,
 ) -> bool:
@@ -336,13 +338,11 @@ def _matches_prediction_filters(
             return False
     if predicted_class and item["predicted_class"] != predicted_class:
         return False
-    if outcome and item["outcome"] != outcome:
+    if status and item["status"] != status:
         return False
     if min_confidence is not None and item["confidence"] < min_confidence:
         return False
     if max_confidence is not None and item["confidence"] > max_confidence:
-        return False
-    if reliable is not None and item["is_reliable"] != reliable:
         return False
     if (
         inference_mode
@@ -352,25 +352,47 @@ def _matches_prediction_filters(
     return not model_version or item["model_version"] == model_version
 
 
-def _latest_revision(db: Session, content_id: str) -> DiseaseContentRevision | None:
+def _latest_article_revision(
+    db: Session, article_id: str
+) -> GuideArticleRevision | None:
     return db.scalar(
-        select(DiseaseContentRevision)
-        .where(DiseaseContentRevision.content_id == content_id)
-        .order_by(desc(DiseaseContentRevision.revision))
+        select(GuideArticleRevision)
+        .where(GuideArticleRevision.article_id == article_id)
+        .order_by(desc(GuideArticleRevision.revision))
     )
 
 
-def _disease_response(
-    content: DiseaseContent, revision: DiseaseContentRevision
+def _active_article_revision(
+    db: Session, article_id: str
+) -> GuideArticleRevision | None:
+    return db.scalar(
+        select(GuideArticleRevision).where(
+            GuideArticleRevision.article_id == article_id,
+            GuideArticleRevision.status == "active",
+        )
+    )
+
+
+def _article_response(
+    article: GuideArticle,
+    revision: GuideArticleRevision,
+    active_revision: GuideArticleRevision | None = None,
+    locale_pair: GuideArticleLocalePairResponse | None = None,
 ) -> dict[str, Any]:
-    return DiseaseContentResponse(
-        id=content.id,
-        slug=content.slug,
-        locale=content.locale,
-        status=content.status,
-        revision=DiseaseRevisionResponse.model_validate(revision),
-        created_at=content.created_at,
-        updated_at=content.updated_at,
+    return GuideArticleResponse(
+        id=article.id,
+        article_key=article.article_key,
+        locale=article.locale,
+        publication_status=cast(Literal["draft", "active", "inactive"], article.status),
+        revision=GuideArticleRevisionResponse.model_validate(revision),
+        active_revision=(
+            GuideArticleRevisionResponse.model_validate(active_revision)
+            if active_revision is not None
+            else None
+        ),
+        locale_pair=locale_pair,
+        created_at=article.created_at,
+        updated_at=article.updated_at,
     ).model_dump(mode="json")
 
 
@@ -535,24 +557,18 @@ def dashboard(
             date_to=end,
         )
     ]
-    accepted_items = [
-        item for item in prediction_items if item["outcome"] == "accepted"
-    ]
-    rejected_items = [
-        item for item in prediction_items if item["outcome"] == "rejected"
-    ]
-    failures = sum(1 for item in prediction_items if item["outcome"] == "failed")
+    accepted_items = [item for item in prediction_items if item["status"] == "success"]
+    failures = sum(1 for item in prediction_items if item["status"] == "failed")
     accepted = len(accepted_items)
-    rejected_non_cattle = len(rejected_items)
-    distribution: dict[str, int] = dict.fromkeys(("healthy", "FMD", "LSD"), 0)
+    distribution: dict[str, int] = dict.fromkeys(CANONICAL_LABELS, 0)
     for item in accepted_items:
         label = str(item["predicted_class"])
         if label in distribution:
             distribution[label] += 1
-    low_confidence = sum(
-        1
-        for item in accepted_items
-        if item["confidence"] < settings.confidence_threshold
+    average_confidence = (
+        sum(item["confidence"] for item in accepted_items) / accepted
+        if accepted
+        else None
     )
     timings = [
         _safe_int(item["processing_ms"])
@@ -561,7 +577,7 @@ def dashboard(
     ]
     timings.sort()
     p95 = timings[max(0, math.ceil(len(timings) * 0.95) - 1)] if timings else None
-    attempts = accepted + rejected_non_cattle + failures
+    attempts = accepted + failures
     active_model = _active_model(db)
     recent_audits = db.scalars(
         select(AuditLog).order_by(desc(AuditLog.created_at)).limit(5)
@@ -575,11 +591,8 @@ def dashboard(
             "total": _safe_int(accepted),
             "attempts": _safe_int(attempts),
             "accepted": _safe_int(accepted),
-            "rejected_non_cattle": _safe_int(rejected_non_cattle),
-            "non_cattle_rate": (rejected_non_cattle / attempts if attempts else None),
             "distribution": distribution,
-            "low_confidence": _safe_int(low_confidence),
-            "low_confidence_rate": (low_confidence / accepted if accepted else None),
+            "average_confidence": average_confidence,
             "failures": _safe_int(failures),
             "median_processing_ms": median(timings) if timings else None,
             "p95_processing_ms": p95,
@@ -826,12 +839,13 @@ def reset_user_password(
 @router.get("/predictions")
 def list_predictions(
     search: str | None = Query(default=None, max_length=120),
-    predicted_class: Literal["healthy", "FMD", "LSD", "non_cattle"] | None = None,
-    outcome: Literal["accepted", "rejected", "failed"] | None = None,
+    predicted_class: Literal["aceh", "bali", "limusin", "madura", "pasundan", "po"]
+    | None = None,
+    status: Literal["success", "failed"] | None = None,
     min_confidence: float | None = Query(default=None, ge=0, le=1),
     max_confidence: float | None = Query(default=None, ge=0, le=1),
-    reliable: bool | None = None,
-    inference_mode: str | None = Query(default=None, max_length=32),
+    inference_mode: Literal["online", "offline", "offline_fallback", "unknown"]
+    | None = None,
     model_version: str | None = Query(default=None, max_length=128),
     date_from: int | None = Query(default=None, ge=0),
     date_to: int | None = Query(default=None, ge=0),
@@ -853,10 +867,9 @@ def list_predictions(
             source,
             search=search,
             predicted_class=predicted_class,
-            outcome=outcome,
+            status=status,
             min_confidence=min_confidence,
             max_confidence=max_confidence,
-            reliable=reliable,
             inference_mode=inference_mode,
             model_version=model_version,
         )
@@ -890,89 +903,146 @@ def get_prediction(
         return {"status": "success", "item": _prediction_response(row)}
 
     event = db.get(PredictionEvent, prediction_id)
-    if event is not None and _event_outcome(event) in {
-        "accepted",
-        "rejected",
-        "failed",
-    }:
+    if event is not None and _event_status(event) in {"success", "failed"}:
         return {"status": "success", "item": _prediction_event_response(event)}
     raise AdminAPIError(404, "PREDICTION_NOT_FOUND", "Prediction metadata not found")
 
 
-@router.get("/diseases")
-def list_diseases(
-    status: Literal["draft", "active", "inactive"] | None = None,
+@router.get("/articles")
+def list_articles(
+    category: Literal[
+        "app_usage",
+        "aceh",
+        "bali",
+        "brahman",
+        "brangus",
+        "limusin",
+        "madura",
+        "pasundan",
+        "po",
+    ]
+    | None = None,
+    locale: Literal["id-ID", "en-US"] | None = None,
+    publication_status: Literal["draft", "active", "inactive"] | None = None,
+    revision_status: Literal["draft", "active", "inactive"] | None = None,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=25, ge=1, le=_PAGE_SIZE_MAX),
     db: Session = Depends(get_db),
     _admin: User = Depends(require_admin),
 ):
     page, page_size = _page(page, page_size)
-    filters = [DiseaseContent.status == status] if status else []
-    total = (
-        db.scalar(select(func.count()).select_from(DiseaseContent).where(*filters)) or 0
+    latest_number = (
+        select(
+            GuideArticleRevision.article_id,
+            func.max(GuideArticleRevision.revision).label("revision"),
+        )
+        .group_by(GuideArticleRevision.article_id)
+        .subquery()
     )
-    contents = db.scalars(
-        select(DiseaseContent)
+    latest = aliased(GuideArticleRevision)
+    active = aliased(GuideArticleRevision)
+    filters = []
+    if locale:
+        filters.append(GuideArticle.locale == locale)
+    if publication_status:
+        filters.append(GuideArticle.status == publication_status)
+    if category:
+        filters.append(latest.category == category)
+    if revision_status:
+        filters.append(latest.status == revision_status)
+    query = (
+        select(GuideArticle, latest, active)
+        .join(latest_number, latest_number.c.article_id == GuideArticle.id)
+        .join(
+            latest,
+            (latest.article_id == latest_number.c.article_id)
+            & (latest.revision == latest_number.c.revision),
+        )
+        .outerjoin(
+            active,
+            (active.article_id == GuideArticle.id) & (active.status == "active"),
+        )
         .where(*filters)
-        .order_by(asc(DiseaseContent.slug))
+    )
+    total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    # SQLAlchemy statement is built only from typed, allowlisted filters above.
+    # pi-lens-ignore: python-sql-injection
+    rows = db.execute(
+        query.order_by(asc(GuideArticle.article_key), asc(GuideArticle.locale))
         .offset((page - 1) * page_size)
         .limit(page_size)
     ).all()
+    pairs = {
+        (article_key, pair_locale): pair_status
+        for article_key, pair_locale, pair_status in db.execute(
+            select(GuideArticle.article_key, GuideArticle.locale, GuideArticle.status)
+        ).all()
+    }
     items = []
-    for content in contents:
-        revision = _latest_revision(db, content.id)
-        if revision is not None:
-            items.append(_disease_response(content, revision))
+    for article, revision, active_revision in rows:
+        pair_locale = "en-US" if article.locale == "id-ID" else "id-ID"
+        items.append(
+            _article_response(
+                article,
+                revision,
+                active_revision,
+                GuideArticleLocalePairResponse(
+                    locale=pair_locale,
+                    status=(
+                        "active"
+                        if pairs.get((article.article_key, pair_locale)) == "active"
+                        else (
+                            "inactive"
+                            if (article.article_key, pair_locale) in pairs
+                            else "missing"
+                        )
+                    ),
+                ),
+            )
+        )
     return {
         "status": "success",
         "page": page,
         "page_size": page_size,
-        "total": _safe_int(total),
+        "total": total,
         "items": items,
     }
 
 
-@router.post("/diseases", status_code=201)
-def create_disease(
-    payload: DiseaseContentRequest,
+@router.post("/articles", status_code=201)
+def create_article(
+    payload: GuideArticleRequest,
     request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    if (
-        payload.model_class is not None
-        and payload.model_class not in _ALLOWED_MODEL_CLASSES
-    ):
-        raise AdminAPIError(422, "INVALID_MODEL_CLASS", "Unknown model class")
-    if (
-        db.scalar(
-            select(DiseaseContent).where(
-                DiseaseContent.slug == payload.slug,
-                DiseaseContent.locale == payload.locale,
-            )
+    existing = db.scalar(
+        select(GuideArticle).where(
+            GuideArticle.article_key == payload.article_key,
+            GuideArticle.locale == payload.locale,
         )
-        is not None
-    ):
-        raise AdminAPIError(409, "DISEASE_EXISTS", "Disease content already exists")
-    content = DiseaseContent(
-        slug=payload.slug,
+    )
+    if existing is not None:
+        raise AdminAPIError(409, "ARTICLE_EXISTS", "Guide article already exists")
+    article = GuideArticle(
+        article_key=payload.article_key,
         locale=payload.locale,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
     )
-    db.add(content)
+    db.add(article)
     db.flush()
-    revision = DiseaseContentRevision(
-        content_id=content.id,
+    revision = GuideArticleRevision(
+        article_id=article.id,
         revision=1,
-        model_class=payload.model_class,
-        display_name=payload.display_name.strip(),
-        summary=payload.summary.strip(),
-        description=payload.description.strip(),
-        handling_advice=payload.handling_advice.strip(),
-        disclaimer=payload.disclaimer.strip(),
+        category=payload.category,
+        sort_order=payload.sort_order,
+        title=payload.title,
+        summary=payload.summary,
+        body=payload.body,
+        sources=payload.sources,
+        content_reviewed=False,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
@@ -980,187 +1050,288 @@ def create_disease(
     db.add(revision)
     record_audit(
         db,
-        action="disease_content_created",
+        action="article_created",
         actor_user_id=admin.id,
-        resource_type="disease_content",
-        resource_id=content.id,
+        resource_type="guide_article",
+        resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
-        changed_fields={"slug": "set", "revision": "created", "status": "draft"},
+        changed_fields={"article_key": "set", "locale": "set", "revision": 1},
     )
     db.commit()
-    return {"status": "success", "item": _disease_response(content, revision)}
+    return {"status": "success", "item": _article_response(article, revision)}
 
 
-@router.get("/diseases/{content_id}")
-def get_disease(
-    content_id: str,
+@router.get("/articles/{article_id}")
+def get_article(
+    article_id: str,
     db: Session = Depends(get_db),
     _admin: User = Depends(require_admin),
 ):
-    content = db.get(DiseaseContent, content_id)
-    revision = _latest_revision(db, content_id) if content else None
-    if content is None or revision is None:
-        raise AdminAPIError(404, "DISEASE_NOT_FOUND", "Disease content not found")
-    return {"status": "success", "item": _disease_response(content, revision)}
+    article = db.get(GuideArticle, article_id)
+    revision = _latest_article_revision(db, article_id) if article else None
+    if article is None or revision is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
+    return {
+        "status": "success",
+        "item": _article_response(
+            article, revision, _active_article_revision(db, article.id)
+        ),
+    }
 
 
-@router.patch("/diseases/{content_id}")
-def update_disease(
-    content_id: str,
-    payload: DiseaseContentPatchRequest,
+@router.post("/articles/{article_id}/revise")
+def revise_article(
+    article_id: str,
+    payload: GuideArticlePatchRequest,
     request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    content = db.get(DiseaseContent, content_id)
-    current = _latest_revision(db, content_id) if content else None
-    if content is None or current is None:
-        raise AdminAPIError(404, "DISEASE_NOT_FOUND", "Disease content not found")
+    article = db.get(GuideArticle, article_id)
+    current = _latest_article_revision(db, article_id) if article else None
+    if article is None or current is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
     changes = payload.model_dump(exclude_unset=True)
     if not changes:
         raise AdminAPIError(422, "NO_CHANGES", "At least one field must be changed")
-    if "model_class" in changes and changes[
-        "model_class"
-    ] not in _ALLOWED_MODEL_CLASSES | {None}:
-        raise AdminAPIError(422, "INVALID_MODEL_CLASS", "Unknown model class")
+    if "article_key" in changes or "locale" in changes:
+        raise AdminAPIError(
+            422,
+            "ARTICLE_IDENTITY_IMMUTABLE",
+            "Article key and locale cannot be changed",
+        )
+    if "content_reviewed" in changes:
+        raise AdminAPIError(
+            422,
+            "ARTICLE_REVIEW_INVALID",
+            "Review saved article content separately from content changes",
+        )
     values = {
-        "model_class": current.model_class,
-        "display_name": current.display_name,
+        "category": current.category,
+        "sort_order": current.sort_order,
+        "title": current.title,
         "summary": current.summary,
-        "description": current.description,
-        "handling_advice": current.handling_advice,
-        "disclaimer": current.disclaimer,
+        "body": current.body,
+        "sources": current.sources,
     }
     values.update(changes)
-    revision = DiseaseContentRevision(
-        content_id=content.id,
+    revision = GuideArticleRevision(
+        article_id=article.id,
         revision=current.revision + 1,
+        content_reviewed=False,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
         **values,
     )
     db.add(revision)
-    content.status = "draft"
-    content.updated_by = admin.id
+    # GuideArticle.status is publication state. Keep it active while the new
+    # editorial revision remains a draft; revision.status represents that draft.
+    article.updated_by = admin.id
     record_audit(
         db,
-        action="disease_content_updated",
+        action="article_revised",
         actor_user_id=admin.id,
-        resource_type="disease_content",
-        resource_id=content.id,
+        resource_type="guide_article",
+        resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
         changed_fields=dict.fromkeys(changes, "changed"),
     )
     db.commit()
-    return {"status": "success", "item": _disease_response(content, revision)}
+    return {
+        "status": "success",
+        "item": _article_response(
+            article, revision, _active_article_revision(db, article.id)
+        ),
+    }
 
 
-@router.post("/diseases/{content_id}/activate")
-def activate_disease(
-    content_id: str,
+@router.patch("/articles/{article_id}")
+def patch_article(
+    article_id: str,
+    payload: GuideArticlePatchRequest,
     request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    content = db.get(DiseaseContent, content_id)
-    revision = _latest_revision(db, content_id) if content else None
-    if content is None or revision is None:
-        raise AdminAPIError(404, "DISEASE_NOT_FOUND", "Disease content not found")
-    if not revision.disclaimer.strip() or not revision.handling_advice.strip():
+    changes = payload.model_dump(exclude_unset=True)
+    if set(changes) & {"article_key", "locale"}:
         raise AdminAPIError(
             422,
-            "DISEASE_CONTENT_INCOMPLETE",
-            "Disclaimer and handling advice are required",
+            "ARTICLE_IDENTITY_IMMUTABLE",
+            "Article key and locale cannot be changed",
         )
-    for previous_revision in db.scalars(
-        select(DiseaseContentRevision).where(
-            DiseaseContentRevision.content_id == content.id,
-            DiseaseContentRevision.status == "active",
-        )
-    ).all():
-        previous_revision.status = "inactive"
+    if changes == {"content_reviewed": True}:
+        return review_article(article_id, request, db, admin)
+    return revise_article(article_id, payload, request, db, admin)
 
-    revision.status = "active"
-    content.status = "active"
-    content.updated_by = admin.id
+
+@router.post("/articles/{article_id}/review")
+def review_article(
+    article_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    article = db.get(GuideArticle, article_id)
+    revision = _latest_article_revision(db, article_id) if article else None
+    if article is None or revision is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
+    if revision.content_reviewed:
+        raise AdminAPIError(
+            409, "ARTICLE_ALREADY_REVIEWED", "Article is already reviewed"
+        )
+    revision.content_reviewed = True
+    revision.updated_by = admin.id
+    article.updated_by = admin.id
     record_audit(
         db,
-        action="disease_content_activated",
+        action="article_reviewed",
         actor_user_id=admin.id,
-        resource_type="disease_content",
-        resource_id=content.id,
+        resource_type="guide_article",
+        resource_id=article.id,
+        request_id=_request_id(request),
+        ip_hash=_ip_hash(request),
+        changed_fields={"content_reviewed": True, "revision": revision.revision},
+    )
+    db.commit()
+    return {
+        "status": "success",
+        "item": _article_response(
+            article, revision, _active_article_revision(db, article.id)
+        ),
+    }
+
+
+@router.post("/articles/{article_id}/activate")
+def activate_article(
+    article_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    article = db.get(GuideArticle, article_id)
+    revision = _latest_article_revision(db, article_id) if article else None
+    if article is None or revision is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
+    if not revision.content_reviewed or not revision.sources:
+        raise AdminAPIError(
+            422,
+            "ARTICLE_REVIEW_REQUIRED",
+            "Article content and sources must be reviewed before activation",
+        )
+    for previous in db.scalars(
+        select(GuideArticleRevision).where(
+            GuideArticleRevision.article_id == article.id,
+            GuideArticleRevision.status == "active",
+        )
+    ).all():
+        previous.status = "inactive"
+    db.flush()
+    revision.status = "active"
+    article.status = "active"
+    article.updated_by = admin.id
+    record_audit(
+        db,
+        action="article_activated",
+        actor_user_id=admin.id,
+        resource_type="guide_article",
+        resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
         changed_fields={"status": "active", "revision": revision.revision},
     )
     db.commit()
-    return {"status": "success", "item": _disease_response(content, revision)}
+    return {
+        "status": "success",
+        "item": _article_response(article, revision, revision),
+    }
 
 
-@router.post("/diseases/{content_id}/deactivate")
-def deactivate_disease(
-    content_id: str,
+@router.post("/articles/{article_id}/deactivate")
+def deactivate_article(
+    article_id: str,
     request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    content = db.get(DiseaseContent, content_id)
-    revision = _latest_revision(db, content_id) if content else None
-    if content is None or revision is None:
-        raise AdminAPIError(404, "DISEASE_NOT_FOUND", "Disease content not found")
-    content.status = "inactive"
-    content.updated_by = admin.id
-    if revision.status == "active":
-        revision.status = "inactive"
+    article = db.get(GuideArticle, article_id)
+    revision = _latest_article_revision(db, article_id) if article else None
+    if article is None or revision is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
+    for active in db.scalars(
+        select(GuideArticleRevision).where(
+            GuideArticleRevision.article_id == article.id,
+            GuideArticleRevision.status == "active",
+        )
+    ).all():
+        active.status = "inactive"
+    article.status = "inactive"
+    article.updated_by = admin.id
     record_audit(
         db,
-        action="disease_content_deactivated",
+        action="article_deactivated",
         actor_user_id=admin.id,
-        resource_type="disease_content",
-        resource_id=content.id,
+        resource_type="guide_article",
+        resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
         changed_fields={"status": "inactive"},
     )
     db.commit()
-    return {"status": "success", "item": _disease_response(content, revision)}
+    return {
+        "status": "success",
+        "item": _article_response(
+            article, revision, _active_article_revision(db, article.id)
+        ),
+    }
 
 
-@content_router.get("/diseases")
-def public_diseases(db: Session = Depends(get_db)):
-    """Return only active educational content for future mobile consumption."""
-    contents = db.scalars(
-        select(DiseaseContent)
-        .where(DiseaseContent.status == "active")
-        .order_by(asc(DiseaseContent.slug))
+@content_router.get("/articles")
+def public_articles(
+    locale: Literal["id-ID", "en-US"] = Query(...),
+    db: Session = Depends(get_db),
+):
+    rows = db.execute(
+        select(GuideArticle, GuideArticleRevision)
+        .join(
+            GuideArticleRevision,
+            GuideArticleRevision.article_id == GuideArticle.id,
+        )
+        .where(
+            GuideArticle.locale == locale,
+            GuideArticleRevision.status == "active",
+        )
+        .order_by(
+            asc(GuideArticleRevision.category),
+            asc(GuideArticleRevision.sort_order),
+            asc(GuideArticle.article_key),
+        )
     ).all()
-    items = []
-    for content in contents:
-        revision = db.scalar(
-            select(DiseaseContentRevision).where(
-                DiseaseContentRevision.content_id == content.id,
-                DiseaseContentRevision.status == "active",
-            )
-        )
-        if revision is None:
-            continue
-        items.append(
-            {
-                "slug": content.slug,
-                "locale": content.locale,
-                "model_class": revision.model_class,
-                "display_name": revision.display_name,
-                "summary": revision.summary,
-                "description": revision.description,
-                "handling_advice": revision.handling_advice,
-                "disclaimer": revision.disclaimer,
-                "revision": revision.revision,
-            }
-        )
-    return {"status": "success", "items": items}
+    items = [
+        {
+            "article_key": article.article_key,
+            "category": revision.category,
+            "sort_order": revision.sort_order,
+            "title": revision.title,
+            "summary": revision.summary,
+            "body": revision.body,
+            "sources": revision.sources,
+            "revision": revision.revision,
+        }
+        for article, revision in rows
+    ]
+    canonical = json.dumps(
+        items, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    return {
+        "status": "success",
+        "locale": locale,
+        "snapshot_version": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+        "items": items,
+    }
 
 
 @router.get("/models")

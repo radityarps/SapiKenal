@@ -1,0 +1,151 @@
+from __future__ import annotations
+
+import hashlib
+import sqlite3
+import subprocess
+from pathlib import Path
+
+import pytest
+
+from config import CANONICAL_LABELS, _load_labels
+from scripts import init_dev_db  # pyright: ignore[reportAttributeAccessIssue]
+
+
+def _legacy_tables(path: Path) -> None:
+    with sqlite3.connect(path) as connection:
+        connection.executescript(
+            """
+            CREATE TABLE detection_history (id INTEGER PRIMARY KEY, score_fmd REAL);
+            CREATE TABLE prediction_events (id TEXT PRIMARY KEY, outcome TEXT);
+            CREATE TABLE disease_contents (id TEXT PRIMARY KEY);
+            CREATE TABLE disease_content_revisions (id TEXT PRIMARY KEY);
+            """
+        )
+        connection.commit()
+
+
+def _tables(path: Path) -> set[str]:
+    with sqlite3.connect(path) as connection:
+        return {
+            row[0]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            )
+        }
+
+
+def test_explicit_missing_class_names_file_fails_closed(monkeypatch, tmp_path):
+    monkeypatch.setenv("MODEL_CLASS_NAMES_PATH", str(tmp_path / "missing.json"))
+
+    with pytest.raises(ValueError, match="unavailable"):
+        _load_labels()
+
+
+def test_unset_class_names_file_uses_canonical_defaults(monkeypatch):
+    monkeypatch.delenv("MODEL_CLASS_NAMES_PATH", raising=False)
+
+    assert _load_labels() == list(CANONICAL_LABELS)
+
+
+@pytest.mark.parametrize(
+    "revision",
+    [
+        "0005_four_class_prediction_contract.py",
+        "0006_four_class_prediction_contract.py",
+    ],
+)
+def test_committed_migration_is_immutable_relative_to_head(revision):
+    path = Path(__file__).parents[1] / "alembic/versions" / revision
+    try:
+        expected = subprocess.run(
+            ["git", "show", f"HEAD:apps/backend/alembic/versions/{revision}"],
+            check=True,
+            capture_output=True,
+        ).stdout
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        pytest.skip("git history is unavailable in the test container")
+    assert (
+        hashlib.sha256(path.read_bytes()).digest() == hashlib.sha256(expected).digest()
+    )
+
+
+def test_profile_review_migration_is_next_and_immutable():
+    path = Path(__file__).parents[1] / "alembic/versions/0008_breed_profile_review.py"
+    assert path.exists()
+    text = path.read_text()
+    assert 'revision: str = "0008_breed_profile_review"' in text
+    assert 'down_revision: str | None = "0007_history_sync_metadata"' in text
+    assert 'new_column_name="canonical_key"' in text
+    assert '"content_reviewed"' in text
+
+
+def test_dev_reset_clears_both_sqlite_stores(monkeypatch, tmp_path):
+    monkeypatch.setattr(init_dev_db.settings, "fastapi_env", "development")
+    monkeypatch.setattr(init_dev_db.settings, "debug", True)
+    admin_path = tmp_path / "admin.sqlite3"
+    history_path = tmp_path / "history.sqlite3"
+    _legacy_tables(admin_path)
+    with sqlite3.connect(history_path) as connection:
+        connection.execute(
+            "CREATE TABLE detection_history (id INTEGER PRIMARY KEY, score_fmd REAL)"
+        )
+        connection.commit()
+
+    monkeypatch.setattr(init_dev_db.settings, "allow_dev_db_reset", True)
+    monkeypatch.setattr(
+        init_dev_db.settings,
+        "database_url",
+        f"sqlite:///{admin_path}",
+    )
+    monkeypatch.setattr(init_dev_db.settings, "history_db_path", str(history_path))
+    init_dev_db._reset_incompatible_sqlite_tables()
+
+    assert _tables(admin_path) == set()
+    assert (
+        _tables(history_path) == {"sqlite_sequence"} or _tables(history_path) == set()
+    )
+
+
+def test_sqlite_path_resolves_relative_to_backend_working_directory(monkeypatch):
+    monkeypatch.chdir(Path(__file__).parents[1])
+    assert init_dev_db._sqlite_path("sqlite:///./data/admin.sqlite3") == (
+        Path.cwd() / "data/admin.sqlite3"
+    )
+
+
+def test_dev_reset_rejects_non_development_guard(monkeypatch, tmp_path):
+    monkeypatch.setattr(init_dev_db.settings, "allow_dev_db_reset", True)
+    monkeypatch.setattr(init_dev_db.settings, "fastapi_env", "production")
+    monkeypatch.setattr(init_dev_db.settings, "debug", False)
+    monkeypatch.setattr(
+        init_dev_db.settings,
+        "database_url",
+        f"sqlite:///{tmp_path / 'admin.sqlite3'}",
+    )
+    with pytest.raises(RuntimeError, match="development and DEBUG=true"):
+        init_dev_db._reset_incompatible_sqlite_tables()
+
+
+def test_dev_reset_is_disabled_by_default(monkeypatch, tmp_path):
+    monkeypatch.setattr(init_dev_db.settings, "fastapi_env", "development")
+    monkeypatch.setattr(init_dev_db.settings, "debug", True)
+    admin_path = tmp_path / "admin.sqlite3"
+    _legacy_tables(admin_path)
+    monkeypatch.setattr(init_dev_db.settings, "allow_dev_db_reset", False)
+    monkeypatch.setattr(
+        init_dev_db.settings,
+        "database_url",
+        f"sqlite:///{admin_path}",
+    )
+    monkeypatch.setattr(
+        init_dev_db.settings, "history_db_path", str(tmp_path / "history.sqlite3")
+    )
+
+    init_dev_db._reset_incompatible_sqlite_tables()
+
+    assert _tables(admin_path) == {
+        "detection_history",
+        "prediction_events",
+        "disease_contents",
+        "disease_content_revisions",
+    }

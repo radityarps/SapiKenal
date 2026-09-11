@@ -2,11 +2,12 @@
 
 from logging.config import fileConfig
 
-from alembic import context
+from sqlalchemy import engine_from_config, pool  # pyright: ignore[reportMissingImports]
+
+from alembic import context  # pyright: ignore[reportAttributeAccessIssue]
 from config import settings
 from db import models  # noqa: F401 - register model metadata
 from db.base import Base
-from sqlalchemy import engine_from_config, pool
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))

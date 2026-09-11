@@ -34,7 +34,7 @@ class ClassifyImageUseCase
         }
 
         suspend fun classifyPreprocessed(
-            jpegBytes: ByteArray,
+            imageBytes: ByteArray,
             sourceImageUri: Uri,
             updateDetectionId: Long? = null,
             isFromCamera: Boolean = true,
@@ -42,7 +42,7 @@ class ClassifyImageUseCase
             val consentValue = settingsDataStore.uploadConsent.first()
             val consentStatus = ConsentStatus.fromBoolean(consentValue)
 
-            val response = inferenceRouter.classifyPreprocessed(jpegBytes, consentStatus)
+            val response = inferenceRouter.classifyPreprocessed(imageBytes, consentStatus)
             return saveSuccessfulResponse(response, sourceImageUri, updateDetectionId, isFromCamera)
         }
 
@@ -55,7 +55,6 @@ class ClassifyImageUseCase
             val targetResult =
                 when (response) {
                     is ClassifyResponse.Success -> response.result
-                    is ClassifyResponse.Rejected -> response.result
                     is ClassifyResponse.ConsentRequired -> return response
                 }
 
@@ -88,17 +87,15 @@ class ClassifyImageUseCase
                     imageUri,
                     updateDetectionId,
                 )
-            val savedResult = resultWithMetadata.copy(id = savedId)
+            val savedResult =
+                detectionRepository.observeDetection(savedId).first()
+                    ?: resultWithMetadata.copy(id = savedId)
 
-            return if (response is ClassifyResponse.Rejected) {
-                ClassifyResponse.Rejected(savedResult)
-            } else {
-                ClassifyResponse.Success(savedResult)
-            }
+            return ClassifyResponse.Success(savedResult)
         }
 
         companion object {
             /** Stable description of the current preprocessing pipeline. */
-            const val PREPROCESSING_SUMMARY = "EXIF correct, resize max 800px, JPEG 85%, then 224×224 float32 raw [0..255]"
+            const val PREPROCESSING_SUMMARY = "EXIF correct, resize 224×224, lossless PNG, then RGB float32 raw [0..255]"
         }
     }

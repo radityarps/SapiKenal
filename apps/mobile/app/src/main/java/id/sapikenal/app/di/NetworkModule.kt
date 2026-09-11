@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import id.sapikenal.app.BuildConfig
+import id.sapikenal.app.data.remote.api.GuideContentApiService
 import id.sapikenal.app.data.remote.api.InferenceApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -59,4 +60,8 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideInferenceApi(retrofit: Retrofit): InferenceApiService = retrofit.create(InferenceApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideGuideContentApi(retrofit: Retrofit): GuideContentApiService = retrofit.create(GuideContentApiService::class.java)
 }

@@ -30,9 +30,8 @@ data class HistoryItemUi(
     val description: String?,
     val imageSource: String?,
     val appVersion: String?,
+    val modelVersion: String?,
     val consentStatus: String,
-    val outcome: String = "ACCEPTED",
-    val rejectionReason: String? = null,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -118,9 +117,8 @@ class HistoryViewModel
                 description = description,
                 imageSource = imageSource?.name,
                 appVersion = appVersion,
+                modelVersion = modelVersion,
                 consentStatus = consentStatus.name,
-                outcome = outcome,
-                rejectionReason = rejectionReason,
             )
         }
     }

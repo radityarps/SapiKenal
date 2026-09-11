@@ -6,6 +6,13 @@ import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from fastapi import HTTPException  # pyright: ignore[reportMissingImports]
+from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
+from PIL import Image
+from starlette.websockets import (
+    WebSocketDisconnect,  # pyright: ignore[reportMissingImports]
+)
+
 from benchmark_transport import (
     ImageFixture,
     Observation,
@@ -13,11 +20,7 @@ from benchmark_transport import (
     write_artifacts,
 )
 from config import settings
-from fastapi import HTTPException
-from fastapi.testclient import TestClient
 from main import app
-from PIL import Image
-from starlette.websockets import WebSocketDisconnect
 
 
 def _jpeg() -> bytes:
@@ -30,16 +33,13 @@ def _prediction_result() -> dict:
     return {
         "status": "success",
         "prediction": {
-            "outcome": "accepted",
-            "disease_class": "healthy",
-            "display_label_key": "disease.healthy",
+            "predicted_class": "bali",
             "confidence": 0.9,
-            "is_reliable": True,
             "scores": {
-                "FMD": 0.05,
-                "LSD": 0.04,
-                "healthy": 0.9,
-                "non_cattle": 0.01,
+                "bali": 0.9,
+                "brahman": 0.05,
+                "brangus": 0.04,
+                "limusin": 0.01,
             },
         },
         "model_info": {"version": "test"},

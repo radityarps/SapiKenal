@@ -12,7 +12,7 @@ import id.sapikenal.app.data.local.entity.GuideSyncMetadataEntity
 
 @Database(
     entities = [DetectionEntity::class, GuideArticleEntity::class, GuideSyncMetadataEntity::class],
-    version = 12,
+    version = 13,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,6 +21,39 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun guideArticleDao(): GuideArticleDao
 
     companion object {
+        val MIGRATION_12_13 =
+            object : Migration(12, 13) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE guide_articles_new (
+                            locale TEXT NOT NULL,
+                            articleKey TEXT NOT NULL,
+                            category TEXT NOT NULL,
+                            sortOrder INTEGER NOT NULL,
+                            title TEXT NOT NULL,
+                            summary TEXT NOT NULL,
+                            body TEXT NOT NULL,
+                            sourcesJson TEXT NOT NULL,
+                            revision INTEGER NOT NULL,
+                            PRIMARY KEY(locale, articleKey)
+                        )
+                        """.trimIndent(),
+                    )
+                    db.execSQL(
+                        """
+                        INSERT INTO guide_articles_new (
+                            locale, articleKey, category, sortOrder, title, summary, body, sourcesJson, revision
+                        )
+                        SELECT locale, articleKey, category, sortOrder, title, summary, body, sourcesJson, revision
+                        FROM guide_articles
+                        """.trimIndent(),
+                    )
+                    db.execSQL("DROP TABLE guide_articles")
+                    db.execSQL("ALTER TABLE guide_articles_new RENAME TO guide_articles")
+                }
+            }
+
         val MIGRATION_11_12 =
             object : Migration(11, 12) {
                 override fun migrate(db: SupportSQLiteDatabase) {

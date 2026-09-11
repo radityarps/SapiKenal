@@ -6,7 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -33,7 +33,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import id.sapikenal.app.R
 import id.sapikenal.app.domain.model.InferenceMode
-import id.sapikenal.app.ui.about.AboutRoute
 import id.sapikenal.app.ui.camera.CameraRoute
 import id.sapikenal.app.ui.guide.GuideDetailRoute
 import id.sapikenal.app.ui.guide.GuideRoute
@@ -52,7 +51,6 @@ object Routes {
     const val Camera = "camera"
     const val Guide = "guide"
     const val History = "history"
-    const val About = "about"
     const val Settings = "settings"
     const val Result = "result?label={label}&confidence={confidence}&mode={mode}&allScoresJson={allScoresJson}&imageRef={imageRef}&timestamp={timestamp}&detectionId={detectionId}&fromHistory={fromHistory}&appVersion={appVersion}&modelVersion={modelVersion}&resultKey={resultKey}"
     const val GuideDetail = "guide_detail/{articleId}"
@@ -99,7 +97,7 @@ val tabs =
         TabItem(Routes.Camera, Icons.Filled.CameraAlt, R.string.tab_periksa),
         TabItem(Routes.History, Icons.Filled.History, R.string.tab_riwayat),
         TabItem(Routes.Guide, Icons.Filled.MenuBook, R.string.tab_panduan),
-        TabItem(Routes.About, Icons.Filled.Person, R.string.tab_lainnya),
+        TabItem(Routes.Settings, Icons.Filled.Settings, R.string.settings_title),
     )
 
 @Composable
@@ -204,12 +202,6 @@ fun SapiKenalNavHost() {
                 },
             )
         }
-        composable(Routes.About) {
-            AboutRoute(
-                onBack = { rootNavController.popBackStack() },
-                onNavigateToSettings = { rootNavController.navigate(Routes.Settings) },
-            )
-        }
         composable(Routes.Settings) {
             SettingsRoute(onBack = { rootNavController.popBackStack() })
         }
@@ -253,7 +245,6 @@ fun MainTabScreen(
     val isOnRootScreen =
         rootBackStackEntry?.destination?.route in
             listOf(
-                Routes.Settings,
                 Routes.GuideDetail,
             )
 
@@ -366,11 +357,8 @@ fun MainTabScreen(
                     },
                 )
             }
-            composable(Routes.About) {
-                AboutRoute(
-                    onBack = { tabNavController.popBackStack() },
-                    onNavigateToSettings = { rootNavController.navigate(Routes.Settings) },
-                )
+            composable(Routes.Settings) {
+                SettingsRoute()
             }
         }
     }

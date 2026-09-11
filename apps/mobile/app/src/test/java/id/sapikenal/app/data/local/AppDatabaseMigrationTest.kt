@@ -46,6 +46,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_9_10,
                     AppDatabase.MIGRATION_10_11,
                     AppDatabase.MIGRATION_11_12,
+                    AppDatabase.MIGRATION_12_13,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -74,6 +75,42 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
+    fun `migration 12 to 13 drops icon column from guide_articles`() {
+        clearLegacyRows()
+        val database =
+            Room
+                .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
+                .addMigrations(
+                    AppDatabase.MIGRATION_8_9,
+                    AppDatabase.MIGRATION_9_10,
+                    AppDatabase.MIGRATION_10_11,
+                    AppDatabase.MIGRATION_11_12,
+                    AppDatabase.MIGRATION_12_13,
+                ).build()
+
+        val migratedDatabase = database.openHelper.writableDatabase
+        migratedDatabase
+            .query("PRAGMA table_info(guide_articles)")
+            .use { cursor ->
+                val columns =
+                    buildList {
+                        while (cursor.moveToNext()) add(cursor.getString(1))
+                    }
+                assertTrue(columns.contains("locale"))
+                assertTrue(columns.contains("articleKey"))
+                assertTrue(columns.contains("category"))
+                assertTrue(columns.contains("sortOrder"))
+                assertTrue(columns.contains("title"))
+                assertTrue(columns.contains("summary"))
+                assertTrue(columns.contains("body"))
+                assertTrue(columns.contains("sourcesJson"))
+                assertTrue(columns.contains("revision"))
+                assertFalse(columns.contains("icon"))
+            }
+        database.close()
+    }
+
+    @Test
     fun `migration from populated legacy schema is refused without dropping rows`() {
         val database =
             Room
@@ -83,6 +120,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_9_10,
                     AppDatabase.MIGRATION_10_11,
                     AppDatabase.MIGRATION_11_12,
+                    AppDatabase.MIGRATION_12_13,
                 ).build()
 
         try {

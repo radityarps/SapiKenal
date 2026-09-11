@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
 	import { goto } from "$app/navigation";
+	import { Archive, Eye, EyeOff, Pencil, Plus } from "lucide-svelte";
 	import AdminFilterSelect from "$lib/components/AdminFilterSelect.svelte";
 	import AdminShell from "$lib/components/AdminShell.svelte";
 	import TablePagination from "$lib/components/TablePagination.svelte";
@@ -16,10 +17,14 @@
 	const categories = [
 		{ value: "__all__", label: "Semua kategori" },
 		{ value: "app_usage", label: "Penggunaan aplikasi" },
+		{ value: "aceh", label: "Aceh" },
 		{ value: "bali", label: "Bali" },
 		{ value: "brahman", label: "Brahman" },
 		{ value: "brangus", label: "Brangus" },
 		{ value: "limusin", label: "Limusin" },
+		{ value: "madura", label: "Madura" },
+		{ value: "pasundan", label: "Pasundan" },
+		{ value: "po", label: "PO" },
 	];
 	const locales = [
 		{ value: "__all__", label: "Semua locale" },
@@ -38,6 +43,7 @@
 		{ value: "active", label: "Aktif" },
 		{ value: "inactive", label: "Nonaktif" },
 	];
+
 	const categoryLabel = (category: string) =>
 		categories.find((item) => item.value === category)?.label ?? category;
 	const localeLabel = (locale: string) =>
@@ -45,8 +51,23 @@
 	const statusLabel = (status: string) =>
 		({ draft: "Draft", active: "Aktif", inactive: "Nonaktif" })[status] ?? status;
 	const reviewed = (article: any) => Boolean(article.revision.content_reviewed);
-
-	let selected: any = null;
+	const isActive = (article: any) => article.publication_status === "active";
+	// Publish: gunakan review_and_activate jika belum review, activate jika sudah
+	const publishAction = (article: any) =>
+		!reviewed(article) && article.revision.sources?.length > 0
+			? "?/review_and_activate"
+			: "?/activate";
+	const publishTooltip = (article: any) => {
+		if (isActive(article)) return ""; // tidak dipakai saat aktif
+		if (!reviewed(article) && article.revision.sources?.length > 0)
+			return "Tinjau & publikasikan artikel";
+		if (reviewed(article)) return "Publikasikan artikel";
+		return "Perlu review sebelum publikasi";
+	};
+	const canPublishAction = (article: any) =>
+		!isActive(article) &&
+		article.revision.sources?.length > 0 &&
+		article.revision.status !== "active";
 
 	function updateFilter(key: string, value: string) {
 		const query = new URLSearchParams(window.location.search);
@@ -76,23 +97,13 @@
 	{#if form?.success}<p class="notice" role="status">Perubahan Artikel Panduan berhasil disimpan.</p>{/if}
 
 	<div class="mt-5 flex flex-wrap items-end justify-between gap-3">
-		<div><h2 class="m-0 text-lg font-bold text-[#263a30]">Artikel terdaftar</h2><p class="mt-1 text-sm text-[#66766f]">{data.articles.total ?? 0} artikel pada hasil filter.</p></div>
-		<details class="panel w-full max-w-3xl p-4">
-			<summary class="cursor-pointer font-semibold">Tambah Artikel Panduan</summary>
-			<form class="mt-4 grid gap-3 sm:grid-cols-2" method="POST" action="?/create" use:enhance>
-				<label>Kunci artikel<input name="article_key" pattern="[a-z0-9]+([_-][a-z0-9]+)*" maxlength="64" required placeholder="panduan-identifikasi" /></label>
-				<label>Locale<select name="locale" required><option value="id-ID">Indonesia (id-ID)</option><option value="en-US">English (en-US)</option></select></label>
-				<label>Kategori<select name="category" required>{#each categories.slice(1) as category}<option value={category.value}>{category.label}</option>{/each}</select></label>
-				<label>Ikon<input name="icon" maxlength="16" value="📖" required /></label>
-				<label>Urutan<input name="sort_order" type="number" min="0" max="100000" value="0" required /></label>
-				<label>Judul<input name="title" maxlength="120" required /></label>
-				<label class="sm:col-span-2">Ringkasan<textarea name="summary" maxlength="500" required></textarea></label>
-				<label class="sm:col-span-2">Isi artikel<textarea name="body" maxlength="50000" required></textarea></label>
-				<label class="sm:col-span-2">Sumber (satu URL per baris)<textarea name="sources" placeholder="https://sumber-tepercaya.example/artikel" required></textarea></label>
-				<p class="m-0 text-xs font-normal leading-5 text-[#66766f] sm:col-span-2">Simpan sebagai draft. Review dan aktivasi dilakukan terpisah.</p>
-				<button class="sm:col-span-2" type="submit">Simpan sebagai draft</button>
-			</form>
-		</details>
+		<div>
+			<h2 class="m-0 text-lg font-bold text-[#263a30]">Artikel terdaftar</h2>
+			<p class="mt-1 text-sm text-[#66766f]">{data.articles.total ?? 0} artikel pada hasil filter.</p>
+		</div>
+		<a class="button flex items-center gap-2 whitespace-nowrap" href="/articles/create">
+			<Plus size={17} strokeWidth={2} aria-hidden="true" />Tambah Artikel Panduan
+		</a>
 	</div>
 
 	<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -104,48 +115,131 @@
 
 	<section class="panel mt-3 p-0">
 		{#if data.articles.items.length}
-			<table class="table-fixed"><thead><tr><th>Artikel</th><th>Kategori</th><th>Locale</th><th>Status</th><th>Review dan pasangan</th><th class="text-right">Aksi</th></tr></thead><tbody>
-				{#each data.articles.items as article}
+			<table class="table-fixed">
+				<thead>
 					<tr>
-						<td class="whitespace-normal"><strong class="block text-sm text-[#263a30]">{article.revision.icon} {article.revision.title}</strong><code class="text-xs text-[#829088]">{article.article_key} · v{article.revision.revision}</code><p class="m-0 mt-1 text-xs text-[#66766f]">{article.revision.summary}</p></td>
-						<td class="whitespace-normal text-sm">{categoryLabel(article.revision.category)}</td>
-						<td class="text-sm">{localeLabel(article.locale)}</td>
-						<td class="whitespace-normal text-sm"><span class:!bg-[#f9e9ec]={article.publication_status === 'inactive'} class:!text-[#8b2635]={article.publication_status === 'inactive'} class="badge">Publik: {statusLabel(article.publication_status)}</span><span class="mt-1 block text-xs text-[#66766f]">Revisi terbaru: v{article.revision.revision} · {statusLabel(article.revision.status)}</span>{#if article.active_revision}<span class="block text-xs text-[#66766f]">Publik saat ini: v{article.active_revision.revision}</span>{/if}</td>
-						<td class="whitespace-normal text-sm"><span>{reviewed(article) ? 'Sudah ditinjau' : 'Perlu ditinjau'}</span><span class="block text-xs text-[#66766f]">{pairingState(article)}</span></td>
-						<td class="text-right"><button class="secondary" type="button" onclick={() => selected = article}>Kelola</button></td>
+						<th>Artikel</th>
+						<th>Kategori</th>
+						<th>Locale</th>
+						<th>Status</th>
+						<th>Review dan pasangan</th>
+						<th class="w-24 text-right">Aksi</th>
 					</tr>
-				{/each}
-			</tbody></table>
-		{:else}<div class="empty">Belum ada Artikel Panduan pada filter ini.</div>{/if}
+				</thead>
+				<tbody>
+					{#each data.articles.items as article}
+						<tr>
+							<td class="whitespace-normal">
+								<strong class="block text-sm text-[#263a30]">{article.revision.title}</strong>
+								<code class="text-xs text-[#829088]">{article.article_key} · v{article.revision.revision}</code>
+								<p class="m-0 mt-1 text-xs text-[#66766f]">{article.revision.summary}</p>
+							</td>
+							<td class="whitespace-normal text-sm">{categoryLabel(article.revision.category)}</td>
+							<td class="text-sm">{localeLabel(article.locale)}</td>
+							<td class="whitespace-normal text-sm">
+								<span
+									class="badge"
+									class:!bg-[#e8f4ef]={article.publication_status === 'active'}
+									class:!text-[#145c3e]={article.publication_status === 'active'}
+									class:!bg-[#f9e9ec]={article.publication_status === 'inactive'}
+									class:!text-[#8b2635]={article.publication_status === 'inactive'}
+								>Publik: {statusLabel(article.publication_status)}</span>
+								<span class="mt-1 block text-xs text-[#66766f]">
+									Revisi terbaru: v{article.revision.revision} · {statusLabel(article.revision.status)}
+								</span>
+								{#if article.active_revision}
+									<span class="block text-xs text-[#66766f]">Publik saat ini: v{article.active_revision.revision}</span>
+								{/if}
+							</td>
+							<td class="whitespace-normal text-sm">
+								<span>{reviewed(article) ? 'Sudah ditinjau' : 'Perlu ditinjau'}</span>
+								<span class="block text-xs text-[#66766f]">{pairingState(article)}</span>
+							</td>
+
+							<!-- Kolom Aksi: 3 icon button -->
+							<td class="text-right">
+								<div class="inline-flex items-center justify-end gap-1">
+
+									<!-- Edit -->
+									<a
+										href="/articles/{article.id}/edit"
+										title="Edit artikel"
+										aria-label="Edit artikel"
+										class="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#4a6358] transition-colors hover:bg-[#e8f0eb] hover:text-[#17241f]"
+									>
+										<Pencil size={15} aria-hidden="true" />
+									</a>
+
+									<!-- Publish / Unpublish -->
+									{#if isActive(article)}
+										<form method="POST" action="?/deactivate" use:enhance>
+											<input type="hidden" name="id" value={article.id} />
+											<input type="hidden" name="reason" value="Menarik Artikel Panduan dari publikasi" />
+											<button
+												type="submit"
+												title="Nonaktifkan — tarik dari publikasi"
+												aria-label="Nonaktifkan artikel"
+												class="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#145c3e] transition-colors hover:bg-[#f9e9ec] hover:text-[#8b2635]"
+											>
+												<EyeOff size={15} aria-hidden="true" />
+											</button>
+										</form>
+									{:else if canPublishAction(article)}
+										<form method="POST" action={publishAction(article)} use:enhance>
+											<input type="hidden" name="id" value={article.id} />
+											<input type="hidden" name="reason" value="Publikasi Artikel Panduan yang telah ditinjau" />
+											<button
+												type="submit"
+												title={publishTooltip(article)}
+												aria-label={publishTooltip(article)}
+												class="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#4a6358] transition-colors hover:bg-[#e8f0eb] hover:text-[#145c3e]"
+											>
+												<Eye size={15} aria-hidden="true" />
+											</button>
+										</form>
+									{:else}
+										<!-- Publish tidak tersedia (belum ada sumber / perlu review) -->
+										<span
+											title={!article.revision.sources?.length ? "Perlu sumber rujukan sebelum publikasi" : "Perlu ditinjau sebelum publikasi"}
+											aria-label="Publikasi tidak tersedia"
+											class="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-md text-[#b2bfb9]"
+										>
+											<Eye size={15} aria-hidden="true" />
+										</span>
+									{/if}
+
+									<!-- Archive (nonaktifkan permanen, hanya saat bukan draft) -->
+									{#if article.publication_status !== 'draft'}
+										<form method="POST" action="?/deactivate" use:enhance>
+											<input type="hidden" name="id" value={article.id} />
+											<input type="hidden" name="reason" value="Mengarsipkan Artikel Panduan" />
+											<button
+												type="submit"
+												title="Arsipkan artikel"
+												aria-label="Arsipkan artikel"
+												class="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#4a6358] transition-colors hover:bg-[#f9e9ec] hover:text-[#8b2635]"
+											>
+												<Archive size={15} aria-hidden="true" />
+											</button>
+										</form>
+									{:else}
+										<span
+											title="Artikel draft tidak dapat diarsipkan"
+											class="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-md text-[#b2bfb9]"
+										>
+											<Archive size={15} aria-hidden="true" />
+										</span>
+									{/if}
+
+								</div>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		{:else}
+			<div class="empty">Belum ada Artikel Panduan pada filter ini.</div>
+		{/if}
 		<TablePagination count={data.articles.total} page={data.articles.page} perPage={data.articles.page_size} onChange={updatePage} />
 	</section>
 </AdminShell>
-
-{#if selected}
-	<dialog open class="m-auto max-h-[calc(100dvh-2rem)] w-[min(92vw,46rem)] overflow-y-auto rounded-xl border border-[#dbe4df] bg-white p-0 text-[#17241f] shadow-[0_24px_70px_rgba(23,36,31,.22)]" aria-labelledby="article-detail-title">
-		<div class="flex items-start justify-between gap-4 border-b border-[#e5ebe8] px-5 py-4"><div><p class="mb-1 text-xs font-bold uppercase tracking-wider text-[#6f7e76]">Artikel Panduan · {localeLabel(selected.locale)}</p><h2 id="article-detail-title" class="m-0 text-lg font-bold">{selected.revision.title}</h2><code class="text-xs text-[#66766f]">{selected.article_key}</code></div><button class="secondary" type="button" onclick={() => selected = null}>Tutup</button></div>
-		<form class="grid gap-3 px-5 py-5 sm:grid-cols-2" method="POST" action="?/revise" use:enhance>
-			<input type="hidden" name="id" value={selected.id} />
-			<label>Kunci artikel<input value={selected.article_key} readonly aria-readonly="true" /></label>
-			<label>Locale<input value={localeLabel(selected.locale)} readonly aria-readonly="true" /></label>
-			<label>Kategori<select name="category" required>{#each categories.slice(1) as category}<option value={category.value} selected={selected.revision.category === category.value}>{category.label}</option>{/each}</select></label>
-			<label>Ikon<input name="icon" value={selected.revision.icon} maxlength="16" required /></label>
-			<label>Urutan<input name="sort_order" type="number" min="0" max="100000" value={selected.revision.sort_order} required /></label>
-			<label>Judul<input name="title" value={selected.revision.title} maxlength="120" required /></label>
-			<label class="sm:col-span-2">Ringkasan<textarea name="summary" maxlength="500" required>{selected.revision.summary}</textarea></label>
-			<label class="sm:col-span-2">Isi artikel<textarea name="body" maxlength="50000" required>{selected.revision.body}</textarea></label>
-			<label class="sm:col-span-2">Sumber (satu URL per baris)<textarea name="sources" required>{selected.revision.sources.join('\n')}</textarea></label>
-			<p class="m-0 text-xs leading-5 text-[#66766f] sm:col-span-2">Menyimpan perubahan membuat revisi draft baru dan memerlukan review ulang.</p>
-			<button class="sm:col-span-2" type="submit">Simpan revisi</button>
-		</form>
-		<form class="grid gap-3 border-t border-[#e5ebe8] px-5 py-4" method="POST" action="?/review" use:enhance>
-			<input type="hidden" name="id" value={selected.id} />
-			<label class="inline-flex items-center gap-2 text-sm font-normal"><input type="checkbox" name="content_reviewed" value="true" required /> Saya sudah meninjau isi dan sumber tersimpan</label>
-			<button type="submit">Simpan review</button>
-		</form>
-		<div class="flex flex-wrap justify-end gap-2 border-t border-[#e5ebe8] px-5 py-4">
-			<form method="POST" action="?/activate" use:enhance><input type="hidden" name="id" value={selected.id} /><input type="hidden" name="reason" value="Publikasi Artikel Panduan yang telah ditinjau" /><button type="submit">Aktifkan</button></form>
-			<form method="POST" action="?/deactivate" use:enhance><input type="hidden" name="id" value={selected.id} /><input type="hidden" name="reason" value="Menarik Artikel Panduan dari publikasi" /><button class="danger" type="submit">Nonaktifkan</button></form>
-		</div>
-	</dialog>
-{/if}

@@ -53,7 +53,6 @@ def _payload(**overrides: object) -> dict[str, object]:
         "article_key": "profil-bali",
         "locale": "id-ID",
         "category": "bali",
-        "icon": "🐄",
         "sort_order": 10,
         "title": "Profil Sapi Bali",
         "summary": "Ringkasan profil sapi Bali.",
@@ -92,7 +91,6 @@ def test_article_lifecycle_and_deterministic_locale_snapshot(
         {
             "article_key": "profil-bali",
             "category": "bali",
-            "icon": "🐄",
             "sort_order": 10,
             "title": "Profil Sapi Bali",
             "summary": "Ringkasan profil sapi Bali.",

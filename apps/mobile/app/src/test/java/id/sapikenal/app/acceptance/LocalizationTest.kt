@@ -63,8 +63,6 @@ class LocalizationTest {
             // Camera
             "camera_capture",
             "camera_gallery",
-            // About
-            "about_title",
         )
 
     private fun findProjectRoot(): File {

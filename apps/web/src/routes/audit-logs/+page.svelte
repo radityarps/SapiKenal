@@ -141,7 +141,7 @@
     <div>
       <label class="relative"><span>Cari log</span><Search class="pointer-events-none absolute bottom-3 left-3 text-[#718078]" size={16} aria-hidden="true" /><input class="w-full pl-9" type="search" value={search} placeholder="Aktor, aktivitas, resource, request ID" oninput={(event) => debounceSearch(event.currentTarget.value)} /></label>
     </div>
-    <div class="grid gap-3 sm:grid-cols-3">
+    <div class="grid gap-3 sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)]">
       <DateRangeFilter start={data.filters.date_from} end={data.filters.date_to} onChange={updateDateRange} />
       <AdminFilterSelect label="Aktivitas" value={data.filters.action} items={actionFilterItems} placeholder="Semua aktivitas" onChange={(value) => updateQuery('action', value)} />
       <AdminFilterSelect label="Status" value={data.filters.status} items={statusFilterItems} placeholder="Semua status" onChange={(value) => updateQuery('status', value)} />

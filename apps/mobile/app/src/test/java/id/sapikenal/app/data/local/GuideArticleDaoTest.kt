@@ -61,7 +61,6 @@ class GuideArticleDaoTest {
         locale = "id-ID",
         articleKey = key,
         category = "app_usage",
-        icon = "📖",
         sortOrder = 10,
         title = title,
         summary = "summary",

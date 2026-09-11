@@ -109,11 +109,11 @@
 <AdminShell title="Hasil identifikasi" eyebrow="Metadata klasifikasi" active="/predictions" user={data.user}>
   <section class="page-intro"><p class="muted">Riwayat menampilkan metadata operasional utama. Citra, koordinat, dan device ID mentah tidak disimpan atau ditampilkan.</p></section>
   {#if data.error}<p class="error">{data.error}</p>{/if}
-  <div class="mt-4 grid gap-3 lg:grid-cols-[minmax(14rem,.75fr)_minmax(33rem,1.25fr)]">
+  <div class="mt-4 grid gap-3 lg:grid-cols-[minmax(14rem,0.75fr)_minmax(24rem,1.25fr)]">
     <div>
       <label class="relative"><span>Cari hasil identifikasi</span><Search class="pointer-events-none absolute bottom-3 left-3 text-[#718078]" size={16} aria-hidden="true" /><input class="w-full pl-9" type="search" value={search} placeholder="Hasil, model, mode, atau user ID" oninput={(event) => debounceSearch(event.currentTarget.value)} /></label>
     </div>
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <div class="grid gap-3 sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)]">
       <DateRangeFilter start={data.filters.date_from} end={data.filters.date_to} onChange={updateDateRange} />
       <AdminFilterSelect label="Kelas" value={data.filters.predicted_class} items={classFilterItems} placeholder="Semua kelas" onChange={(value) => updateQuery('predicted_class', value)} />
       <AdminFilterSelect label="Mode" value={data.filters.inference_mode} items={modeFilterItems} placeholder="Semua mode" onChange={(value) => updateQuery('inference_mode', value)} />

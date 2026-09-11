@@ -12,7 +12,6 @@ const api = (id = "") =>
 
 const revisionFields = (form: FormData) => ({
 	category: String(form.get("category") || "app_usage").trim(),
-	icon: String(form.get("icon") || "📄").trim(),
 	sort_order: Number(form.get("sort_order") || 0),
 	title: String(form.get("title") || "").trim(),
 	summary: String(form.get("summary") || "").trim(),
@@ -138,6 +137,32 @@ export const actions: Actions = {
 		mutate(request, locals.sessionToken, fetch, "activate"),
 	deactivate: async ({ request, locals, fetch }) =>
 		mutate(request, locals.sessionToken, fetch, "deactivate"),
+	review_and_activate: async ({ request, locals, fetch }) => {
+		const form = await request.formData();
+		const id = String(form.get("id") || "");
+		if (!id) return fail(400, { error: "ID artikel tidak ditemukan." });
+		try {
+			await backendJson(
+				`${api(id)}/review`,
+				{ method: "POST", headers: bearerHeaders(locals.sessionToken) },
+				fetch,
+			);
+			await backendJson(
+				`${api(id)}/activate`,
+				{
+					method: "POST",
+					headers: { ...bearerHeaders(locals.sessionToken), "content-type": "application/json" },
+					body: JSON.stringify({ reason: "Tinjau dan publikasikan sekaligus" }),
+				},
+				fetch,
+			);
+			return { success: true };
+		} catch (error) {
+			return fail(error instanceof BackendRequestError ? error.status : 400, {
+				error: error instanceof Error ? error.message : "Gagal meninjau dan mempublikasikan artikel",
+			});
+		}
+	},
 	logout: async ({ locals, cookies, fetch }) =>
 		adminLogout(locals, cookies, fetch),
 };

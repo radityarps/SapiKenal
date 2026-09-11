@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -81,6 +82,7 @@ fun GuideRoute(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
     val articles by viewModel.filteredArticles.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     var searchVisible by remember { mutableStateOf(false) }
     var filterVisible by remember { mutableStateOf(false) }
@@ -114,6 +116,25 @@ fun GuideRoute(
                         )
                     },
                     actions = {
+                        // Sync / Refresh button
+                        IconButton(
+                            onClick = viewModel::refreshArticles,
+                            enabled = !isRefreshing,
+                        ) {
+                            if (isRefreshing) {
+                                androidx.compose.material3.CircularProgressIndicator(
+                                    modifier = Modifier.padding(10.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Filled.Refresh,
+                                    contentDescription = stringResource(R.string.guide_action_refresh),
+                                    tint = SapiKenalColors.TextSecondary,
+                                )
+                            }
+                        }
                         // Search button — highlighted if active
                         IconButton(onClick = {
                             searchVisible = !searchVisible
@@ -242,11 +263,17 @@ fun GuideRoute(
                         .padding(innerPadding),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = stringResource(R.string.guide_empty_not_found),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SapiKenalColors.TextSecondary,
-                )
+                if (isRefreshing) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.guide_empty_not_found),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = SapiKenalColors.TextSecondary,
+                    )
+                }
             }
         } else {
             LazyColumn(

@@ -1,4 +1,6 @@
 ---
+name: sapikenal
+
 services:
   # FastAPI inference server
   backend:

@@ -177,6 +177,7 @@
     <string name="guide_action_search">Search</string>
     <string name="guide_action_filter">Filter</string>
     <string name="guide_action_clear">Clear</string>
+    <string name="guide_action_refresh">Sync guides</string>
     <string name="guide_tab_app">App Usage</string>
     <string name="guide_tab_aceh">Aceh</string>
     <string name="guide_tab_bali">Bali</string>
@@ -290,30 +291,6 @@
     <string name="guide_limusin_title_2">Limousin Cattle Coat and Build</string>
     <string name="guide_limusin_summary_2">Coat, proportions, and visible structure to review during identification.</string>
     <string name="guide_limusin_body_2">Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.</string>
-
-    <!-- About -->
-    <string name="about_title">About</string>
-    <string name="about_logo_placeholder">🐄</string>
-    <string name="about_desc">SapiKenal is an AI-powered cattle breed identification app that helps farmers classify Aceh, Bali, Limousin, Madura, Pasundan, and PO cattle from images.</string>
-    <string name="about_team_title">Development Team</string>
-    <string name="about_team_member_1">Raditya Rafif Pratama Sasmita</string>
-    <string name="about_team_member_2">Noval Putra Ramadhan</string>
-    <string name="about_institution_title">Institution</string>
-    <string name="about_institution">Informatics Engineering, Politeknik Negeri Semarang</string>
-    <string name="about_supervisor_title">Supervisor</string>
-    <string name="about_supervisor">[Supervisor — TBD]</string>
-    <string name="about_tech_title">Technology</string>
-    <string name="about_tech_1">MobileNetV3 (CNN)</string>
-    <string name="about_tech_2">TensorFlow Lite</string>
-    <string name="about_tech_3">FastAPI + Python</string>
-    <string name="about_tech_4">Jetpack Compose + Kotlin</string>
-    <string name="about_tech_5">CameraX + Room + Hilt</string>
-    <string name="about_source_title">Dataset Sources</string>
-    <string name="about_source_1">Kaggle</string>
-    <string name="about_source_2">Roboflow Universe</string>
-    <string name="about_source_3">Field data</string>
-    <string name="about_version">Version</string>
-    <string name="about_copyright">© 2026 SapiKenal Team | Politeknik Negeri Semarang</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

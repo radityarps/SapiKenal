@@ -71,12 +71,11 @@ class GuideRepository
             snapshot.items.forEach { item ->
                 require(item.articleKey.matches(Regex("^[a-z0-9]+(?:[_-][a-z0-9]+)*$")))
                 require(item.category in CATEGORIES)
-                require(item.icon.isNotBlank() && item.icon.length <= 16)
                 require(item.sortOrder in 0..100_000 && item.revision > 0)
                 require(item.title.isNotBlank() && item.title.length <= 120)
                 require(item.summary.isNotBlank() && item.summary.length <= 500)
                 require(item.body.isNotBlank() && item.body.length <= 50_000)
-                require(item.sources.isNotEmpty() && item.sources.size <= 20)
+                require(item.sources.size <= 20)
                 require(item.sources.all(::validSource))
             }
         }
@@ -97,7 +96,6 @@ class GuideRepository
             GuideArticle(
                 id = entity.articleKey,
                 category = GuideCategory.valueOf(entity.category.uppercase()),
-                icon = entity.icon,
                 title = entity.title,
                 summary = entity.summary,
                 body = entity.body,
@@ -110,7 +108,6 @@ class GuideRepository
             locale,
             articleKey,
             category,
-            icon,
             sortOrder,
             title,
             summary,

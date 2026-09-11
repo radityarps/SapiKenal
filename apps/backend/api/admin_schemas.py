@@ -108,7 +108,6 @@ class GuideArticleRequest(BaseModel):
         "pasundan",
         "po",
     ]
-    icon: str = Field(min_length=1, max_length=16)
     sort_order: int = Field(default=0, ge=0, le=100_000)
     title: str = Field(min_length=1, max_length=120)
     summary: str = Field(min_length=1, max_length=500)
@@ -116,7 +115,7 @@ class GuideArticleRequest(BaseModel):
     sources: list[str] = Field(min_length=1, max_length=20)
     content_reviewed: Literal[False] = False
 
-    @field_validator("article_key", "icon", "title", "summary", "body")
+    @field_validator("article_key", "title", "summary", "body")
     @classmethod
     def non_blank_text(cls, value: str) -> str:
         value = value.strip()
@@ -152,7 +151,6 @@ class GuideArticlePatchRequest(BaseModel):
         ]
         | None
     ) = None
-    icon: str | None = Field(default=None, min_length=1, max_length=16)
     sort_order: int | None = Field(default=None, ge=0, le=100_000)
     title: str | None = Field(default=None, min_length=1, max_length=120)
     summary: str | None = Field(default=None, min_length=1, max_length=500)
@@ -167,7 +165,7 @@ class GuideArticlePatchRequest(BaseModel):
             raise ValueError("Article patch fields must not be null")
         return value
 
-    @field_validator("article_key", "icon", "title", "summary", "body")
+    @field_validator("article_key", "title", "summary", "body")
     @classmethod
     def non_blank_text(cls, value: str | None) -> str | None:
         if value is None:
@@ -189,7 +187,6 @@ class GuideArticleRevisionResponse(BaseModel):
     id: str
     revision: int
     category: str
-    icon: str
     sort_order: int
     title: str
     summary: str

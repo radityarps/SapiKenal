@@ -128,7 +128,6 @@ class GuideRepositoryTest {
     ) = GuideArticleDto(
         articleKey = key,
         category = "bali",
-        icon = "🐄",
         sortOrder = 10,
         title = title,
         summary = "summary",

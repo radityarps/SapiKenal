@@ -177,6 +177,7 @@
     <string name="guide_action_search">Cari</string>
     <string name="guide_action_filter">Filter</string>
     <string name="guide_action_clear">Hapus</string>
+    <string name="guide_action_refresh">Sinkronkan panduan</string>
     <string name="guide_tab_app">Penggunaan</string>
     <string name="guide_tab_aceh">Aceh</string>
     <string name="guide_tab_bali">Bali</string>
@@ -291,30 +292,6 @@
     <string name="guide_limusin_title_2">Warna Bulu dan Bentuk Sapi Limusin</string>
     <string name="guide_limusin_summary_2">Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.</string>
     <string name="guide_limusin_body_2">Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.</string>
-
-    <!-- About -->
-    <string name="about_title">Tentang</string>
-    <string name="about_logo_placeholder">🐄</string>
-    <string name="about_desc">SapiKenal adalah aplikasi identifikasi jenis sapi berbasis kecerdasan buatan untuk membantu peternak mengklasifikasikan Aceh, Bali, Limusin, Madura, Pasundan, dan PO dari citra.</string>
-    <string name="about_team_title">Tim Pengembang</string>
-    <string name="about_team_member_1">Raditya Rafif Pratama Sasmita</string>
-    <string name="about_team_member_2">Noval Putra Ramadhan</string>
-    <string name="about_institution_title">Institusi</string>
-    <string name="about_institution">Teknik Informatika, Politeknik Negeri Semarang</string>
-    <string name="about_supervisor_title">Dosen Pembimbing</string>
-    <string name="about_supervisor">[Dosen Pembimbing — TBD]</string>
-    <string name="about_tech_title">Teknologi</string>
-    <string name="about_tech_1">MobileNetV3 (CNN)</string>
-    <string name="about_tech_2">TensorFlow Lite</string>
-    <string name="about_tech_3">FastAPI + Python</string>
-    <string name="about_tech_4">Jetpack Compose + Kotlin</string>
-    <string name="about_tech_5">CameraX + Room + Hilt</string>
-    <string name="about_source_title">Sumber Dataset</string>
-    <string name="about_source_1">Kaggle</string>
-    <string name="about_source_2">Roboflow Universe</string>
-    <string name="about_source_3">Data lapangan</string>
-    <string name="about_version">Versi</string>
-    <string name="about_copyright">© 2026 SapiKenal Team | Politeknik Negeri Semarang</string>
 
     <!-- Settings -->
     <string name="settings_title">Pengaturan</string>

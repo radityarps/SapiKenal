@@ -76,14 +76,13 @@ class GuideArticleSeed(BaseModel):
         "pasundan",
         "po",
     ]
-    icon: str = Field(min_length=1, max_length=16)
     sort_order: int = Field(ge=0, le=100_000)
     title: str = Field(min_length=1, max_length=120)
     summary: str = Field(min_length=1, max_length=500)
     body: str = Field(min_length=1, max_length=50_000)
     sources: list[str] = Field(max_length=20)
 
-    @field_validator("article_key", "icon", "title", "summary", "body")
+    @field_validator("article_key", "title", "summary", "body")
     @classmethod
     def non_blank_text(cls, value: str) -> str:
         value = value.strip()
@@ -137,8 +136,8 @@ def _guide_article_seeds(path: Path) -> list[GuideArticleSeed]:
     return seeds
 
 
-def seed_guide_articles() -> int:
-    """Insert bundled articles as unreviewed drafts without changing existing CMS data."""
+def seed_guide_articles(*, activate: bool = False) -> int:
+    """Insert bundled articles as unreviewed drafts (or active) without changing existing CMS data."""
     path = GUIDE_ARTICLE_SEED_PATH
     seeds = _guide_article_seeds(path)
     created = 0
@@ -153,10 +152,11 @@ def seed_guide_articles() -> int:
                 )
                 if existing is not None:
                     continue
+                status = "active" if activate else "draft"
                 article = GuideArticle(
                     article_key=seed.article_key,
                     locale=seed.locale,
-                    status="draft",
+                    status=status,
                 )
                 db.add(article)
                 db.flush()
@@ -165,14 +165,13 @@ def seed_guide_articles() -> int:
                         article_id=article.id,
                         revision=1,
                         category=seed.category,
-                        icon=seed.icon,
                         sort_order=seed.sort_order,
                         title=seed.title,
                         summary=seed.summary,
                         body=seed.body,
                         sources=seed.sources,
-                        content_reviewed=False,
-                        status="draft",
+                        content_reviewed=activate,
+                        status=status,
                     )
                 )
                 created += 1
@@ -180,6 +179,31 @@ def seed_guide_articles() -> int:
     except SQLAlchemyError as exc:
         raise RuntimeError(f"Guide article seed could not be stored: {path}") from exc
     return created
+
+
+def activate_guide_articles() -> int:
+    """Activate all draft guide articles so they are published and synced to mobile."""
+    activated = 0
+    try:
+        with SessionLocal() as db:
+            articles = db.scalars(select(GuideArticle)).all()
+            for article in articles:
+                revisions = db.scalars(
+                    select(GuideArticleRevision).where(
+                        GuideArticleRevision.article_id == article.id
+                    )
+                ).all()
+                for rev in revisions:
+                    if rev.status != "active":
+                        rev.content_reviewed = True
+                        rev.status = "active"
+                        activated += 1
+                article.status = "active"
+            db.commit()
+    except SQLAlchemyError as exc:
+        raise RuntimeError("Failed to activate guide articles") from exc
+    return activated
+
 
 
 def seed_admin(
@@ -254,6 +278,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Allow a weak password for an explicit local development bootstrap",
     )
+    parser.add_argument(
+        "--activate-articles",
+        action="store_true",
+        help="Activate all seeded guide articles so they are published to mobile",
+    )
     args = parser.parse_args(argv)
     try:
         print(
@@ -262,7 +291,11 @@ def main(argv: list[str] | None = None) -> int:
                 allow_weak_password=args.allow_weak_password,
             )
         )
-        print(f"guide article drafts created: {seed_guide_articles()}")
+        print(
+            f"guide article drafts created: {seed_guide_articles(activate=args.activate_articles)}"
+        )
+        if args.activate_articles:
+            print(f"guide articles activated: {activate_guide_articles()}")
     except (RuntimeError, ValueError) as exc:
         print(f"seed-admin failed: {exc}", file=sys.stderr)
         return 1

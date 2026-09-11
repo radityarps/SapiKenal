@@ -204,3 +204,19 @@ def test_upgrade_0009_fails_clearly_for_unsupported_source_data(tmp_path: Path) 
         )
         with pytest.raises(RuntimeError, match="unsupported guide article locale"):
             migration._validate_source_data(connection)
+
+
+def test_migration_0011_removes_icon_column(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "test_migration_0011.db"
+    config = _config(db_path, monkeypatch)
+    command.upgrade(config, "head")
+
+    engine = sa.create_engine(f"sqlite:///{db_path}")
+    inspector = sa.inspect(engine)
+    columns = {col["name"] for col in inspector.get_columns("guide_article_revisions")}
+    assert "icon" not in columns
+    assert "category" in columns
+    assert "title" in columns
+    assert "body" in columns

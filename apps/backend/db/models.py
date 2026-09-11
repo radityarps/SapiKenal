@@ -257,7 +257,6 @@ class GuideArticleRevision(Base):
     category: Mapped[str] = mapped_column(
         String(16), nullable=False, default="app_usage"
     )
-    icon: Mapped[str] = mapped_column(String(16), nullable=False, default="📄")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
     summary: Mapped[str] = mapped_column(String(500), nullable=False)

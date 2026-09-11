@@ -1037,7 +1037,6 @@ def create_article(
         article_id=article.id,
         revision=1,
         category=payload.category,
-        icon=payload.icon,
         sort_order=payload.sort_order,
         title=payload.title,
         summary=payload.summary,
@@ -1110,7 +1109,6 @@ def revise_article(
         )
     values = {
         "category": current.category,
-        "icon": current.icon,
         "sort_order": current.sort_order,
         "title": current.title,
         "summary": current.summary,
@@ -1316,7 +1314,6 @@ def public_articles(
         {
             "article_key": article.article_key,
             "category": revision.category,
-            "icon": revision.icon,
             "sort_order": revision.sort_order,
             "title": revision.title,
             "summary": revision.summary,

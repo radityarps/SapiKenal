@@ -22,6 +22,7 @@ class GuideViewModel
         private val locale = MutableStateFlow("id-ID")
         val searchQuery = MutableStateFlow("")
         val selectedCategory = MutableStateFlow<GuideCategory?>(null)
+        val isRefreshing = MutableStateFlow(false)
 
         private val articles = locale.flatMapLatest(repository::articles)
 
@@ -44,7 +45,18 @@ class GuideViewModel
         fun loadArticles(context: Context) {
             val target = context.guideLocale()
             locale.value = target
-            viewModelScope.launch { repository.refresh(target) }
+            refreshArticles()
+        }
+
+        fun refreshArticles() {
+            viewModelScope.launch {
+                isRefreshing.value = true
+                try {
+                    repository.refresh(locale.value)
+                } finally {
+                    isRefreshing.value = false
+                }
+            }
         }
 
         fun onSearchQueryChange(query: String) {

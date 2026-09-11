@@ -241,3 +241,29 @@ def test_explicit_rotation_revokes_existing_sessions(
             )
             is not None
         )
+
+
+def test_seed_guide_articles_activate_flag_and_activate_helper(
+    seed_context: sessionmaker[Session],
+) -> None:
+    assert seed_module.seed_guide_articles(activate=False) == 48
+    with seed_context() as db:
+        drafts = db.scalars(
+            select(GuideArticle).where(GuideArticle.status == "draft")
+        ).all()
+        assert len(drafts) == 48
+
+    activated = seed_module.activate_guide_articles()
+    assert activated == 48
+
+    with seed_context() as db:
+        active_articles = db.scalars(
+            select(GuideArticle).where(GuideArticle.status == "active")
+        ).all()
+        active_revs = db.scalars(
+            select(GuideArticleRevision).where(GuideArticleRevision.status == "active")
+        ).all()
+        assert len(active_articles) == 48
+        assert len(active_revs) == 48
+        assert all(rev.content_reviewed for rev in active_revs)
+

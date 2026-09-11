@@ -8,7 +8,6 @@ import id.sapikenal.app.ui.theme.SapiKenalColors
 data class GuideArticle(
     val id: String,
     val category: GuideCategory,
-    val icon: String,
     val title: String,
     val summary: String,
     val body: String,

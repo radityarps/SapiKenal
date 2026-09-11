@@ -12,7 +12,6 @@ data class GuideSnapshotDto(
 data class GuideArticleDto(
     @Json(name = "article_key") val articleKey: String,
     val category: String,
-    val icon: String,
     @Json(name = "sort_order") val sortOrder: Int,
     val title: String,
     val summary: String,

@@ -127,7 +127,7 @@
 
   <div class="mt-4 grid gap-3 lg:grid-cols-[minmax(15rem,.9fr)_minmax(26rem,1.1fr)]">
     <label class="relative"><span>Cari model</span><Search class="pointer-events-none absolute bottom-3 left-3 text-[#718078]" size={16} aria-hidden="true" /><input class="w-full pl-9" type="search" value={search} placeholder="Versi, artefak, atau catatan" oninput={(event) => debounceSearch(event.currentTarget.value)} /></label>
-    <div class="grid gap-3 sm:grid-cols-2"><DateRangeFilter start={data.filters.date_from} end={data.filters.date_to} onChange={updateDateRange} /><AdminFilterSelect label="Status" value={data.filters.status} items={statusItems} placeholder="Semua status" onChange={(value) => updateQuery('status', value)} /></div>
+    <div class="grid gap-3 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]"><DateRangeFilter start={data.filters.date_from} end={data.filters.date_to} onChange={updateDateRange} /><AdminFilterSelect label="Status" value={data.filters.status} items={statusItems} placeholder="Semua status" onChange={(value) => updateQuery('status', value)} /></div>
   </div>
 
   <section class="panel mt-3 p-0">

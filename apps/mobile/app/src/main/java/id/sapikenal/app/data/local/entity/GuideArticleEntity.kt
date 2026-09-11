@@ -7,7 +7,6 @@ data class GuideArticleEntity(
     val locale: String,
     val articleKey: String,
     val category: String,
-    val icon: String,
     val sortOrder: Int,
     val title: String,
     val summary: String,

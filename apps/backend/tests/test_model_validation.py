@@ -19,12 +19,12 @@ class Rescaling:
 
 class Dense:
     def get_config(self):
-        return {"units": 4, "activation": "softmax"}
+        return {"units": 6, "activation": "softmax"}
 
 
 class FakeModel:
     input_shape = (None, 224, 224, 3)
-    output_shape = (None, 4)
+    output_shape = (None, 6)
     inputs = [SimpleNamespace(dtype="float32")]
     outputs = [SimpleNamespace(dtype="float32")]
 
@@ -37,7 +37,7 @@ class FakeModel:
 
 
 def test_validate_loaded_model_accepts_batched_warmup_output() -> None:
-    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.1]], dtype=np.float32))
+    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.05, 0.03, 0.02]], dtype=np.float32))
     metadata = validate_loaded_model(
         model,
         input_size=settings.input_size,
@@ -45,11 +45,11 @@ def test_validate_loaded_model_accepts_batched_warmup_output() -> None:
     )
 
     assert metadata["input_shape"] == [None, 224, 224, 3]
-    assert metadata["output_shape"] == [None, 4]
+    assert metadata["output_shape"] == [None, 6]
 
 
 def test_validate_loaded_model_rejects_wrong_internal_rescaling() -> None:
-    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.1]], dtype=np.float32))
+    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.05, 0.03, 0.02]], dtype=np.float32))
 
     class WrongRescaling:
         def get_config(self):
@@ -65,7 +65,7 @@ def test_validate_loaded_model_rejects_wrong_internal_rescaling() -> None:
 
 
 def test_validate_loaded_model_rejects_non_float32_input() -> None:
-    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.1]], dtype=np.float32))
+    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.05, 0.03, 0.02]], dtype=np.float32))
     model.inputs = [SimpleNamespace(dtype="float16")]
 
     with pytest.raises(ModelContractError, match="input type must be float32"):
@@ -77,7 +77,7 @@ def test_validate_loaded_model_rejects_non_float32_input() -> None:
 
 
 def test_validate_loaded_model_rejects_non_finite_warmup_output() -> None:
-    model = FakeModel(np.array([[np.nan, 0.5, 0.3, 0.2]], dtype=np.float32))
+    model = FakeModel(np.array([[np.nan, 0.5, 0.3, 0.1, 0.05, 0.05]], dtype=np.float32))
 
     with pytest.raises(ModelContractError, match="non-finite"):
         validate_loaded_model(
@@ -88,18 +88,18 @@ def test_validate_loaded_model_rejects_non_finite_warmup_output() -> None:
 
 
 def test_validate_loaded_model_rejects_non_canonical_class_order() -> None:
-    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.1]], dtype=np.float32))
+    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.05, 0.03, 0.02]], dtype=np.float32))
 
     with pytest.raises(ModelContractError, match="configured order"):
         validate_loaded_model(
             model,
             input_size=settings.input_size,
-            classes=["brahman", "bali", "brangus", "limusin"],
+            classes=["bali", "aceh", "limusin", "madura", "pasundan", "po"],
         )
 
 
 def test_validate_loaded_model_rejects_legacy_disease_class_order() -> None:
-    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.1]], dtype=np.float32))
+    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.05, 0.03, 0.02]], dtype=np.float32))
 
     with pytest.raises(ModelContractError, match="configured order"):
         validate_loaded_model(
@@ -110,7 +110,7 @@ def test_validate_loaded_model_rejects_legacy_disease_class_order() -> None:
 
 
 def test_validate_loaded_model_rejects_missing_input_dtype() -> None:
-    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.1]], dtype=np.float32))
+    model = FakeModel(np.array([[0.2, 0.3, 0.4, 0.05, 0.03, 0.02]], dtype=np.float32))
     model.inputs = [SimpleNamespace()]
 
     with pytest.raises(ModelContractError, match="input type is unavailable"):

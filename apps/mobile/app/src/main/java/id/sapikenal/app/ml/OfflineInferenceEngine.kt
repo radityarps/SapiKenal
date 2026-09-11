@@ -24,13 +24,13 @@ open class OfflineInferenceEngine
         private val modelPreprocessor: ModelPreprocessor,
     ) : ImageClassifier {
         companion object {
-            private const val EXPECTED_MODEL_FILE = "jenis_fp32.tflite"
+            private const val EXPECTED_MODEL_FILE = "lokal_fp32.tflite"
             private val MODEL_FILE = BuildConfig.MODEL_FILE_NAME
 
             /** Offline model version identifier. Configured via BuildConfig / local.properties. */
             val MODEL_VERSION = BuildConfig.MODEL_VERSION
             private val EXPECTED_INPUT_SHAPE = intArrayOf(1, 224, 224, 3)
-            private val EXPECTED_OUTPUT_SHAPE = intArrayOf(1, 4)
+            private val EXPECTED_OUTPUT_SHAPE = intArrayOf(1, 6)
 
             // Canonical labels matching backend model/class_names.json.
             val CANONICAL_LABELS = BreedContract.CANONICAL_LABELS
@@ -94,7 +94,7 @@ open class OfflineInferenceEngine
                 scores.size != LABELS.size ||
                 scores.any { !it.isFinite() || it < 0f || it > 1f }
             ) {
-                throw IllegalStateException("TFLite output must contain four finite probabilities in [0, 1]")
+                throw IllegalStateException("TFLite output must contain ${LABELS.size} finite probabilities in [0, 1]")
             }
             if (scores.sum() !in 0.99f..1.01f) {
                 throw IllegalStateException("TFLite output probabilities must sum to 1")
@@ -104,7 +104,7 @@ open class OfflineInferenceEngine
         open override suspend fun classify(imageBytes: ByteArray): DetectionResult =
             withContext(Dispatchers.Default) {
                 val inputBuffer = modelPreprocessor.process(imageBytes)
-                val output = Array(1) { FloatArray(4) }
+                val output = Array(1) { FloatArray(LABELS.size) }
                 interpreter.run(inputBuffer, output)
 
                 val scores = output[0]

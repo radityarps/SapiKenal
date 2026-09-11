@@ -2,14 +2,17 @@
 
 from dataclasses import dataclass
 
-from db.core import get_db
-from db.models import AuthSession, User
-from fastapi import Depends, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.orm import Session
+from fastapi import Depends, Request  # pyright: ignore[reportMissingImports]
+from fastapi.security import (  # pyright: ignore[reportMissingImports]
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+)
+from sqlalchemy.orm import Session  # pyright: ignore[reportMissingImports]
 
 from api.auth_security import authenticate_session
 from api.errors import AdminAPIError
+from db.core import get_db
+from db.models import AuthSession, User
 
 _bearer = HTTPBearer(auto_error=False)
 

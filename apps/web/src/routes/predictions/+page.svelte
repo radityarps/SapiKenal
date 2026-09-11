@@ -34,18 +34,22 @@
   };
 
   const classDisplayMap: Record<string, string> = {
+    aceh: 'Aceh',
     bali: 'Bali',
-    brahman: 'Brahman',
-    brangus: 'Brangus',
-    limusin: 'Limusin'
+    limusin: 'Limusin',
+    madura: 'Madura',
+    pasundan: 'Pasundan',
+    po: 'PO'
   };
 
   const classFilterItems = [
     { value: '__all__', label: 'Semua jenis' },
+    { value: 'aceh', label: 'Aceh' },
     { value: 'bali', label: 'Bali' },
-    { value: 'brahman', label: 'Brahman' },
-    { value: 'brangus', label: 'Brangus' },
-    { value: 'limusin', label: 'Limusin' }
+    { value: 'limusin', label: 'Limusin' },
+    { value: 'madura', label: 'Madura' },
+    { value: 'pasundan', label: 'Pasundan' },
+    { value: 'po', label: 'PO' }
   ];
   const modeFilterItems = [
     { value: '__all__', label: 'Semua mode' },
@@ -181,24 +185,14 @@
 
       {#if hasScores(selectedPrediction)}
         <div class="rounded-lg border border-[#e4ebe7] bg-white p-3.5">
-          <h3 class="m-0 mb-2 text-xs font-bold text-[#55675f]">Skor Probabilitas Model (4 Kelas)</h3>
-          <div class="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-            <div class="rounded-md bg-[#f8faf9] p-2">
-              <span class="block text-[.68rem] text-[#6b7c73]">Bali</span>
-              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.bali ?? 0)}</strong>
-            </div>
-            <div class="rounded-md bg-[#f8faf9] p-2">
-              <span class="block text-[.68rem] text-[#6b7c73]">Brahman</span>
-              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.brahman ?? 0)}</strong>
-            </div>
-            <div class="rounded-md bg-[#f8faf9] p-2">
-              <span class="block text-[.68rem] text-[#6b7c73]">Brangus</span>
-              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.brangus ?? 0)}</strong>
-            </div>
-            <div class="rounded-md bg-[#f8faf9] p-2">
-              <span class="block text-[.68rem] text-[#6b7c73]">Limusin</span>
-              <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(selectedPrediction.scores.limusin ?? 0)}</strong>
-            </div>
+          <h3 class="m-0 mb-2 text-xs font-bold text-[#55675f]">Skor Probabilitas Model (6 Kelas)</h3>
+          <div class="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+            {#each Object.entries(selectedPrediction.scores) as [key, score]}
+              <div class="rounded-md bg-[#f8faf9] p-2">
+                <span class="block text-[.68rem] text-[#6b7c73]">{classDisplayMap[key] ?? key}</span>
+                <strong class="text-[.82rem] text-[#24372e]">{formatConfidence(score as number)}</strong>
+              </div>
+            {/each}
           </div>
         </div>
       {/if}

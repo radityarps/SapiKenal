@@ -20,8 +20,12 @@ enum class GuideCategory(
     val color: Color,
 ) {
     APP_USAGE(R.string.guide_tab_app, "📱", SapiKenalColors.Primary),
+    ACEH(R.string.guide_tab_aceh, "🟤", SapiKenalColors.Aceh),
     BALI(R.string.guide_tab_bali, "🟤", SapiKenalColors.Bali),
+    LIMUSIN(R.string.guide_tab_limusin, "🟠", SapiKenalColors.Limusin),
+    MADURA(R.string.guide_tab_madura, "🟤", SapiKenalColors.Madura),
+    PASUNDAN(R.string.guide_tab_pasundan, "🟤", SapiKenalColors.Pasundan),
+    PO(R.string.guide_tab_po, "⚪", SapiKenalColors.Po),
     BRAHMAN(R.string.guide_tab_brahman, "⚪", SapiKenalColors.Brahman),
     BRANGUS(R.string.guide_tab_brangus, "⚫", SapiKenalColors.Brangus),
-    LIMUSIN(R.string.guide_tab_limusin, "🟠", SapiKenalColors.Limusin),
 }

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import (
+from fastapi import (  # pyright: ignore[reportMissingImports]
     APIRouter,
     Depends,
     File,
@@ -15,9 +15,9 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.responses import JSONResponse
-from sqlalchemy import desc, select
-from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse  # pyright: ignore[reportMissingImports]
+from sqlalchemy import desc, select  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import Session  # pyright: ignore[reportMissingImports]
 
 from api.history_store import history_store
 from api.prediction import error_payload_for_http_exception, predict_image_bytes

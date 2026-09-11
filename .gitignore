@@ -176,6 +176,7 @@ yarn-error.log*
 !/data/.gitkeep
 /apps/backend/data/*
 !/apps/backend/data/.gitkeep
+!/apps/backend/data/guide_articles_seed.json
 /apps/backend/model/*/*.keras
 /apps/backend/model/*.h5
 /apps/backend/model/registry/

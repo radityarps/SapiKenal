@@ -21,7 +21,7 @@ _SCORE_TOLERANCE = 0.01
 
 
 def _canonical_scores(scores: dict[str, float]) -> dict[str, float]:
-    """Normalize and validate one complete four-class score object."""
+    """Normalize and validate one complete canonical score object."""
     normalized: dict[str, float] = {}
     for raw_label, raw_score in scores.items():
         label = canonicalize_label(raw_label)
@@ -38,7 +38,9 @@ def _canonical_scores(scores: dict[str, float]) -> dict[str, float]:
         normalized[label] = score
 
     if set(normalized) != set(_CANONICAL_SCORE_KEYS):
-        raise ValueError("Scores must contain exactly four canonical model classes")
+        raise ValueError(
+            f"Scores must contain exactly {len(_CANONICAL_SCORE_KEYS)} canonical model classes"
+        )
     ordered = {label: normalized[label] for label in _CANONICAL_SCORE_KEYS}
     if not isclose(sum(ordered.values()), 1.0, abs_tol=_SCORE_TOLERANCE):
         raise ValueError("Model scores must sum to one")
@@ -46,10 +48,12 @@ def _canonical_scores(scores: dict[str, float]) -> dict[str, float]:
 
 
 class PredictionClass(str, Enum):
+    ACEH = "aceh"
     BALI = "bali"
-    BRAHMAN = "brahman"
-    BRANGUS = "brangus"
     LIMUSIN = "limusin"
+    MADURA = "madura"
+    PASUNDAN = "pasundan"
+    PO = "po"
 
 
 class PredictionResult(BaseModel):

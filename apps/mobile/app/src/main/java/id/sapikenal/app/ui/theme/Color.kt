@@ -40,10 +40,14 @@ object SapiKenalColors {
     val TextSecondary = Color(0xFF737970) // muted grayish green
 
     // ── Semantic: Breed indicators ─────────────────────────────────────
+    val Aceh = Color(0xFFA56945)
     val Bali = Color(0xFF8D6E63)
     val Brahman = Color(0xFF607D8B)
     val Brangus = Color(0xFF37474F)
     val Limusin = Color(0xFFE2A76F)
+    val Madura = Color(0xFF9B7653)
+    val Pasundan = Color(0xFF6B8E5A)
+    val Po = Color(0xFFD4D8D5)
 
     // ── Utility ─────────────────────────────────────────────────────────
     val Outline = Color(0xFF737970)

@@ -8,12 +8,14 @@ from pydantic_settings import (  # pyright: ignore[reportMissingImports]
 )
 
 MODEL_CONTRACT_CLASSES: tuple[str, ...] = (
+    "aceh",
     "bali",
-    "brahman",
-    "brangus",
     "limusin",
+    "madura",
+    "pasundan",
+    "po",
 )
-MODEL_CONTRACT_VERSION = "sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32"
+MODEL_CONTRACT_VERSION = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32"
 
 # Runtime labels for the active inference service.
 CANONICAL_LABELS: tuple[str, ...] = MODEL_CONTRACT_CLASSES

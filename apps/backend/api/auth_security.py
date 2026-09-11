@@ -6,12 +6,17 @@ import hashlib
 import secrets
 from datetime import timedelta
 
-from argon2 import PasswordHasher
-from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
+from argon2 import PasswordHasher  # pyright: ignore[reportMissingImports]
+from argon2.exceptions import (  # pyright: ignore[reportMissingImports]
+    InvalidHashError,
+    VerificationError,
+    VerifyMismatchError,
+)
+from sqlalchemy import select  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import Session  # pyright: ignore[reportMissingImports]
+
 from config import settings
 from db.models import AuthSession, User, utc_now
-from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 _password_hasher = PasswordHasher()
 

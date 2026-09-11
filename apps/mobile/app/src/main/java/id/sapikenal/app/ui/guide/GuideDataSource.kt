@@ -31,6 +31,23 @@ object GuideDataSource {
                 summary = context.getString(R.string.guide_app_summary_3),
                 body = context.getString(R.string.guide_app_body_3),
             ),
+            // ── Aceh ────────────────────────────────────────────────────────
+            GuideArticle(
+                id = "aceh_1",
+                category = GuideCategory.ACEH,
+                icon = "🐄",
+                title = context.getString(R.string.guide_aceh_title_1),
+                summary = context.getString(R.string.guide_aceh_summary_1),
+                body = context.getString(R.string.guide_aceh_body_1),
+            ),
+            GuideArticle(
+                id = "aceh_2",
+                category = GuideCategory.ACEH,
+                icon = "🧬",
+                title = context.getString(R.string.guide_aceh_title_2),
+                summary = context.getString(R.string.guide_aceh_summary_2),
+                body = context.getString(R.string.guide_aceh_body_2),
+            ),
             // ── Bali ────────────────────────────────────────────────────────
             GuideArticle(
                 id = "bali_1",
@@ -63,6 +80,57 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_bali_title_4),
                 summary = context.getString(R.string.guide_bali_summary_4),
                 body = context.getString(R.string.guide_bali_body_4),
+            ),
+            // ── Madura ──────────────────────────────────────────────────────
+            GuideArticle(
+                id = "madura_1",
+                category = GuideCategory.MADURA,
+                icon = "🐄",
+                title = context.getString(R.string.guide_madura_title_1),
+                summary = context.getString(R.string.guide_madura_summary_1),
+                body = context.getString(R.string.guide_madura_body_1),
+            ),
+            GuideArticle(
+                id = "madura_2",
+                category = GuideCategory.MADURA,
+                icon = "🧬",
+                title = context.getString(R.string.guide_madura_title_2),
+                summary = context.getString(R.string.guide_madura_summary_2),
+                body = context.getString(R.string.guide_madura_body_2),
+            ),
+            // ── Pasundan ────────────────────────────────────────────────────
+            GuideArticle(
+                id = "pasundan_1",
+                category = GuideCategory.PASUNDAN,
+                icon = "🐄",
+                title = context.getString(R.string.guide_pasundan_title_1),
+                summary = context.getString(R.string.guide_pasundan_summary_1),
+                body = context.getString(R.string.guide_pasundan_body_1),
+            ),
+            GuideArticle(
+                id = "pasundan_2",
+                category = GuideCategory.PASUNDAN,
+                icon = "🧬",
+                title = context.getString(R.string.guide_pasundan_title_2),
+                summary = context.getString(R.string.guide_pasundan_summary_2),
+                body = context.getString(R.string.guide_pasundan_body_2),
+            ),
+            // ── PO ──────────────────────────────────────────────────────────
+            GuideArticle(
+                id = "po_1",
+                category = GuideCategory.PO,
+                icon = "🐄",
+                title = context.getString(R.string.guide_po_title_1),
+                summary = context.getString(R.string.guide_po_summary_1),
+                body = context.getString(R.string.guide_po_body_1),
+            ),
+            GuideArticle(
+                id = "po_2",
+                category = GuideCategory.PO,
+                icon = "🧬",
+                title = context.getString(R.string.guide_po_title_2),
+                summary = context.getString(R.string.guide_po_summary_2),
+                body = context.getString(R.string.guide_po_body_2),
             ),
             // ── Brahman ─────────────────────────────────────────────────────
             GuideArticle(

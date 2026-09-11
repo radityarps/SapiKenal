@@ -27,7 +27,7 @@ class InferenceService:
     Designed for easy migration to Go + Python microservice architecture.
     """
 
-    # The active model always uses the final four-class order.
+    # The active model always uses the canonical six-class order.
     LABELS = CANONICAL_LABELS
 
     def __init__(self, model_path: str | None = None):

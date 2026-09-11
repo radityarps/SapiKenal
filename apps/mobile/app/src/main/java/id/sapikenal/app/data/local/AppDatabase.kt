@@ -5,17 +5,54 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import id.sapikenal.app.data.local.dao.DetectionDao
+import id.sapikenal.app.data.local.dao.GuideArticleDao
 import id.sapikenal.app.data.local.entity.DetectionEntity
+import id.sapikenal.app.data.local.entity.GuideArticleEntity
+import id.sapikenal.app.data.local.entity.GuideSyncMetadataEntity
 
 @Database(
-    entities = [DetectionEntity::class],
-    version = 11,
+    entities = [DetectionEntity::class, GuideArticleEntity::class, GuideSyncMetadataEntity::class],
+    version = 12,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun detectionDao(): DetectionDao
 
+    abstract fun guideArticleDao(): GuideArticleDao
+
     companion object {
+        val MIGRATION_11_12 =
+            object : Migration(11, 12) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE guide_articles (
+                            locale TEXT NOT NULL,
+                            articleKey TEXT NOT NULL,
+                            category TEXT NOT NULL,
+                            icon TEXT NOT NULL,
+                            sortOrder INTEGER NOT NULL,
+                            title TEXT NOT NULL,
+                            summary TEXT NOT NULL,
+                            body TEXT NOT NULL,
+                            sourcesJson TEXT NOT NULL,
+                            revision INTEGER NOT NULL,
+                            PRIMARY KEY(locale, articleKey)
+                        )
+                        """.trimIndent(),
+                    )
+                    db.execSQL(
+                        """
+                        CREATE TABLE guide_sync_metadata (
+                            locale TEXT NOT NULL PRIMARY KEY,
+                            snapshotVersion TEXT NOT NULL,
+                            syncedAt INTEGER NOT NULL
+                        )
+                        """.trimIndent(),
+                    )
+                }
+            }
+
         val MIGRATION_4_5 =
             object : Migration(4, 5) {
                 override fun migrate(db: SupportSQLiteDatabase) {

@@ -35,7 +35,7 @@ class ModelParityCaptureTest {
             val fixtures = File(root, "input").listFiles()?.sortedBy { it.name }.orEmpty()
             assertTrue("Stage real JPEG fixtures in files/parity/input first", fixtures.isNotEmpty())
             val output = File(root, "output").apply { mkdirs() }
-            val labels = listOf("bali", "brahman", "brangus", "limusin")
+            val labels = listOf("aceh", "bali", "limusin", "madura", "pasundan", "po")
             assertEquals(labels, BreedContract.CANONICAL_LABELS)
             val client = ClientPreprocessor(context)
             val preprocessor = ModelPreprocessor()
@@ -69,7 +69,7 @@ class ModelParityCaptureTest {
                     .put("schema", 1)
                     .put("class_order", JSONArray(labels))
                     .put("model_version", OfflineInferenceEngine.MODEL_VERSION)
-                    .put("model_sha256", sha256(context.assets.open("jenis_fp32.tflite").use { it.readBytes() }))
+                    .put("model_sha256", sha256(context.assets.open("lokal_fp32.tflite").use { it.readBytes() }))
                     .put("device", "${Build.MANUFACTURER} ${Build.MODEL}; Android ${Build.VERSION.RELEASE}; API ${Build.VERSION.SDK_INT}")
                     .put(
                         "byte_order",
@@ -77,7 +77,7 @@ class ModelParityCaptureTest {
                             .nativeOrder()
                             .toString(),
                     ).put("input_shape", JSONArray(listOf(1, 224, 224, 3)))
-                    .put("output_shape", JSONArray(listOf(1, 4)))
+                    .put("output_shape", JSONArray(listOf(1, 6)))
                     .put("dtype", "float32")
                     .put(
                         "tflite_runtime",

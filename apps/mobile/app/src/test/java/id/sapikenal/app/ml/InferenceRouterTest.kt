@@ -19,6 +19,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Property-based style tests for InferenceRouter consent routing logic.
@@ -31,6 +32,7 @@ import org.robolectric.RobolectricTestRunner
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class InferenceRouterTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -59,10 +61,12 @@ class InferenceRouterTest {
                 isReliable = true,
                 allScores =
                     mapOf(
+                        "aceh" to 0.01f,
                         "bali" to 0.95f,
-                        "brahman" to 0.02f,
-                        "brangus" to 0.02f,
                         "limusin" to 0.01f,
+                        "madura" to 0.01f,
+                        "pasundan" to 0.01f,
+                        "po" to 0.01f,
                     ),
                 inferenceMode = InferenceMode.ONLINE,
             )
@@ -75,16 +79,18 @@ class InferenceRouterTest {
     ) : ImageClassifier {
         override suspend fun classify(imageBytes: ByteArray): DetectionResult =
             DetectionResult(
-                label = "brahman",
-                displayLabel = "Brahman",
+                label = "madura",
+                displayLabel = "Madura",
                 confidence = 0.80f,
                 isReliable = true,
                 allScores =
                     mapOf(
-                        "bali" to 0.10f,
-                        "brahman" to 0.80f,
-                        "brangus" to 0.05f,
-                        "limusin" to 0.05f,
+                        "aceh" to 0.04f,
+                        "bali" to 0.04f,
+                        "limusin" to 0.04f,
+                        "madura" to 0.80f,
+                        "pasundan" to 0.04f,
+                        "po" to 0.04f,
                     ),
                 inferenceMode = InferenceMode.OFFLINE,
                 processingMs = 27,
@@ -311,14 +317,16 @@ class InferenceRouterTest {
             val result =
                 (router.classify(testUris.first(), ConsentStatus.ALLOWED) as ClassifyResponse.Success).result
 
-            assertEquals("brahman", result.label)
+            assertEquals("madura", result.label)
             assertEquals(0.80f, result.confidence, 0.001f)
             assertEquals(
                 mapOf(
-                    "bali" to 0.10f,
-                    "brahman" to 0.80f,
-                    "brangus" to 0.05f,
-                    "limusin" to 0.05f,
+                    "aceh" to 0.04f,
+                    "bali" to 0.04f,
+                    "limusin" to 0.04f,
+                    "madura" to 0.80f,
+                    "pasundan" to 0.04f,
+                    "po" to 0.04f,
                 ),
                 result.allScores,
             )
@@ -341,10 +349,12 @@ class InferenceRouterTest {
                             isReliable = false,
                             allScores =
                                 mapOf(
-                                    "bali" to 0.31f,
-                                    "brahman" to 0.30f,
-                                    "brangus" to 0.29f,
-                                    "limusin" to 0.10f,
+                                    "aceh" to 0.31f,
+                                    "bali" to 0.30f,
+                                    "limusin" to 0.20f,
+                                    "madura" to 0.10f,
+                                    "pasundan" to 0.05f,
+                                    "po" to 0.04f,
                                 ),
                             inferenceMode = InferenceMode.ONLINE,
                         )

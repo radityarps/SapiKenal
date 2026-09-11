@@ -1,6 +1,6 @@
 # SapiKenal
 
-Controlled prototype/MVP untuk mengidentifikasi jenis sapi dari citra. Backend Keras dan aplikasi Android TFLite memakai artefak identifikasi empat jenis; parity nyata lulus pada 13 fixture dengan tensor input identik dan kelas pemenang yang sama. Lihat [`docs/model/parity.md`](docs/model/parity.md). Status ini tidak menyatakan production readiness karena rehearsal operasional dan aksesibilitas masih terpisah.
+Controlled prototype/MVP untuk mengidentifikasi jenis sapi dari citra. Backend Keras dan aplikasi Android TFLite memakai artefak identifikasi enam jenis sapi (Aceh, Bali, Limusin, Madura, Pasundan, dan PO); parity nyata lulus pada fixture dengan tensor input identik dan kelas pemenang yang sama. Lihat [`docs/model/parity.md`](docs/model/parity.md). Status ini tidak menyatakan production readiness karena rehearsal operasional dan aksesibilitas masih terpisah.
 
 ## Struktur Repository
 

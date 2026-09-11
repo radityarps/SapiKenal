@@ -1,17 +1,17 @@
 # Model assets
 
-SapiKenal's offline inference model is `jenis_fp32.tflite`. The matching
+SapiKenal's offline inference model is `lokal_fp32.tflite`. The matching
 contract metadata is in `model_metadata.json`.
 
 | Field | Value |
 | --- | --- |
-| Version | `sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32` |
-| Architecture | MobileNetV3 four-class image classifier |
-| Class order | `bali`, `brahman`, `brangus`, `limusin` |
+| Version | `sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32` |
+| Architecture | MobileNetV3 six-class image classifier |
+| Class order | `aceh`, `bali`, `limusin`, `madura`, `pasundan`, `po` |
 | Input | RGB `224 × 224`, Float32 values in `[0, 255]` |
-| Output | Four Float32 probabilities in the same class order |
-| Size | 12,381,284 bytes |
-| SHA-256 | `7b71a5a923ae69cf00b390712381c8d437d31e105e1370b0dc2653ba2271a664` |
+| Output | Six Float32 probabilities in the same class order |
+| Size | 12,382,316 bytes |
+| SHA-256 | `cc1b9a74af5ef44a7dead8848d6c41795aef9399c76e647f434277867eb113d9` |
 
 The model contains an internal rescaling operation
 `(input / 127.5) - 1.0`; therefore `ModelPreprocessor` must pass raw pixel

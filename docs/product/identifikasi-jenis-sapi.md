@@ -2,7 +2,7 @@
 
 ## Ringkasan
 
-SapiKenal mengganti fondasi klasifikasi penyakit dengan identifikasi empat jenis sapi dari citra: Bali, Brahman, Brangus, dan Limusin. Rilis pertama harus menyediakan inferensi online melalui model Keras dan inferensi offline melalui model TFLite dengan kontrak kelas dan preprocessing yang sama.
+SapiKenal mengidentifikasi enam jenis sapi dari citra: Aceh, Bali, Limusin, Madura, Pasundan, dan PO. Rilis ini menyediakan inferensi online melalui model Keras dan inferensi offline melalui model TFLite dengan kontrak kelas dan preprocessing yang sama.
 
 ## Tujuan
 
@@ -14,10 +14,10 @@ SapiKenal mengganti fondasi klasifikasi penyakit dengan identifikasi empat jenis
 ## Bukan Tujuan
 
 - Memastikan bahwa objek pada citra adalah sapi.
-- Menolak citra non-sapi atau jenis sapi di luar empat kelas.
+- Menolak citra non-sapi atau jenis sapi di luar enam kelas.
 - Mengidentifikasi penyakit, kondisi kesehatan, atau identitas individual sapi.
 - Mempertahankan atau memigrasikan data hasil klasifikasi penyakit lama.
-- Menambah jenis sapi di luar Bali, Brahman, Brangus, dan Limusin pada rilis ini.
+- Menambah jenis sapi di luar Aceh, Bali, Limusin, Madura, Pasundan, dan PO pada rilis ini.
 
 ## Pengguna dan Kebutuhan
 
@@ -31,7 +31,7 @@ SapiKenal mengganti fondasi klasifikasi penyakit dengan identifikasi empat jenis
 
 ### Administrator
 
-- Melihat distribusi hasil berdasarkan empat jenis sapi.
+- Melihat distribusi hasil berdasarkan enam jenis sapi.
 - Menelusuri detail hasil dan skor setiap kelas.
 - Mengelola profil jenis sapi.
 - Mendaftarkan dan mengaktifkan model yang memenuhi kontrak kelas.
@@ -42,18 +42,20 @@ Urutan kelas berikut bersifat final dan mengikat seluruh sistem:
 
 | Indeks | Label kanonik | Label tampilan Indonesia |
 | --- | --- | --- |
-| 0 | `bali` | Bali |
-| 1 | `brahman` | Brahman |
-| 2 | `brangus` | Brangus |
-| 3 | `limusin` | Limusin |
+| 0 | `aceh` | Aceh |
+| 1 | `bali` | Bali |
+| 2 | `limusin` | Limusin |
+| 3 | `madura` | Madura |
+| 4 | `pasundan` | Pasundan |
+| 5 | `po` | PO |
 
 Artefak awal:
 
 - Backend: `apps/backend/model/best.keras`
-- Mobile: `apps/mobile/app/src/main/assets/jenis_fp32.tflite`
+- Mobile: `apps/mobile/app/src/main/assets/lokal_fp32.tflite`
 - Sumber urutan kelas: `apps/backend/model/class_names.json`
 
-Kedua model menerima citra RGB `224 × 224` dan menghasilkan empat probabilitas. Preprocessing, urutan kanal, resize, dan rentang nilai masukan harus terdokumentasi dan diuji sebagai satu kontrak.
+Kedua model menerima citra RGB `224 × 224` dan menghasilkan enam probabilitas. Preprocessing, urutan kanal, resize, dan rentang nilai masukan harus terdokumentasi dan diuji sebagai satu kontrak.
 
 ## Perilaku Produk
 
@@ -76,10 +78,12 @@ Respons sukses menggunakan istilah domain netral dan tidak membawa nama penyakit
     "predicted_class": "bali",
     "confidence": 0.91,
     "scores": {
+      "aceh": 0.02,
       "bali": 0.91,
-      "brahman": 0.04,
-      "brangus": 0.03,
-      "limusin": 0.02
+      "limusin": 0.02,
+      "madura": 0.02,
+      "pasundan": 0.02,
+      "po": 0.01
     }
   },
   "model_info": {
@@ -98,7 +102,7 @@ Nama versi model ditetapkan saat implementasi setelah metadata training/export d
 - Database pengembangan lama boleh di-reset; hasil penyakit tidak dimigrasikan.
 - Schema baru tidak memakai kolom skor penyakit.
 - Skor disimpan sebagai objek yang mempertahankan label kanonik agar kontrak tidak tersebar menjadi kolom penyakit atau jenis tertentu.
-- Seed, fixture, dan dashboard lama diganti dengan data empat jenis sapi.
+- Seed, fixture, dan dashboard lama diganti dengan data enam jenis sapi.
 - Artefak model lama hanya dihapus dari working tree setelah perubahan tersebut dikonfirmasi sebagai bagian issue aktivasi artefak.
 
 ## Profil Jenis
@@ -126,11 +130,11 @@ Isi profil harus dapat ditinjau secara terpisah dari implementasi model. Klaim f
 ## Kriteria Penerimaan Rilis
 
 - Model Keras dan TFLite dapat memproses fixture nyata melalui jalur produksi masing-masing.
-- Kedua mode mengembalikan tepat empat skor dengan urutan label kanonik.
-- Aplikasi menampilkan Bali, Brahman, Brangus, atau Limusin serta tingkat keyakinan.
+- Kedua mode mengembalikan tepat enam skor dengan urutan label kanonik.
+- Aplikasi menampilkan Aceh, Bali, Limusin, Madura, Pasundan, atau PO serta tingkat keyakinan.
 - Tidak ada jalur runtime atau UI yang memetakan kelas ke PMK, LSD, sehat, atau non-sapi.
 - API, database baru, sinkronisasi riwayat, PDF, dashboard, filter, dan detail hasil memakai kontrak jenis sapi.
-- Profil kelebihan dan kekurangan tersedia untuk keempat jenis.
+- Profil kelebihan dan kekurangan tersedia untuk keenam jenis.
 - Test backend, mobile, web, dan parity lulus.
 - Dokumentasi model mencatat artefak, checksum, input/output, preprocessing, class order, dan keterbatasan.
 
@@ -138,7 +142,7 @@ Isi profil harus dapat ditinjau secara terpisah dari implementasi model. Klaim f
 
 - Class order yang salah menghasilkan label yang salah walaupun inferensi teknis berhasil.
 - Perbedaan preprocessing Android dan backend dapat menghasilkan hasil berbeda.
-- Karena tidak ada validator sapi, citra apa pun tetap mendapat salah satu dari empat label; batasan ini harus dinyatakan jelas.
+- Karena tidak ada validator sapi, citra apa pun tetap mendapat salah satu dari enam label; batasan ini harus dinyatakan jelas.
 - Reset database menghapus data pengembangan lama dan harus dibatasi pada lingkungan nonproduksi.
 - Profil kelebihan/kekurangan dapat terdengar seperti rekomendasi mutlak jika tidak ditulis secara kontekstual.
 

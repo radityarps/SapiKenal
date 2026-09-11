@@ -3,7 +3,7 @@ import time
 from collections.abc import Generator
 from datetime import datetime, timezone
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 from sqlalchemy import (  # pyright: ignore[reportMissingImports]
     create_engine,
@@ -105,8 +105,22 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
 ) -> None:
     client, session_factory = admin_client
     timestamp = round(time.time() * 1_000)
-    bali_scores = {"bali": 0.91, "brahman": 0.04, "brangus": 0.03, "limusin": 0.02}
-    brahman_scores = {"bali": 0.05, "brahman": 0.85, "brangus": 0.05, "limusin": 0.05}
+    bali_scores = {
+        "aceh": 0.02,
+        "bali": 0.91,
+        "limusin": 0.02,
+        "madura": 0.02,
+        "pasundan": 0.02,
+        "po": 0.01,
+    }
+    madura_scores = {
+        "aceh": 0.03,
+        "bali": 0.03,
+        "limusin": 0.03,
+        "madura": 0.85,
+        "pasundan": 0.03,
+        "po": 0.03,
+    }
     with session_factory() as db:
         db.add(
             DetectionHistory(
@@ -132,11 +146,11 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
             PredictionEvent(
                 request_id="direct-request",
                 status="success",
-                predicted_class="brahman",
+                predicted_class="madura",
                 confidence=0.85,
-                scores=brahman_scores,
+                scores=madura_scores,
                 processing_ms=90,
-                model_version="four-class-v1",
+                model_version="six-class-v2",
             )
         )
         db.commit()
@@ -146,16 +160,20 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
     assert dashboard["accepted"] == 2
     assert dashboard["failures"] == 1
     assert dashboard["distribution"] == {
+        "aceh": 0,
         "bali": 1,
-        "brahman": 1,
-        "brangus": 0,
         "limusin": 0,
+        "madura": 1,
+        "pasundan": 0,
+        "po": 0,
     }
     assert set(dashboard["distribution"]) == {
+        "aceh",
         "bali",
-        "brahman",
-        "brangus",
         "limusin",
+        "madura",
+        "pasundan",
+        "po",
     }
     assert "rejected_non_cattle" not in dashboard
     assert "low_confidence" not in dashboard
@@ -164,10 +182,10 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
 
     successful = client.get(
         "/api/admin/predictions",
-        params={"status": "success", "predicted_class": "brahman"},
+        params={"status": "success", "predicted_class": "madura"},
     ).json()
     assert successful["total"] == 1
-    assert successful["items"][0]["scores"]["brahman"] == 0.85
+    assert successful["items"][0]["scores"]["madura"] == 0.85
     assert "outcome" not in successful["items"][0]
     assert "is_reliable" not in successful["items"][0]
 
@@ -182,7 +200,14 @@ def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
 ) -> None:
     client, session_factory = admin_client
     timestamp = round(time.time() * 1_000)
-    scores = {"bali": 0.91, "brahman": 0.02, "brangus": 0.05, "limusin": 0.02}
+    scores = {
+        "aceh": 0.02,
+        "bali": 0.91,
+        "limusin": 0.02,
+        "madura": 0.02,
+        "pasundan": 0.02,
+        "po": 0.01,
+    }
     with session_factory() as db:
         db.add(
             DetectionHistory(
@@ -196,7 +221,7 @@ def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
                 inference_mode="online",
                 is_reliable=True,
                 processing_ms=90,
-                model_version="four-class-v1",
+                model_version="six-class-v2",
             )
         )
         db.add(
@@ -207,7 +232,7 @@ def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
                 confidence=0.91,
                 scores=scores,
                 processing_ms=90,
-                model_version="four-class-v1",
+                model_version="six-class-v2",
                 created_at=datetime.fromtimestamp(timestamp / 1_000, timezone.utc),
             )
         )
@@ -238,10 +263,12 @@ def test_last_admin_guard_and_prediction_masking(
                 display_label="Bali",
                 confidence=0.91,
                 scores={
+                    "aceh": 0.02,
                     "bali": 0.91,
-                    "brahman": 0.04,
-                    "brangus": 0.03,
                     "limusin": 0.02,
+                    "madura": 0.02,
+                    "pasundan": 0.02,
+                    "po": 0.01,
                 },
                 inference_mode="online",
                 is_reliable=True,
@@ -265,158 +292,6 @@ def test_last_admin_guard_and_prediction_masking(
     assert client.get("/api/admin/predictions?search=PMK").json()["total"] == 0
 
 
-def test_profile_contract_requires_canonical_key_source_and_review(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
-) -> None:
-    client, _ = admin_client
-    invalid_key = client.post(
-        "/api/admin/profiles",
-        json={
-            "canonical_key": "simmental",
-            "display_name": "Simmental",
-            "summary": "Draft",
-            "strengths": "Draft",
-            "limitations": "Draft",
-            "disclaimer": "Informasi pendukung.",
-            "sources": ["https://example.com/source"],
-            "content_reviewed": True,
-            "locale": "id-ID",
-        },
-    )
-    assert invalid_key.status_code == 422
-
-    invalid_locale = client.post(
-        "/api/admin/profiles",
-        json={
-            "canonical_key": "bali",
-            "display_name": "Bali",
-            "summary": "Draft",
-            "strengths": "Draft",
-            "limitations": "Draft",
-            "disclaimer": "Informasi pendukung.",
-            "sources": ["https://example.com/source"],
-            "content_reviewed": True,
-            "locale": "fr-FR",
-        },
-    )
-    assert invalid_locale.status_code == 422
-
-    for source in ("javascript:alert(1)", "https://"):
-        invalid_source = client.post(
-            "/api/admin/profiles",
-            json={
-                "canonical_key": "bali",
-                "display_name": "Bali",
-                "summary": "Draft",
-                "strengths": "Draft",
-                "limitations": "Draft",
-                "disclaimer": "Informasi pendukung.",
-                "sources": [source],
-                "locale": "id-ID",
-            },
-        )
-        assert invalid_source.status_code == 422
-
-    incomplete_review = client.post(
-        "/api/admin/profiles",
-        json={
-            "canonical_key": "bali",
-            "display_name": "Bali",
-            "summary": "Profil sapi Bali.",
-            "strengths": "Kelebihan ditulis setelah peninjauan.",
-            "limitations": "Kekurangan ditulis setelah peninjauan.",
-            "disclaimer": "Profil informatif.",
-            "sources": ["https://example.com/source"],
-            "content_reviewed": False,
-            "locale": "id-ID",
-        },
-    )
-    assert incomplete_review.status_code == 201
-    profile_id = incomplete_review.json()["item"]["id"]
-    activation = client.post(f"/api/admin/profiles/{profile_id}/activate")
-    assert activation.status_code == 422
-    assert activation.json()["code"] == "PROFILE_REVIEW_REQUIRED"
-    reviewed = client.patch(
-        f"/api/admin/profiles/{profile_id}",
-        json={"content_reviewed": True},
-    )
-    assert reviewed.status_code == 200
-    assert client.post(f"/api/admin/profiles/{profile_id}/activate").status_code == 200
-    reviewed_edit = client.patch(
-        f"/api/admin/profiles/{profile_id}",
-        json={"content_reviewed": True, "summary": "Konten berubah."},
-    )
-    assert reviewed_edit.status_code == 422
-    assert reviewed_edit.json()["code"] == "PROFILE_REVIEW_INVALID"
-    null_patch = client.patch(
-        f"/api/admin/profiles/{profile_id}",
-        json={"summary": None},
-    )
-    assert null_patch.status_code == 422
-
-    updated = client.patch(
-        f"/api/admin/profiles/{profile_id}",
-        json={"sources": ["https://example.com/updated-source"]},
-    )
-    assert updated.status_code == 200
-    assert updated.json()["item"]["revision"]["content_reviewed"] is False
-    assert client.post(f"/api/admin/profiles/{profile_id}/activate").status_code == 422
-
-
-def test_breed_profile_lifecycle_and_public_read(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
-) -> None:
-    client, _ = admin_client
-    payload = {
-        "canonical_key": "bali",
-        "display_name": "Bali",
-        "summary": "Profil sapi Bali.",
-        "strengths": "Adaptif terhadap lingkungan tropis.",
-        "limitations": "Perlu pakan dan perawatan sesuai kondisi.",
-        "disclaimer": "Profil informatif, bukan penilaian peternakan final.",
-        "sources": ["https://example.com/source"],
-        "content_reviewed": True,
-        "locale": "id-ID",
-    }
-    created = client.post("/api/admin/profiles", json=payload)
-    assert created.status_code == 201
-    profile_id = created.json()["item"]["id"]
-    assert client.post(f"/api/admin/profiles/{profile_id}/activate").status_code == 200
-    revised = client.patch(
-        f"/api/admin/profiles/{profile_id}",
-        json={"summary": "Ringkasan yang diperbarui."},
-    )
-    assert revised.status_code == 200
-    assert revised.json()["item"]["status"] == "draft"
-    assert client.get("/api/content/profiles").json()["items"] == []
-    reviewed = client.patch(
-        f"/api/admin/profiles/{profile_id}",
-        json={"content_reviewed": True},
-    )
-    assert reviewed.status_code == 200
-    assert reviewed.json()["item"]["revision"]["content_reviewed"] is True
-    assert client.post(f"/api/admin/profiles/{profile_id}/activate").status_code == 200
-    public = client.get("/api/content/profiles")
-    assert public.status_code == 200
-    assert public.json()["items"][0]["canonical_key"] == "bali"
-    assert public.json()["items"][0]["locale"] == "id-ID"
-    assert set(public.json()["items"][0]) == {
-        "canonical_key",
-        "locale",
-        "display_name",
-        "summary",
-        "strengths",
-        "limitations",
-        "disclaimer",
-        "sources",
-        "revision",
-    }
-    assert (
-        client.post(f"/api/admin/profiles/{profile_id}/deactivate").status_code == 200
-    )
-    assert client.get("/api/content/profiles").json()["items"] == []
-
-
 def test_model_registration_rejects_missing_allowlisted_artifact(
     admin_client: tuple[TestClient, sessionmaker[Session]],
 ) -> None:
@@ -427,7 +302,7 @@ def test_model_registration_rejects_missing_allowlisted_artifact(
             "version": "candidate-1",
             "artifact_name": "candidate.keras",
             "checksum": "0" * 64,
-            "classes": ["bali", "brahman", "brangus", "limusin"],
+            "classes": ["aceh", "bali", "limusin", "madura", "pasundan", "po"],
         },
     )
     assert response.status_code == 422
@@ -492,7 +367,7 @@ def test_model_upload_registers_available_artifact_without_activation(
         data={
             "version": "candidate-upload-1",
             "input_size": "224",
-            "classes": "bali,brahman,brangus,limusin",
+            "classes": "aceh,bali,limusin,madura,pasundan,po",
             "notes": "Candidate upload test",
         },
         files={

@@ -76,19 +76,22 @@ import java.util.Locale
 
 private val breedMap =
     mapOf(
+        "aceh" to ("🟤" to SapiKenalColors.Aceh),
         "bali" to ("🟤" to SapiKenalColors.Bali),
+        "limusin" to ("🟠" to SapiKenalColors.Limusin),
+        "madura" to ("🟤" to SapiKenalColors.Madura),
+        "pasundan" to ("🟤" to SapiKenalColors.Pasundan),
+        "po" to ("⚪" to SapiKenalColors.Po),
         "brahman" to ("⚪" to SapiKenalColors.Brahman),
         "brangus" to ("⚫" to SapiKenalColors.Brangus),
-        "limusin" to ("🟠" to SapiKenalColors.Limusin),
     )
-private val breedDisplayNames = BreedContract.definitions.associate { it.key to it.displayNameResId }
 
 private fun breedEmoji(label: String): String = breedMap[label.trim().lowercase(Locale.ROOT)]?.first ?: "📸"
 
 private fun breedColor(label: String): Color = breedMap[label.trim().lowercase(Locale.ROOT)]?.second ?: SapiKenalColors.TextSecondary
 
 @StringRes
-private fun breedDisplayNameRes(label: String): Int? = breedDisplayNames[label.trim().lowercase(Locale.ROOT)]
+private fun breedDisplayNameRes(label: String): Int? = BreedContract.find(label)?.displayNameResId
 
 private fun formatTimestamp(
     millis: Long,

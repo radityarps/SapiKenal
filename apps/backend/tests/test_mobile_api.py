@@ -23,10 +23,12 @@ def test_predict_contract():
             "predicted_class": "bali",
             "confidence": 0.9,
             "scores": {
+                "aceh": 0.02,
                 "bali": 0.9,
-                "brahman": 0.05,
-                "brangus": 0.04,
-                "limusin": 0.01,
+                "limusin": 0.02,
+                "madura": 0.02,
+                "pasundan": 0.02,
+                "po": 0.02,
             },
         },
         "model_info": {"version": "test"},
@@ -55,13 +57,15 @@ def test_predict_keeps_low_confidence_as_success():
             "predicted_class": "bali",
             "confidence": 0.31,
             "scores": {
+                "aceh": 0.02,
                 "bali": 0.31,
-                "brahman": 0.30,
-                "brangus": 0.29,
-                "limusin": 0.10,
+                "limusin": 0.30,
+                "madura": 0.20,
+                "pasundan": 0.10,
+                "po": 0.07,
             },
         },
-        "model_info": {"version": "four-class-test"},
+        "model_info": {"version": "six-class-test"},
         "processing_time_ms": 10,
         "preprocessing_time_ms": 4,
         "inference_time_ms": 6,
@@ -112,10 +116,12 @@ def test_history_sync_roundtrip(tmp_path, monkeypatch):
 
     client = TestClient(app)
     scores = {
+        "aceh": 0.02,
         "bali": 0.8,
-        "brahman": 0.1,
-        "brangus": 0.05,
-        "limusin": 0.05,
+        "limusin": 0.08,
+        "madura": 0.04,
+        "pasundan": 0.03,
+        "po": 0.03,
     }
     payload = {
         "device_id": "device-12345678",
@@ -177,10 +183,12 @@ def test_predict_does_not_persist_upload(tmp_path):
             "predicted_class": "bali",
             "confidence": 0.9,
             "scores": {
+                "aceh": 0.02,
                 "bali": 0.9,
-                "brahman": 0.05,
-                "brangus": 0.04,
-                "limusin": 0.01,
+                "limusin": 0.02,
+                "madura": 0.02,
+                "pasundan": 0.02,
+                "po": 0.02,
             },
         },
         "model_info": {"version": "test"},
@@ -203,7 +211,9 @@ def test_predict_does_not_persist_upload(tmp_path):
 
 def test_labels_follow_class_names_file(tmp_path, monkeypatch):
     class_names = tmp_path / "class_names.json"
-    class_names.write_text('{"0":"Bali","1":"Brahman","2":"Brangus","3":"Limusin"}')
+    class_names.write_text(
+        '{"0":"Aceh","1":"Bali","2":"Limusin","3":"Madura","4":"Pasundan","5":"PO"}'
+    )
     monkeypatch.setenv("MODEL_CLASS_NAMES_PATH", str(class_names))
 
     import importlib
@@ -211,4 +221,11 @@ def test_labels_follow_class_names_file(tmp_path, monkeypatch):
     import config as config_mod
 
     importlib.reload(config_mod)
-    assert config_mod.settings.labels == ["bali", "brahman", "brangus", "limusin"]
+    assert config_mod.settings.labels == [
+        "aceh",
+        "bali",
+        "limusin",
+        "madura",
+        "pasundan",
+        "po",
+    ]

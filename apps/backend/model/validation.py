@@ -31,7 +31,7 @@ class ModelValidationUnavailable(RuntimeError):
 CHUNK_SIZE = 1024 * 1024
 CANONICAL_INPUT_SIZE = 224
 CANONICAL_INPUT_SHAPE = (None, CANONICAL_INPUT_SIZE, CANONICAL_INPUT_SIZE, 3)
-CANONICAL_OUTPUT_SHAPE = (None, 4)
+CANONICAL_OUTPUT_SHAPE = (None, len(CANONICAL_LABELS))
 CANONICAL_DTYPE = "float32"
 
 
@@ -147,9 +147,12 @@ def validate_loaded_model(
     except (AttributeError, TypeError, ValueError):
         _raise_contract("Model Rescaling configuration is unavailable")
     try:
-        valid_rescaling = isinstance(rescaling, dict) and bool(
-            np.isclose(rescaling.get("scale"), 1 / 127.5)
-            and np.isclose(rescaling.get("offset"), -1.0)
+        scale = rescaling.get("scale") if isinstance(rescaling, dict) else None
+        offset = rescaling.get("offset") if isinstance(rescaling, dict) else None
+        valid_rescaling = (
+            isinstance(scale, (int, float))
+            and isinstance(offset, (int, float))
+            and bool(np.isclose(scale, 1 / 127.5) and np.isclose(offset, -1.0))
         )
     except (TypeError, ValueError):
         valid_rescaling = False
@@ -180,7 +183,9 @@ def validate_loaded_model(
         or output_config.get("units") != len(classes)
         or output_config.get("activation") != "softmax"
     ):
-        _raise_contract("Model output must be Dense(4, activation=softmax)")
+        _raise_contract(
+            f"Model output must be Dense({len(classes)}, activation=softmax)"
+        )
 
     output_shape = _shape_tuple(getattr(model, "output_shape", None))
     expected_output_shape = CANONICAL_OUTPUT_SHAPE

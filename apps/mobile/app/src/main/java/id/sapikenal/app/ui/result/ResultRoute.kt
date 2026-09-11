@@ -95,13 +95,18 @@ private data class ClassDisplayConfig(
 
 private val classConfigs =
     mapOf(
+        "aceh" to ClassDisplayConfig("aceh", R.string.result_breed_aceh, "🟤", SapiKenalColors.Aceh, R.string.result_advice_breed),
         "bali" to ClassDisplayConfig("bali", R.string.result_breed_bali, "🟤", SapiKenalColors.Bali, R.string.result_advice_breed),
+        "limusin" to
+            ClassDisplayConfig("limusin", R.string.result_breed_limusin, "🟠", SapiKenalColors.Limusin, R.string.result_advice_breed),
+        "madura" to ClassDisplayConfig("madura", R.string.result_breed_madura, "🟤", SapiKenalColors.Madura, R.string.result_advice_breed),
+        "pasundan" to
+            ClassDisplayConfig("pasundan", R.string.result_breed_pasundan, "🟤", SapiKenalColors.Pasundan, R.string.result_advice_breed),
+        "po" to ClassDisplayConfig("po", R.string.result_breed_po, "⚪", SapiKenalColors.Po, R.string.result_advice_breed),
         "brahman" to
             ClassDisplayConfig("brahman", R.string.result_breed_brahman, "⚪", SapiKenalColors.Brahman, R.string.result_advice_breed),
         "brangus" to
             ClassDisplayConfig("brangus", R.string.result_breed_brangus, "⚫", SapiKenalColors.Brangus, R.string.result_advice_breed),
-        "limusin" to
-            ClassDisplayConfig("limusin", R.string.result_breed_limusin, "🟠", SapiKenalColors.Limusin, R.string.result_advice_breed),
     )
 
 private val defaultClassConfig =
@@ -458,7 +463,7 @@ fun ResultRoute(
 
             Spacer(Modifier.height(24.dp))
 
-            // ── 4. All scores ─────────────────────────────────────────
+            // ── 4. Top 3 scores ───────────────────────────────────────
             Text(
                 text = stringResource(R.string.result_all_scores),
                 style = MaterialTheme.typography.titleMedium,
@@ -467,20 +472,21 @@ fun ResultRoute(
             Spacer(Modifier.height(12.dp))
 
             val sortedScores =
-                BreedContract.CANONICAL_LABELS
+                (BreedContract.CANONICAL_LABELS + allScores.keys)
+                    .distinct()
                     .mapNotNull { key -> allScores[key]?.let { score -> key to score } }
                     .sortedByDescending { it.second }
+                    .take(3)
             sortedScores.forEach { (key, score) ->
                 val isHighlighted = isLabelMatch(key, config.labelKey)
+                val displayName = scoreDisplayNameRes(key)?.let { stringResource(it) } ?: key.replaceFirstChar { it.uppercase() }
                 ScoreRow(
-                    label = stringResource(scoreDisplayNameRes(key)!!),
+                    label = displayName,
                     score = score,
                     isHighlighted = isHighlighted,
                     color = config.color,
                     accessibilityDescription =
-                        "${stringResource(
-                            scoreDisplayNameRes(key)!!,
-                        )}, ${stringResource(R.string.result_confidence)} ${(score.coerceIn(0f, 1f) * 100).toInt()}%" +
+                        "$displayName, ${stringResource(R.string.result_confidence)} ${(score.coerceIn(0f, 1f) * 100).toInt()}%" +
                             if (isHighlighted) ", ${stringResource(R.string.result_identification)}" else "",
                 )
                 Spacer(Modifier.height(8.dp))

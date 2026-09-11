@@ -1,26 +1,27 @@
 {
-  "model_version": "sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32",
+  "model_version": "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
   "architecture": "mobilenetv3",
-  "asset": "jenis_fp32.tflite",
-  "sha256": "7b71a5a923ae69cf00b390712381c8d437d31e105e1370b0dc2653ba2271a664",
-  "size_bytes": 12381284,
-  "size_mb": 11.8077125549,
+  "asset": "lokal_fp32.tflite",
+  "sha256": "cc1b9a74af5ef44a7dead8848d6c41795aef9399c76e647f434277867eb113d9",
+  "size_bytes": 12382316,
   "backend_artifact": {
     "path": "apps/backend/model/best.keras",
-    "sha256": "873c54eac9b4cf127ad29486ba6de3d4d0d16d415a3431aa7baa7e46d455434b",
-    "size_bytes": 14156083
+    "sha256": "0d92bc9afec8ce8b57f3637720720fb6530664b8c38391ecf3b380df614b8f65",
+    "size_bytes": 14159179
   },
-  "class_order": ["bali", "brahman", "brangus", "limusin"],
+  "class_order": ["aceh", "bali", "limusin", "madura", "pasundan", "po"],
   "class_indices": {
-    "0": "bali",
-    "1": "brahman",
-    "2": "brangus",
-    "3": "limusin"
+    "0": "aceh",
+    "1": "bali",
+    "2": "limusin",
+    "3": "madura",
+    "4": "pasundan",
+    "5": "po"
   },
   "tensor_contract": {
     "input_shape": [1, 224, 224, 3],
     "input_dtype": "float32",
-    "output_shape": [1, 4],
+    "output_shape": [1, 6],
     "output_dtype": "float32",
     "input_tensor_count": 1,
     "output_tensor_count": 1,
@@ -40,11 +41,6 @@
     "exif_orientation_correction": "applied by ClientPreprocessor before 224x224 resize and lossless PNG encoding",
     "client_encoding": "PNG",
     "resize_method": "bilinear"
-  },
-  "parity": {
-    "status": "verified",
-    "source": "docs/model/parity.md",
-    "note": "All 13 real fixtures have identical production input tensors and matching Keras/TFLite winners; measured maximum score delta is 0.000002233689."
   },
   "warning": "Image classification model only; output is not validation that an image contains a cow."
 }

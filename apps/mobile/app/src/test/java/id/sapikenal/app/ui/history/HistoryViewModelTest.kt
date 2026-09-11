@@ -15,14 +15,14 @@ import org.junit.Test
 class HistoryViewModelTest {
     private fun createDetectionResult(
         id: Long = 1L,
-        label: String = "brahman",
-        displayLabel: String = "Brahman",
+        label: String = "madura",
+        displayLabel: String = "Madura",
         confidence: Float = 0.85f,
         inferenceMode: InferenceMode = InferenceMode.ONLINE,
         consentStatus: ConsentStatus = ConsentStatus.ALLOWED,
         imageSource: ImageSource? = ImageSource.CAMERA,
         appVersion: String? = "1.0.0",
-        modelVersion: String? = "sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32",
+        modelVersion: String? = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
         title: String? = null,
         description: String? = null,
     ) = DetectionResult(
@@ -31,7 +31,15 @@ class HistoryViewModelTest {
         displayLabel = displayLabel,
         confidence = confidence,
         isReliable = true,
-        allScores = mapOf("bali" to 0.05f, "brahman" to 0.85f, "brangus" to 0.05f, "limusin" to 0.05f),
+        allScores =
+            mapOf(
+                "aceh" to 0.03f,
+                "bali" to 0.03f,
+                "limusin" to 0.03f,
+                "madura" to 0.85f,
+                "pasundan" to 0.03f,
+                "po" to 0.03f,
+            ),
         inferenceMode = inferenceMode,
         consentStatus = consentStatus,
         timestamp = 1700000000000L,
@@ -156,8 +164,8 @@ class HistoryViewModelTest {
 
     @Test
     fun `mapping preserves canonical breed label`() {
-        val ui = createDetectionResult(label = "brahman").toHistoryItemUiFields()
-        assertEquals("brahman", ui.label)
-        assertEquals("Brahman", ui.displayLabel)
+        val ui = createDetectionResult(label = "madura").toHistoryItemUiFields()
+        assertEquals("madura", ui.label)
+        assertEquals("Madura", ui.displayLabel)
     }
 }

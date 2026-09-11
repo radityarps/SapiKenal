@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 from sqlalchemy import create_engine, select  # pyright: ignore[reportMissingImports]
 from sqlalchemy.orm import sessionmaker  # pyright: ignore[reportMissingImports]
 
@@ -18,10 +18,17 @@ def _item(**overrides):
         "device_id": "history-device-123456",
         "local_id": 3,
         "timestamp": 1_710_000_000_000,
-        "predicted_class": "brangus",
-        "display_label": "Brangus",
+        "predicted_class": "madura",
+        "display_label": "Madura",
         "confidence": 0.8,
-        "scores": {"bali": 0.05, "brahman": 0.1, "brangus": 0.8, "limusin": 0.05},
+        "scores": {
+            "aceh": 0.05,
+            "bali": 0.05,
+            "limusin": 0.05,
+            "madura": 0.8,
+            "pasundan": 0.025,
+            "po": 0.025,
+        },
         "inference_mode": "OFFLINE",
         "is_reliable": True,
         "processing_ms": 22,
@@ -48,7 +55,7 @@ def test_history_store_round_trips_labeled_scores_and_metadata(tmp_path):
                 location_source="gps",
             )
         )
-        assert created["predicted_class"] == "brangus"
+        assert created["predicted_class"] == "madura"
         assert json.loads(created["scores"]) == _item()["scores"]
         assert created["title"] == "Sapi #3"
         assert created["description"] == "Catatan lapangan"
@@ -76,9 +83,9 @@ def test_history_store_rejects_invalid_contract_before_write(tmp_path):
     try:
         store = module.HistoryStore()
         with pytest.raises(
-            ValueError, match="Scores must contain exactly four canonical model classes"
+            ValueError, match="Scores must contain exactly 6 canonical model classes"
         ):
-            store.upsert(_item(scores={"brangus": 1.0}))
+            store.upsert(_item(scores={"madura": 1.0}))
     finally:
         module.settings.history_db_path = original_path
 
@@ -123,7 +130,18 @@ def test_history_schema_columns_are_explicit():
 def test_history_values_rejects_malformed_scores():
     with pytest.raises(ValueError, match="Invalid history metadata"):
         audit_module._history_values(
-            _item(scores={"bali": 2.0, "brahman": 0.0, "brangus": 0.0, "limusin": 0.0})
+            _item(
+                scores={
+                    "aceh": 0.0,
+                    "madura": 0.0,
+                    "pasundan": 0.0,
+                    "po": 0.0,
+                    "bali": 2.0,
+                    "brahman": 0.0,
+                    "brangus": 0.0,
+                    "limusin": 0.0,
+                }
+            )
         )
 
 
@@ -139,7 +157,7 @@ def test_history_values_normalizes_enum_and_preserves_scores():
         location_source="gps",
     )
     values = audit_module._history_values(item)
-    assert values["predicted_class"] == "brangus"
+    assert values["predicted_class"] == "madura"
     assert values["scores"] == item["scores"]
     assert values["title"] == "Sapi #3"
     assert values["description"] == "Catatan lapangan"
@@ -159,9 +177,9 @@ def test_prediction_event_drops_invalid_scores(monkeypatch):
     audit_module.record_prediction_event(
         request_id="invalid-event",
         status="success",
-        predicted_class="brangus",
+        predicted_class="madura",
         confidence=0.8,
-        scores={"brangus": 0.8},
+        scores={"madura": 0.8},
     )
     with session_factory() as db:
         event = db.scalar(

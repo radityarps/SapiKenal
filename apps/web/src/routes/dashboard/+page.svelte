@@ -27,22 +27,25 @@
     { value: '30d', label: '30 hari' }
   ];
 
-  const breedCards = ['bali', 'brahman', 'brangus', 'limusin'];
+  const breedCards = ['aceh', 'bali', 'limusin', 'madura', 'pasundan', 'po'];
   const classLabels: Record<string, string> = {
+    aceh: 'Aceh',
     bali: 'Bali',
-    brahman: 'Brahman',
-    brangus: 'Brangus',
-    limusin: 'Limusin'
+    limusin: 'Limusin',
+    madura: 'Madura',
+    pasundan: 'Pasundan',
+    po: 'PO'
   };
 
   const auditLabels: Record<string, string> = {
     user_created: 'Pengguna dibuat',
     user_updated: 'Pengguna diperbarui',
     user_password_reset: 'Password pengguna direset',
-    breed_profile_created: 'Profil jenis dibuat',
-    breed_profile_updated: 'Profil jenis diperbarui',
-    breed_profile_activated: 'Profil jenis diaktifkan',
-    breed_profile_deactivated: 'Profil jenis dinonaktifkan',
+    article_created: 'Artikel Panduan dibuat',
+    article_revised: 'Artikel Panduan direvisi',
+    article_reviewed: 'Artikel Panduan ditinjau',
+    article_activated: 'Artikel Panduan diaktifkan',
+    article_deactivated: 'Artikel Panduan dinonaktifkan',
     model_registered: 'Model didaftarkan',
     model_activate: 'Model diaktifkan',
     model_rollback: 'Model di-rollback'
@@ -100,7 +103,7 @@
       <article class="grid min-w-0 gap-2.5 border-b border-[#e7ece9] p-5 xl:border-b-0 xl:border-r">
         <div class="flex items-center gap-2"><span class="grid size-7 place-items-center rounded-lg bg-[#edf5f1] text-[#357157]"><Gauge size={18} strokeWidth={1.8} aria-hidden="true" /></span><span class="text-xs font-bold text-[#66766e]">Keyakinan rata-rata</span></div>
         <strong class="truncate text-[clamp(1.55rem,2.5vw,2rem)] font-bold leading-none tracking-[-.045em] text-[#17241f]">{formatPercent(data.dashboard.predictions.average_confidence)}</strong>
-        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.accepted)} hasil berhasil</span><span>Empat kelas</span></div>
+        <div class="flex justify-between gap-2 text-[.68rem] text-[#7a8881]"><span>{formatNumber(data.dashboard.predictions.accepted)} hasil berhasil</span><span>Enam kelas</span></div>
       </article>
       {#each breedCards as breed}
         <article class="grid min-w-0 gap-2.5 border-b border-[#e7ece9] p-5 sm:border-r xl:border-b-0">
@@ -119,7 +122,7 @@
     <div class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,.92fr)]">
       <section class="min-w-0 rounded-xl border border-[#e0e7e3] bg-white p-5 shadow-sm">
         <div class="flex items-start justify-between gap-4 border-b border-[#e8edea] pb-4">
-          <div><h2 class="m-0 mb-1 text-[.9rem] font-bold tracking-[-.015em]">Distribusi hasil identifikasi</h2><p class="m-0 text-[.72rem] text-[#7a8881]">Komposisi empat jenis sapi pada periode terpilih ({formatNumber(data.dashboard.predictions.accepted)} hasil berhasil).</p></div>
+          <div><h2 class="m-0 mb-1 text-[.9rem] font-bold tracking-[-.015em]">Distribusi hasil identifikasi</h2><p class="m-0 text-[.72rem] text-[#7a8881]">Komposisi enam jenis sapi pada periode terpilih ({formatNumber(data.dashboard.predictions.accepted)} hasil berhasil).</p></div>
           <a class="inline-flex items-center gap-1 whitespace-nowrap text-[.7rem] font-bold text-[#286248] no-underline hover:text-[#123f2c]" href="/predictions">Lihat semua <ArrowRight size={14} strokeWidth={1.8} aria-hidden="true" /></a>
         </div>
         {#if distributionTotal()}

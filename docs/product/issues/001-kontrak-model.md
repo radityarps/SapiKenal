@@ -1,4 +1,4 @@
-# Tetapkan dan validasi kontrak model empat jenis
+# Tetapkan dan validasi kontrak model enam jenis
 
 ## Tujuan
 
@@ -6,8 +6,8 @@ Menjadikan urutan kelas, tensor, preprocessing, metadata, dan artefak baru sebag
 
 ## Scope
 
-- Tetapkan urutan `bali`, `brahman`, `brangus`, `limusin` dari `class_names.json`.
-- Inspeksi `best.keras` dan `jenis_fp32.tflite`: bentuk/tipenya, softmax, ukuran input, serta preprocessing internal.
+- Tetapkan urutan `aceh`, `bali`, `limusin`, `madura`, `pasundan`, `po` dari `class_names.json`.
+- Inspeksi `best.keras` dan `lokal_fp32.tflite`: bentuk/tipenya, softmax, ukuran input, serta preprocessing internal.
 - Perbarui metadata model dan checksum kedua artefak.
 - Tetapkan nama versi model yang sama maknanya untuk backend dan mobile.
 - Tambahkan pemeriksaan kecil yang gagal bila metadata, class order, checksum, atau tensor contract menyimpang.
@@ -21,7 +21,7 @@ Menjadikan urutan kelas, tensor, preprocessing, metadata, dan artefak baru sebag
 ## Kriteria penerimaan
 
 - [ ] Metadata menyebut asset/model baru dan tidak menyebut penyakit.
-- [ ] Class index 0–3 sama pada Keras, TFLite, backend, dan mobile.
+- [ ] Class index 0–5 sama pada Keras, TFLite, backend, dan mobile.
 - [ ] Input/output kedua model terverifikasi sebagai kontrak yang didukung runtime.
 - [ ] Rentang input, RGB, resize, dan rescaling terdokumentasi berdasarkan isi model atau proses export.
 - [ ] Checksum aktual cocok dengan metadata.

@@ -69,10 +69,14 @@
     <string name="result_export_loading">Memuat hasil tersimpan…</string>
     <string name="result_pdf_exported">Laporan PDF berhasil dibuat</string>
     <string name="result_pdf_failed">Gagal membuat laporan PDF</string>
+    <string name="result_breed_aceh">Aceh</string>
     <string name="result_breed_bali">Bali</string>
+    <string name="result_breed_limusin">Limusin</string>
+    <string name="result_breed_madura">Madura</string>
+    <string name="result_breed_pasundan">Pasundan</string>
+    <string name="result_breed_po">PO</string>
     <string name="result_breed_brahman">Brahman</string>
     <string name="result_breed_brangus">Brangus</string>
-    <string name="result_breed_limusin">Limusin</string>
     <string name="result_unknown">Tidak Diketahui</string>
     <string name="result_scan_image">Gambar scan</string>
     <string name="result_scanned_at">Waktu scan: %1$s</string>
@@ -87,7 +91,7 @@
     <string name="result_advice_breed">Gunakan profil jenis ini sebagai informasi pendukung. Perhatikan kondisi ternak, pakan, dan lingkungan secara menyeluruh.</string>
     <string name="result_saved">Hasil disimpan</string>
     <string name="result_saved_note_title">Catatan Tersimpan</string>
-    <string name="result_all_scores">Semua Skor</string>
+    <string name="result_all_scores">Top 3 Skor Jenis Sapi</string>
     <string name="result_advice_title">Profil Jenis</string>
     <string name="result_learn_more">Pelajari Selengkapnya</string>
     <string name="result_disclaimer">Ini adalah hasil klasifikasi citra dari model AI. Hasil ini bukan bukti identitas individual sapi dan bukan rekomendasi mutlak.</string>
@@ -133,7 +137,7 @@
     <string name="report_subtitle">Hasil identifikasi jenis sapi dari model AI.</string>
     <string name="report_object_validation_limitation">Laporan ini berisi hasil identifikasi jenis sapi dari klasifikasi citra, bukan validasi bahwa objek pada citra adalah sapi.</string>
     <string name="report_not_official_document">Laporan ini bukan bukti identitas individual sapi atau dokumen resmi.</string>
-    <string name="report_supported_breeds_limitation">Hasil berlaku sebagai informasi pendukung; aplikasi tidak memvalidasi objek atau memberi penilaian di luar empat jenis yang didukung.</string>
+    <string name="report_supported_breeds_limitation">Hasil berlaku sebagai informasi pendukung; aplikasi tidak memvalidasi objek atau memberi penilaian di luar enam jenis yang didukung.</string>
     <string name="report_generated_by">Dibuat oleh SapiKenal</string>
 
     <!-- History -->
@@ -142,7 +146,11 @@
     <string name="history_empty_filter">Tidak ada hasil identifikasi dengan filter ini</string>
     <string name="history_clear_filter">Hapus Filter</string>
     <string name="history_filter_all">Semua</string>
+    <string name="history_filter_aceh">Aceh</string>
     <string name="history_filter_bali">Bali</string>
+    <string name="history_filter_madura">Madura</string>
+    <string name="history_filter_pasundan">Pasundan</string>
+    <string name="history_filter_po">PO</string>
     <string name="history_filter_brahman">Brahman</string>
     <string name="history_filter_brangus">Brangus</string>
     <string name="history_filter_limusin">Limusin</string>
@@ -170,7 +178,11 @@
     <string name="guide_action_filter">Filter</string>
     <string name="guide_action_clear">Hapus</string>
     <string name="guide_tab_app">Penggunaan</string>
+    <string name="guide_tab_aceh">Aceh</string>
     <string name="guide_tab_bali">Bali</string>
+    <string name="guide_tab_madura">Madura</string>
+    <string name="guide_tab_pasundan">Pasundan</string>
+    <string name="guide_tab_po">PO</string>
     <string name="guide_tab_brahman">Brahman</string>
     <string name="guide_tab_brangus">Brangus</string>
     <string name="guide_tab_limusin">Limusin</string>
@@ -178,15 +190,24 @@
     <!-- Guide: App Usage -->
     <string name="guide_app_title_1">Memulai Scan Pertama</string>
     <string name="guide_app_summary_1">Panduan lengkap menggunakan fitur scan untuk mengidentifikasi jenis sapi Anda.</string>
-    <string name="guide_app_body_1">Cara Melakukan Identifikasi\n\nBuka aplikasi SapiKenal dan pilih tab Periksa. Arahkan kamera ke sapi dengan tubuh dan ciri jenis terlihat jelas di dalam bingkai. Anda juga dapat memilih citra dari galeri.\n\nTips Mengambil Citra\n\n• Tampilkan tubuh sapi dari samping atau sudut tiga perempat\n• Pastikan kepala, bahu, dan kaki terlihat jika memungkinkan\n• Gunakan pencahayaan merata dan hindari bayangan kuat\n• Jaga kamera tetap stabil dan hindari citra buram\n• Jangan menganggap kamera atau galeri telah memvalidasi objek pada citra\n\nSetelah Citra Dipilih\n\nAplikasi memproses citra dan menampilkan satu jenis teratas, tingkat keyakinan, serta skor Bali, Brahman, Brangus, dan Limusin. Hasil ini adalah klasifikasi model, bukan bukti silsilah atau identitas individual.</string>
+    <string name="guide_app_body_1">Cara Melakukan Identifikasi\n\nBuka aplikasi SapiKenal dan pilih tab Periksa. Arahkan kamera ke sapi dengan tubuh dan ciri jenis terlihat jelas di dalam bingkai. Anda juga dapat memilih citra dari galeri.\n\nTips Mengambil Citra\n\n• Tampilkan tubuh sapi dari samping atau sudut tiga perempat\n• Pastikan kepala, bahu, dan kaki terlihat jika memungkinkan\n• Gunakan pencahayaan merata dan hindari bayangan kuat\n• Jaga kamera tetap stabil dan hindari citra buram\n• Jangan menganggap kamera atau galeri telah memvalidasi objek pada citra\n\nSetelah Citra Dipilih\n\nAplikasi memproses citra dan menampilkan satu jenis teratas, tingkat keyakinan, serta skor jenis sapi yang didukung. Hasil ini adalah klasifikasi model, bukan bukti silsilah atau identitas individual.</string>
 
     <string name="guide_app_title_2">Mode Online vs Offline</string>
     <string name="guide_app_summary_2">Perbedaan antara mode inferensi online dan offline, serta kapan menggunakan masing-masing.</string>
-    <string name="guide_app_body_2">Mode Online\n\nPada mode online, gambar dikirim ke server untuk dianalisis menggunakan model MobileNetV3. Mode ini memerlukan koneksi internet yang stabil.\n\nKelebihan mode online:\n• Model berada di server sehingga pembaruannya tidak bergantung pada versi aplikasi\n• Dapat menjadi pilihan saat koneksi internet tersedia\n\nMode Offline\n\nPada mode offline, analisis dilakukan langsung di perangkat menggunakan TensorFlow Lite. Mode ini bekerja tanpa koneksi internet.\n\nKelebihan mode offline:\n• Dapat digunakan di lokasi tanpa sinyal internet\n• Gambar tidak perlu dikirim ke server\n• Tetap tersedia saat koneksi tidak stabil\n\nKapan Menggunakan Masing-Masing?\n\nGunakan mode online atau offline sesuai koneksi dan kebutuhan Anda. Kedua mode menghasilkan klasifikasi citra dengan kontrak empat jenis yang sama; tingkat keyakinan tetap merupakan keluaran relatif model. Aplikasi dapat beralih ke mode fallback offline jika server tidak dapat dijangkau.</string>
+    <string name="guide_app_body_2">Mode Online\n\nPada mode online, gambar dikirim ke server untuk dianalisis menggunakan model MobileNetV3. Mode ini memerlukan koneksi internet yang stabil.\n\nKelebihan mode online:\n• Model berada di server sehingga pembaruannya tidak bergantung pada versi aplikasi\n• Dapat menjadi pilihan saat koneksi internet tersedia\n\nMode Offline\n\nPada mode offline, analisis dilakukan langsung di perangkat menggunakan TensorFlow Lite. Mode ini bekerja tanpa koneksi internet.\n\nKelebihan mode offline:\n• Dapat digunakan di lokasi tanpa sinyal internet\n• Gambar tidak perlu dikirim ke server\n• Tetap tersedia saat koneksi tidak stabil\n\nKapan Menggunakan Masing-Masing?\n\nGunakan mode online atau offline sesuai koneksi dan kebutuhan Anda. Kedua mode menghasilkan klasifikasi citra dengan kontrak enam jenis yang sama; tingkat keyakinan tetap merupakan keluaran relatif model. Aplikasi dapat beralih ke mode fallback offline jika server tidak dapat dijangkau.</string>
 
     <string name="guide_app_title_3">Memahami Hasil Klasifikasi</string>
-    <string name="guide_app_summary_3">Cara membaca tingkat keyakinan dan empat skor hasil identifikasi.</string>
-    <string name="guide_app_body_3" formatted="false">Tingkat Keyakinan\n\nSetiap hasil identifikasi menampilkan tingkat keyakinan dalam persentase. Angka ini menunjukkan keyakinan relatif model terhadap jenis terpilih, bukan jaminan identitas sapi.\n\nSkor Per Jenis\n\nAplikasi menampilkan skor Bali, Brahman, Brangus, dan Limusin agar distribusi keluaran model dapat dibandingkan. Warna dan tanda visual hanya pelengkap; label dan angka tetap menjadi informasi utama.\n\nBatasan\n\nModel selalu memilih salah satu dari empat jenis yang didukung. Kamera atau galeri tidak memvalidasi bahwa objek pada citra adalah sapi, dan hasil bukan bukti silsilah atau identitas individual.</string>
+    <string name="guide_app_summary_3">Cara membaca tingkat keyakinan dan skor hasil identifikasi.</string>
+    <string name="guide_app_body_3" formatted="false">Tingkat Keyakinan\n\nSetiap hasil identifikasi menampilkan tingkat keyakinan dalam persentase. Angka ini menunjukkan keyakinan relatif model terhadap jenis terpilih, bukan jaminan identitas sapi.\n\nSkor Per Jenis\n\nAplikasi menampilkan skor Aceh, Bali, Limusin, Madura, Pasundan, dan PO agar distribusi keluaran model dapat dibandingkan. Warna dan tanda visual hanya pelengkap; label dan angka tetap menjadi informasi utama.\n\nBatasan\n\nModel selalu memilih salah satu dari enam jenis yang didukung. Kamera atau galeri tidak memvalidasi bahwa objek pada citra adalah sapi, dan hasil bukan bukti silsilah atau identitas individual.</string>
+
+    <!-- Guide: Aceh -->
+    <string name="guide_aceh_title_1">Profil Sapi Aceh</string>
+    <string name="guide_aceh_summary_1">Kelebihan, kekurangan, dan ciri umum Sapi Aceh untuk informasi pendukung.</string>
+    <string name="guide_aceh_body_1">Ringkasan Profil\n\nSapi Aceh adalah rumpun sapi lokal asli Indonesia yang berasal dari provinsi Aceh. Sapi ini bertubuh relatif ramping dan padat, bertanduk kecil melengkung ke atas, serta memiliki daya adaptasi tinggi terhadap iklim tropis dan pakan hijauan berserat kasar.\n\nKelebihan\n\n• Daya tahan tubuh tinggi terhadap cekaman panas dan parasit tropis\n• Kemampuan reproduksi dan fertilitas yang baik pada kondisi pakan terbatas\n• Bentuk tubuh kompak memberikan siluet khas pada citra\n\nKekurangan\n\n• Ukuran tubuh relatif lebih kecil dibanding sapi potong impor\n• Variasi warna bulu merah bata hingga cokelat gelap dapat dipengaruhi usia dan jenis kelamin\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.</string>
+
+    <string name="guide_aceh_title_2">Karakteristik Visual Sapi Aceh</string>
+    <string name="guide_aceh_summary_2">Warna bulu, proporsi tubuh, dan struktur visual Sapi Aceh pada citra.</string>
+    <string name="guide_aceh_body_2">Meninjau Citra\n\nSapi Aceh jantan umumnya berwarna merah kecokelatan hingga cokelat tua kehitaman di sekitar leher dan pundak, sedangkan betina cenderung berwarna merah bata lebih terang. Jantan memiliki punuk kecil di atas pundak dan gelambir leher tipis.\n\nTips Pengambilan Citra\n\nTampilkan sapi dari samping dengan pencahayaan cukup. Hindari pengambilan gambar saat tubuh tertutup lumpur tebal agar warna bulu dan garis punggung dapat terlihat dengan jelas.</string>
 
     <!-- Guide: Bali -->
     <string name="guide_bali_title_1">Profil Sapi Bali</string>
@@ -204,6 +225,33 @@
     <string name="guide_bali_title_4">Batasan Profil Sapi Bali</string>
     <string name="guide_bali_summary_4">Cara memakai kelebihan dan kekurangan tanpa menjadikannya rekomendasi mutlak.</string>
     <string name="guide_bali_body_4">Batasan Profil\n\nInformasi ini bersifat umum dan tidak mewakili setiap individu. Profil tidak menilai kondisi, kualitas, kebutuhan pemeliharaan, atau keputusan pembelian dan pembiakan.\n\nHasil model adalah klasifikasi citra dan bukan bukti silsilah atau registrasi. Gunakan catatan ternak dan tenaga profesional yang berkualifikasi untuk keputusan penting.</string>
+
+    <!-- Guide: Madura -->
+    <string name="guide_madura_title_1">Profil Sapi Madura</string>
+    <string name="guide_madura_summary_1">Kelebihan, kekurangan, dan ciri umum Sapi Madura untuk informasi pendukung.</string>
+    <string name="guide_madura_body_1">Ringkasan Profil\n\nSapi Madura merupakan rumpun sapi lokal hasil persilangan antara banteng (Bos sondaicus) dengan sapi Zebu (Bos indicus). Sapi ini bertubuh kompak, berkaki kokoh, dan berwarna merah bata atau kuning kecokelatan yang khas.\n\nKelebihan\n\n• Tubuh padat dan kompak dengan konformasi otot yang baik\n• Daya tahan prima terhadap pakan berkualitas rendah dan cuaca panas\n• Warna bulu khas merah bata seragam memudahkan perbandingan visual pada citra\n\nKekurangan\n\n• Pertumbuhan bobot badan sedang dibandingkan sapi tipe eksotis\n• Kemiripan warna dengan sapi Bali pada beberapa sudut pencahayaan memerlukan pencermatan ciri kepala dan kaki\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.</string>
+
+    <string name="guide_madura_title_2">Karakteristik Visual Sapi Madura</string>
+    <string name="guide_madura_summary_2">Bentuk tanduk, moncong, dan struktur tubuh Sapi Madura saat identifikasi.</string>
+    <string name="guide_madura_body_2">Meninjau Citra\n\nSapi Madura memiliki tanduk kecil melengkung ke atas atau ke samping. Bagian moncong dan kelopak mata berwarna hitam, serta lingkar mata berwarna kemerahan. Bagian paha belakang tidak memiliki cermin pantat putih selebar sapi Bali, melainkan warna yang menyatu dengan tubuh.\n\nTips Pengambilan Citra\n\nAmbil citra dari sudut samping atau tiga perempat untuk menampilkan proporsi kepala, leher, dan punggung lurus tanpa punuk besar.</string>
+
+    <!-- Guide: Pasundan -->
+    <string name="guide_pasundan_title_1">Profil Sapi Pasundan</string>
+    <string name="guide_pasundan_summary_1">Kelebihan, kekurangan, dan ciri umum Sapi Pasundan untuk informasi pendukung.</string>
+    <string name="guide_pasundan_body_1">Ringkasan Profil\n\nSapi Pasundan adalah rumpun sapi lokal asli Jawa Barat yang telah beradaptasi berabad-abad di wilayah agroklimat tropis basah. Memiliki warna merah bata dengan ciri khas garis belut (garis hitam gelap) di sepanjang tulang punggung.\n\nKelebihan\n\n• Toleransi tinggi terhadap kelembapan tinggi dan iklim tropis basah\n• Mampu memanfaatkan hijauan hutan dan limbah pertanian secara efisien\n• Garis belut pada punggung memberi penanda visual yang khas pada citra\n\nKekurangan\n\n• Keragaman fenotip lokal cukup bervariasi di berbagai daerah penangkarannya\n• Garis belut dan warna kaki bisa kurang kontras jika citra diambil dari jarak jauh\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.</string>
+
+    <string name="guide_pasundan_title_2">Karakteristik Visual Sapi Pasundan</string>
+    <string name="guide_pasundan_summary_2">Pengamatan garis punggung, warna bulu, dan postur Sapi Pasundan pada citra.</string>
+    <string name="guide_pasundan_body_2">Meninjau Citra\n\nCiri diagnostik visual sapi Pasundan yang menonjol adalah garis belut hitam yang memanjang dari belakang gumba hingga pangkal ekor. Warna kaki bagian bawah memiliki gradasi keputihan namun tidak sejelas kaos kaki putih sapi Bali.\n\nTips Pengambilan Citra\n\nPosisikan kamera sejajar punggung sapi dengan sudut sedikit tinggi agar garis belut dan profil tubuh samping dapat tertangkap lensa dengan baik.</string>
+
+    <!-- Guide: PO -->
+    <string name="guide_po_title_1">Profil Sapi Peranakan Ongole (PO)</string>
+    <string name="guide_po_summary_1">Kelebihan, kekurangan, dan ciri umum Sapi PO untuk informasi pendukung.</string>
+    <string name="guide_po_body_1">Ringkasan Profil\n\nSapi Peranakan Ongole (PO) merupakan sapi keturunan persilangan antara sapi Ongole (Bos indicus) dari India dengan sapi lokal Jawa. Dicirikan oleh warna bulu putih keabuan, punuk menonjol di atas gumba, dan gelambir lebar di bawah leher.\n\nKelebihan\n\n• Punuk besar dan gelambir leher longgar menjadi penanda visual yang sangat jelas pada citra\n• Kerangka tubuh besar dan tinggi serta daya adaptasi tropis yang unggul\n• Toleransi panas yang tinggi dan tahan terhadap gigitan caplak\n\nKekurangan\n\n• Tingkat pertumbuhan bobot harian memerlukan manajemen pakan seimbang\n• Warna putih dapat tampak abu-abu atau kotor pada kondisi kandang basah\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.</string>
+
+    <string name="guide_po_title_2">Karakteristik Visual Sapi PO</string>
+    <string name="guide_po_summary_2">Bentuk punuk, gelambir berlipat, dan siluet tubuh Sapi PO pada citra.</string>
+    <string name="guide_po_body_2">Meninjau Citra\n\nSapi PO jantan memiliki punuk yang besar dan tegak di atas bahu, sedangkan betina memiliki punuk lebih kecil. Gelambir (dewlap) membentang longgar dari rahang bawah hingga dada depan. Moncong, kuku, dan ujung ekor berwarna hitam pekat.\n\nTips Pengambilan Citra\n\nPastikan kepala, punuk bahu, dan gelambir tidak terpotong dari bingkai kamera untuk memaksimalkan akurasi pengenalan ciri jenis.</string>
 
     <!-- Guide: Brahman -->
     <string name="guide_brahman_title_1">Profil Sapi Brahman</string>
@@ -247,7 +295,7 @@
     <!-- About -->
     <string name="about_title">Tentang</string>
     <string name="about_logo_placeholder">🐄</string>
-    <string name="about_desc">SapiKenal adalah aplikasi identifikasi jenis sapi berbasis kecerdasan buatan untuk membantu peternak mengklasifikasikan Bali, Brahman, Brangus, dan Limusin dari citra.</string>
+    <string name="about_desc">SapiKenal adalah aplikasi identifikasi jenis sapi berbasis kecerdasan buatan untuk membantu peternak mengklasifikasikan Aceh, Bali, Limusin, Madura, Pasundan, dan PO dari citra.</string>
     <string name="about_team_title">Tim Pengembang</string>
     <string name="about_team_member_1">Raditya Rafif Pratama Sasmita</string>
     <string name="about_team_member_2">Noval Putra Ramadhan</string>

@@ -12,6 +12,7 @@ import sqlalchemy as sa  # pyright: ignore[reportMissingImports]
 from sqlalchemy import (  # pyright: ignore[reportMissingImports]
     JSON,
     Boolean,
+    CheckConstraint,
     DateTime,
     Float,
     ForeignKey,
@@ -190,12 +191,22 @@ class PredictionEvent(Base):
     )
 
 
-class BreedProfile(Base):
-    __tablename__ = "breed_profiles"
-    __table_args__ = (UniqueConstraint("canonical_key", "locale"),)
+class GuideArticle(Base):
+    __tablename__ = "guide_articles"
+    __table_args__ = (
+        UniqueConstraint("article_key", "locale", name="uq_guide_articles_key_locale"),
+        CheckConstraint(
+            "locale IN ('id-ID', 'en-US')", name="ck_guide_articles_locale"
+        ),
+        CheckConstraint(
+            "status IN ('draft', 'active', 'inactive')",
+            name="ck_guide_articles_status",
+        ),
+        Index("ix_guide_articles_locale_status", "locale", "status"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    canonical_key: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    article_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     locale: Mapped[str] = mapped_column(String(16), nullable=False, default="id-ID")
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_by: Mapped[str | None] = mapped_column(
@@ -212,22 +223,45 @@ class BreedProfile(Base):
     )
 
 
-class BreedProfileRevision(Base):
-    __tablename__ = "breed_profile_revisions"
-    __table_args__ = (UniqueConstraint("profile_id", "revision"),)
+class GuideArticleRevision(Base):
+    __tablename__ = "guide_article_revisions"
+    __table_args__ = (
+        UniqueConstraint(
+            "article_id", "revision", name="uq_guide_article_revisions_number"
+        ),
+        CheckConstraint(
+            "category IN ('app_usage', 'aceh', 'bali', 'brahman', 'brangus', "
+            "'limusin', 'madura', 'pasundan', 'po')",
+            name="ck_guide_article_revisions_category",
+        ),
+        CheckConstraint(
+            "status IN ('draft', 'active', 'inactive')",
+            name="ck_guide_article_revisions_status",
+        ),
+        Index(
+            "uq_guide_article_revisions_one_active",
+            "article_id",
+            unique=True,
+            sqlite_where=sa.text("status = 'active'"),
+            postgresql_where=sa.text("status = 'active'"),
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    profile_id: Mapped[str] = mapped_column(
-        ForeignKey("breed_profiles.id", ondelete="CASCADE"),
+    article_id: Mapped[str] = mapped_column(
+        ForeignKey("guide_articles.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
     revision: Mapped[int] = mapped_column(Integer, nullable=False)
-    display_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    category: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="app_usage"
+    )
+    icon: Mapped[str] = mapped_column(String(16), nullable=False, default="📄")
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
     summary: Mapped[str] = mapped_column(String(500), nullable=False)
-    strengths: Mapped[str] = mapped_column(Text, nullable=False)
-    limitations: Mapped[str] = mapped_column(Text, nullable=False)
-    disclaimer: Mapped[str] = mapped_column(Text, nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
     sources: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     content_reviewed: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False

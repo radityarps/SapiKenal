@@ -69,7 +69,7 @@ class HistorySyncRunnerTest {
             assertEquals(17L, request.localId)
             assertEquals("limusin", request.predictedClass)
             assertEquals("offline", request.inferenceMode)
-            assertEquals(4, request.scores.size)
+            assertEquals(6, request.scores.size)
             assertEquals(0.96f, request.scores["limusin"] ?: 0f, 0.001f)
             verify(dao).markSynced(17L)
         }
@@ -93,13 +93,13 @@ class HistorySyncRunnerTest {
             predictedClass = "limusin",
             displayLabel = "Limusin",
             confidence = 0.96f,
-            scoresJson = "{\"bali\":0.01,\"brahman\":0.02,\"brangus\":0.01,\"limusin\":0.96}",
+            scoresJson = "{\"aceh\":0.01,\"bali\":0.01,\"limusin\":0.96,\"madura\":0.01,\"pasundan\":0.005,\"po\":0.005}",
             inferenceMode = "OFFLINE",
             isReliable = true,
             processingMs = 80,
             consentStatus = "ALLOWED",
             appVersion = "0.1.0",
-            modelVersion = "four-class-v1",
+            modelVersion = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
         )
 
     private class RecordingHistoryApi(

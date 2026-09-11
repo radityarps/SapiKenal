@@ -1,34 +1,35 @@
 # Model files
 
-The active SapiKenal model contract has four outputs in this exact order:
+The active SapiKenal model contract has six outputs in this exact order:
 
 ```txt
-0 = bali
-1 = brahman
-2 = brangus
-3 = limusin
+0 = aceh
+1 = bali
+2 = limusin
+3 = madura
+4 = pasundan
+5 = po
 ```
 
 The canonical class order is defined by `class_names.json` and is shared by
 backend Keras inference and mobile TFLite inference. The model returns one of
-the four supported types for every image that can be decoded; it does not
+the six supported types for every image that can be decoded; it does not
 validate that the image contains a cow.
 
 ## Production artifacts
 
 | Runtime | Artifact | SHA-256 | Size |
 | --- | --- | --- | ---: |
-| Backend | `apps/backend/model/best.keras` | `873c54eac9b4cf127ad29486ba6de3d4d0d16d415a3431aa7baa7e46d455434b` | 14,156,083 bytes |
-| Mobile | `apps/mobile/app/src/main/assets/jenis_fp32.tflite` | `7b71a5a923ae69cf00b390712381c8d437d31e105e1370b0dc2653ba2271a664` | 12,381,284 bytes |
+| Backend | `apps/backend/model/best.keras` | `0d92bc9afec8ce8b57f3637720720fb6530664b8c38391ecf3b380df614b8f65` | 14,159,179 bytes |
+| Mobile | `apps/mobile/app/src/main/assets/lokal_fp32.tflite` | `cc1b9a74af5ef44a7dead8848d6c41795aef9399c76e647f434277867eb113d9` | 12,382,316 bytes |
 
-Shared version: `sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32`. This is a
-project-assigned contract version because authoritative training/export version
-metadata is unavailable; the checksums above identify the exact artifacts.
+Shared version: `sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32`. The
+checksums above identify the exact supplied artifacts.
 
 Both artifacts accept RGB `224 × 224` `float32` input in the raw `[0, 255]`
-range and return four `float32` probabilities in the canonical class order.
+range and return six `float32` probabilities in the canonical class order.
 The Keras model contains `Rescaling(scale=1/127.5, offset=-1.0)` followed by a
-four-unit softmax output, so callers must not divide input values by 255.
+six-unit softmax output, so callers must not divide input values by 255.
 Resize uses bilinear filtering. The Android client corrects EXIF orientation,
 resizes to 224 × 224, and encodes PNG losslessly; backend model preprocessing
 then converts RGB and adds the batch dimension without changing those pixels.
@@ -57,7 +58,7 @@ fallback in a development or controlled environment:
 ```txt
 MODEL_PATH=./model/best.keras
 MODEL_CLASS_NAMES_PATH=./model/class_names.json
-MODEL_VERSION=sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32
+MODEL_VERSION=sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32
 MODEL_STARTUP_FALLBACK_ENABLED=true
 ```
 

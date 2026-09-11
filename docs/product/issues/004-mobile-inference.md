@@ -2,7 +2,7 @@
 
 ## Tujuan
 
-Menggunakan `jenis_fp32.tflite` untuk mode offline dan kontrak API baru untuk mode online dengan hasil yang konsisten.
+Menggunakan `lokal_fp32.tflite` untuk mode offline dan kontrak API enam kelas untuk mode online dengan hasil yang konsisten.
 
 ## Dependensi
 
@@ -12,7 +12,7 @@ Menggunakan `jenis_fp32.tflite` untuk mode offline dan kontrak API baru untuk mo
 ## Scope
 
 - Ubah `MODEL_FILE_NAME`, versi model, dan konfigurasi contoh ke asset baru.
-- Ganti label/display label/skor offline menjadi Bali, Brahman, Brangus, dan Limusin.
+- Ganti label/display label/skor offline menjadi Aceh, Bali, Limusin, Madura, Pasundan, dan PO.
 - Hapus perlakuan kelas keempat sebagai `non_cattle`.
 - Sesuaikan DTO online dari `disease_class` ke `predicted_class`.
 - Pastikan router/fallback mempertahankan mode, skor, versi model, dan tingkat keyakinan.
@@ -21,10 +21,10 @@ Menggunakan `jenis_fp32.tflite` untuk mode offline dan kontrak API baru untuk mo
 
 ## Kriteria penerimaan
 
-- [x] APK memuat `jenis_fp32.tflite`, bukan asset penyakit.
-- [x] Offline inference mengembalikan tepat empat label final.
+- [x] APK memuat `lokal_fp32.tflite`, bukan asset penyakit.
+- [x] Offline inference mengembalikan tepat enam label final.
 - [x] Online inference dapat mem-parsing respons backend baru.
-- [x] Tidak ada hasil offline yang ditolak berdasarkan kelas keempat.
+- [x] Tidak ada hasil offline yang ditolak berdasarkan kelas di luar kontrak enam kelas.
 - [x] Mode fallback online/offline tetap bekerja sesuai pengaturan saat ini.
 - [ ] Smoke test TFLite menjalankan asset produksi pada perangkat/emulator.
 - [x] Unit test Android lulus.

@@ -5,7 +5,7 @@ SapiKenal mengidentifikasi jenis sapi dari citra. Proyek ini tidak mengidentifik
 ## Language
 
 **Jenis Sapi**:
-Kategori sapi yang menjadi target klasifikasi model. Jenis sapi yang didukung adalah Bali, Brahman, Brangus, dan Limusin.
+Kategori sapi yang menjadi target klasifikasi model. Jenis sapi yang didukung adalah Aceh, Bali, Limusin, Madura, Pasundan, dan PO.
 _Avoid_: ras sapi, penyakit sapi, kondisi kesehatan
 
 **Citra Identifikasi**:

@@ -6,8 +6,8 @@ import hashlib
 import time
 from typing import Any
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import select  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import Session  # pyright: ignore[reportMissingImports]
 
 from api.schemas import HistoryCreate
 from config import settings

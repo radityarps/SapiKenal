@@ -17,13 +17,13 @@ from typing import Any, NoReturn
 ROOT = Path(__file__).resolve().parents[1]
 BACKEND_MODEL = ROOT / "apps/backend/model/best.keras"
 BACKEND_CLASSES = ROOT / "apps/backend/model/class_names.json"
-MOBILE_MODEL = ROOT / "apps/mobile/app/src/main/assets/jenis_fp32.tflite"
+MOBILE_MODEL = ROOT / "apps/mobile/app/src/main/assets/lokal_fp32.tflite"
 MOBILE_METADATA = ROOT / "apps/mobile/app/src/main/assets/model_metadata.json"
 
-CLASSES = ["bali", "brahman", "brangus", "limusin"]
-MODEL_VERSION = "sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32"
+CLASSES = ["aceh", "bali", "limusin", "madura", "pasundan", "po"]
+MODEL_VERSION = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32"
 INPUT_SHAPE = [1, 224, 224, 3]
-OUTPUT_SHAPE = [1, 4]
+OUTPUT_SHAPE = [1, len(CLASSES)]
 INPUT_DTYPE = "float32"
 OUTPUT_DTYPE = "float32"
 RESCALING_SCALE = 1 / 127.5
@@ -158,13 +158,13 @@ def validate_keras() -> dict[str, Any]:
         output_config.get("units") != len(CLASSES)
         or output_config.get("activation") != "softmax"
     ):
-        fail("Keras output must be Dense(4, activation=softmax)")
+        fail(f"Keras output must be Dense({len(CLASSES)}, activation=softmax)")
 
     checksum = sha256(BACKEND_MODEL)
     size = BACKEND_MODEL.stat().st_size
     print(
         "PASS Keras tensor contract: input float32 [None, 224, 224, 3], "
-        "output softmax float32 [None, 4]"
+        f"output softmax float32 [None, {len(CLASSES)}]"
     )
     print(f"PASS Keras artifact: {size} bytes, sha256={checksum}")
     return {"sha256": checksum, "size_bytes": size}
@@ -482,12 +482,12 @@ def validate_metadata(keras: dict[str, Any], tflite: dict[str, Any]) -> None:
     }:
         fail("Mobile metadata class_indices does not match class_order")
     if metadata.get("asset") != MOBILE_MODEL.name:
-        fail("Mobile metadata asset does not name jenis_fp32.tflite")
+        fail(f"Mobile metadata asset does not name {MOBILE_MODEL.name}")
     if (
         metadata.get("sha256") != tflite["sha256"]
         or metadata.get("size_bytes") != tflite["size_bytes"]
     ):
-        fail("Mobile metadata checksum or size does not match jenis_fp32.tflite")
+        fail(f"Mobile metadata checksum or size does not match {MOBILE_MODEL.name}")
 
     tensor_contract = metadata.get("tensor_contract", {})
     if (
@@ -553,7 +553,7 @@ def validate_source_defaults() -> None:
     checks = [
         (
             "apps/backend/config.py",
-            r'MODEL_CONTRACT_CLASSES\s*:[^=]+\s*=\s*\([\s\S]*?"bali",\s*"brahman",\s*"brangus",\s*"limusin",\s*\)',
+            r'MODEL_CONTRACT_CLASSES\s*:[^=]+\s*=\s*\([\s\S]*?"aceh",\s*"bali",\s*"limusin",\s*"madura",\s*"pasundan",\s*"po",\s*\)',
         ),
         (
             "apps/backend/config.py",
@@ -568,12 +568,12 @@ def validate_source_defaults() -> None:
             r"MODEL_PATH=\$\{MODEL_PATH:-\./model/best\.keras\}",
         ),
         ("apps/backend/.env.example", r"MODEL_PATH=\./model/best\.keras"),
-        ("apps/mobile/app/build.gradle.kts", r"MODEL_FILE_NAME.*jenis_fp32\.tflite"),
+        ("apps/mobile/app/build.gradle.kts", r"MODEL_FILE_NAME.*lokal_fp32\.tflite"),
         (
             "apps/mobile/app/build.gradle.kts",
             rf"MODEL_VERSION.*{MODEL_VERSION}",
         ),
-        ("apps/mobile/local.properties.example", r"MODEL_FILE_NAME=jenis_fp32\.tflite"),
+        ("apps/mobile/local.properties.example", r"MODEL_FILE_NAME=lokal_fp32\.tflite"),
         (
             "apps/mobile/local.properties.example",
             rf"MODEL_VERSION={MODEL_VERSION}",

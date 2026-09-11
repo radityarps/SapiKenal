@@ -41,8 +41,12 @@ class AppDatabaseMigrationTest {
         val database =
             Room
                 .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11)
-                .build()
+                .addMigrations(
+                    AppDatabase.MIGRATION_8_9,
+                    AppDatabase.MIGRATION_9_10,
+                    AppDatabase.MIGRATION_10_11,
+                    AppDatabase.MIGRATION_11_12,
+                ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
         migratedDatabase
@@ -74,8 +78,12 @@ class AppDatabaseMigrationTest {
         val database =
             Room
                 .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11)
-                .build()
+                .addMigrations(
+                    AppDatabase.MIGRATION_8_9,
+                    AppDatabase.MIGRATION_9_10,
+                    AppDatabase.MIGRATION_10_11,
+                    AppDatabase.MIGRATION_11_12,
+                ).build()
 
         try {
             database.openHelper.writableDatabase

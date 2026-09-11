@@ -1,18 +1,16 @@
 # Parity Keras–TFLite
 
-## Hasil
+## Status
 
-Pengukuran 7 September 2026 pada 13 citra nyata yang disediakan tim menghasilkan:
+Baseline yang tercatat pada 7 September 2026 adalah bukti untuk artefak v1
+empat kelas dan sekarang berstatus `blocked`; baseline itu tidak boleh dipakai
+sebagai bukti parity untuk kontrak aktif v2. Kontrak aktif memakai input
+`[1, 224, 224, 3]`, output `[1, 6]`, dtype `float32`, dan urutan `aceh`,
+`bali`, `limusin`, `madura`, `pasundan`, `po`.
 
-- 13/13 kelas pemenang Keras dan TFLite sama;
-- tensor input produksi backend dan Android identik untuk seluruh fixture;
-- bentuk input `[1, 224, 224, 3]`, output `[1, 4]`, dan dtype `float32` sama;
-- urutan kelas `bali`, `brahman`, `brangus`, `limusin` sama; dan
-- selisih skor maksimum `0.000002233688736`.
-
-Citra tidak disimpan di Git. [`parity-baseline.json`](parity-baseline.json)
-hanya menyimpan ID dan SHA-256 untuk memastikan regression check memakai
-corpus dan artefak yang sama.
+Citra tidak disimpan di Git. Buat capture perangkat baru untuk keenam folder
+kelas lalu ukur dan tinjau baseline v2 sebelum mengubah statusnya menjadi
+`accepted`.
 
 ## Preprocessing produksi
 
@@ -29,20 +27,15 @@ menjadi toleransi aktif.
 
 ## Toleransi terukur
 
-Toleransi skor aktif adalah `0.000003`, yaitu pembulatan ke atas enam desimal
-dari maksimum terukur `0.000002233688736`. Toleransi input adalah tepat `0`.
-Regression check tetap gagal tanpa memperhatikan toleransi apabila satu kelas
-pemenang berbeda, tensor input tidak identik, checksum berubah, runtime berubah,
-atau baseline tidak berstatus `accepted`.
-
-Lingkungan baseline: TensorFlow 2.21.0, Pillow 12.3.0, NumPy 2.5.2, TFLite
-runtime 2.18.0, perangkat INFINIX X678B Android 14/API 34. Checksum artefak dan
-fixture lengkap tercatat dalam baseline JSON.
+Tidak ada toleransi parity aktif untuk v2 sampai capture perangkat baru diukur.
+Regression check sengaja gagal ketika baseline berstatus selain `accepted`.
+Checksum artefak dan fixture untuk baseline baru harus dicatat dalam baseline
+JSON setelah hasilnya ditinjau.
 
 ## Menjalankan ulang
 
-Siapkan satu atau lebih JPEG nyata pada setiap folder `bali/`, `brahman/`,
-`brangus/`, dan `limusin/`. Corpus bersifat lokal dan diabaikan Git. Setelah
+Siapkan satu atau lebih JPEG nyata pada setiap folder `aceh/`, `bali/`,
+`limusin/`, `madura/`, `pasundan/`, dan `po/`. Corpus bersifat lokal dan diabaikan Git. Setelah
 APK debug serta test APK terpasang pada satu perangkat yang dipilih eksplisit:
 
 ```bash

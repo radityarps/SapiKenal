@@ -24,10 +24,11 @@
     user_created: 'Pengguna dibuat',
     user_updated: 'Pengguna diperbarui',
     user_password_reset: 'Password pengguna direset',
-    breed_profile_created: 'Profil jenis dibuat',
-    breed_profile_updated: 'Profil jenis diperbarui',
-    breed_profile_activated: 'Profil jenis diaktifkan',
-    breed_profile_deactivated: 'Profil jenis dinonaktifkan',
+    article_created: 'Artikel Panduan dibuat',
+    article_revised: 'Artikel Panduan direvisi',
+    article_reviewed: 'Artikel Panduan ditinjau',
+    article_activated: 'Artikel Panduan diaktifkan',
+    article_deactivated: 'Artikel Panduan dinonaktifkan',
     model_registered: 'Model didaftarkan',
     model_activate: 'Model diaktifkan',
     model_rollback: 'Model dikembalikan',
@@ -47,10 +48,11 @@
     user_created: 'Akun pengguna baru dibuat oleh administrator.',
     user_updated: 'Data atau akses akun pengguna diperbarui.',
     user_password_reset: 'Password pengguna direset dan sesi terkait dicabut.',
-    breed_profile_created: 'Draft profil jenis baru dibuat.',
-    breed_profile_updated: 'Revisi profil jenis dibuat.',
-    breed_profile_activated: 'Profil jenis diterbitkan untuk konsumsi publik.',
-    breed_profile_deactivated: 'Profil jenis ditarik dari publikasi.',
+    article_created: 'Draft Artikel Panduan baru dibuat.',
+    article_revised: 'Revisi Artikel Panduan dibuat.',
+    article_reviewed: 'Revisi Artikel Panduan ditinjau.',
+    article_activated: 'Artikel Panduan diterbitkan untuk konsumsi publik.',
+    article_deactivated: 'Artikel Panduan ditarik dari publikasi.',
     model_registered: 'Versi model baru didaftarkan ke registri.',
     model_activate: 'Versi model dipilih sebagai model aktif.',
     model_rollback: 'Model aktif dikembalikan ke versi sebelumnya.',
@@ -66,9 +68,10 @@
     { value: 'login_failed', label: 'Login ditolak' },
     { value: 'logout', label: 'Logout' },
     { value: 'password_changed', label: 'Password diubah' },
-    { value: 'breed_profile_created', label: 'Profil jenis dibuat' },
-    { value: 'breed_profile_activated', label: 'Profil jenis diaktifkan' },
-    { value: 'breed_profile_deactivated', label: 'Profil jenis dinonaktifkan' },
+    { value: 'article_created', label: 'Artikel Panduan dibuat' },
+    { value: 'article_reviewed', label: 'Artikel Panduan ditinjau' },
+    { value: 'article_activated', label: 'Artikel Panduan diaktifkan' },
+    { value: 'article_deactivated', label: 'Artikel Panduan dinonaktifkan' },
     { value: 'model_registered', label: 'Model didaftarkan' },
     { value: 'model_activate', label: 'Model diaktifkan' },
     { value: 'model_rollback', label: 'Model dikembalikan' }
@@ -102,7 +105,8 @@
 
   function updateQuery(key: string, value: string) {
     const query = new URLSearchParams(window.location.search);
-    value ? query.set(key, value) : query.delete(key);
+    if (value) query.set(key, value);
+    else query.delete(key);
     query.delete('page');
     goto(`?${query}`, { keepFocus: true, noScroll: true });
   }
@@ -120,8 +124,10 @@
 
   function updateDateRange(range: { start: string; end: string }) {
     const query = new URLSearchParams(window.location.search);
-    range.start ? query.set('date_from', range.start) : query.delete('date_from');
-    range.end ? query.set('date_to', range.end) : query.delete('date_to');
+    if (range.start) query.set('date_from', range.start);
+    else query.delete('date_from');
+    if (range.end) query.set('date_to', range.end);
+    else query.delete('date_to');
     query.delete('page');
     goto(`?${query}`, { keepFocus: true, noScroll: true, invalidateAll: true });
   }

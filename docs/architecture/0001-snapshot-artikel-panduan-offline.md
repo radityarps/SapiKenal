@@ -9,3 +9,5 @@ Mobile menampilkan Artikel Panduan dari Room dan mengganti seluruh cache per loc
 ## Konsekuensi
 
 Backend harus menerbitkan snapshot lengkap dengan versi opaque, mobile harus mencatat keberhasilan sync meskipun snapshot kosong, dan pembaruan konten tidak terlihat pada perangkat yang tetap offline sampai sync berikutnya berhasil.
+
+Migrasi dari Profil Jenis ke Artikel Panduan sengaja tidak menyediakan downgrade: penyusunan field profil lama menjadi `body` tidak dapat dibalik tanpa kehilangan struktur. Rollback melewati revisi `0009_article_cms` harus memulihkan backup database sebelum migrasi.

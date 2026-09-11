@@ -9,10 +9,12 @@ import org.junit.Test
 class ResultExportPolicyTest {
     private val canonicalScores =
         mapOf(
+            "aceh" to 0.05f,
             "bali" to 0.7f,
-            "brahman" to 0.1f,
-            "brangus" to 0.1f,
-            "limusin" to 0.1f,
+            "limusin" to 0.05f,
+            "madura" to 0.05f,
+            "pasundan" to 0.05f,
+            "po" to 0.1f,
         )
 
     private fun result(scores: Map<String, Float> = canonicalScores) =
@@ -50,7 +52,7 @@ class ResultExportPolicyTest {
             result().copy(id = 0L),
             result().copy(label = " "),
             result().copy(displayLabel = " "),
-            result().copy(displayLabel = "Brahman"),
+            result().copy(displayLabel = "Madura"),
             result().copy(confidence = Float.NaN),
             result().copy(confidence = Float.POSITIVE_INFINITY),
             result().copy(confidence = -0.01f),

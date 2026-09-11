@@ -4,17 +4,17 @@
 
 | Field | Value |
 | --- | --- |
-| File | `app/src/main/assets/jenis_fp32.tflite` |
-| Version | `sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32` |
-| Architecture | MobileNetV3 four-class image classifier |
-| Size | 12,381,284 bytes (11.8077125549 MiB) |
-| SHA-256 | `7b71a5a923ae69cf00b390712381c8d437d31e105e1370b0dc2653ba2271a664` |
+| File | `app/src/main/assets/lokal_fp32.tflite` |
+| Version | `sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32` |
+| Architecture | MobileNetV3 six-class image classifier |
+| Size | 12,382,316 bytes (11.808697 MiB) |
+| SHA-256 | `cc1b9a74af5ef44a7dead8848d6c41795aef9399c76e647f434277867eb113d9` |
 
 The filename is configured through `BuildConfig.MODEL_FILE_NAME`. The version is
 configured through `BuildConfig.MODEL_VERSION` and is persisted with local
 inference results. The backend counterpart is
 `apps/backend/model/best.keras` with SHA-256
-`873c54eac9b4cf127ad29486ba6de3d4d0d16d415a3431aa7baa7e46d455434b`.
+`0d92bc9afec8ce8b57f3637720720fb6530664b8c38391ecf3b380df614b8f65`.
 The project assigns this contract version because authoritative training/export
 version metadata is unavailable; the checksums identify the exact artifacts.
 
@@ -26,18 +26,20 @@ The production asset was inspected with the standard-library verifier at
 | Tensor | Shape | Dtype | Count |
 | --- | --- | --- | --- |
 | Input | `[1, 224, 224, 3]` | `float32` | 1 |
-| Output | `[1, 4]` | `float32` | 1 |
+| Output | `[1, 6]` | `float32` | 1 |
 
 Output indices are a strict contract:
 
-1. `0 = bali`
-2. `1 = brahman`
-3. `2 = brangus`
-4. `3 = limusin`
+1. `0 = aceh`
+2. `1 = bali`
+3. `2 = limusin`
+4. `3 = madura`
+5. `4 = pasundan`
+6. `5 = po`
 
 `OfflineInferenceEngine` validates the tensor counts, exact shapes, and dtypes
 before inference. It also validates that every output is finite, lies in
-`[0, 1]`, and that the four probabilities sum to approximately `1`.
+`[0, 1]`, and that the six probabilities sum to approximately `1`.
 
 ## Preprocessing
 
@@ -61,7 +63,7 @@ production-readiness claim.
 When replacing the offline model, update the following as one coordinated
 change:
 
-- `app/src/main/assets/jenis_fp32.tflite`;
+- `app/src/main/assets/lokal_fp32.tflite`;
 - `app/src/main/assets/model_metadata.json`;
 - `BuildConfig.MODEL_VERSION`;
 - backend `class_names.json` and model metadata;

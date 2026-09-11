@@ -5,12 +5,9 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime, timezone
 
-from db.core import get_db
-from db.models import User
-from fastapi import APIRouter, Depends, Request
-from services.audit import record_audit
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Request  # pyright: ignore[reportMissingImports]
+from sqlalchemy import select  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import Session  # pyright: ignore[reportMissingImports]
 
 from api.auth_dependencies import AuthenticatedSession, get_current_session
 from api.auth_schemas import (
@@ -29,6 +26,9 @@ from api.auth_security import (
     verify_password,
 )
 from api.errors import AdminAPIError
+from db.core import get_db
+from db.models import User
+from services.audit import record_audit
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 

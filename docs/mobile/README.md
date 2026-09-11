@@ -1,8 +1,8 @@
 # Mobile SapiKenal
 
 Aplikasi Android menjalankan identifikasi jenis sapi melalui backend saat online
-dan `jenis_fp32.tflite` saat offline/fallback. Kedua jalur memakai urutan kelas
-`bali`, `brahman`, `brangus`, `limusin` dan mengembalikan hasil identifikasi,
+dan `lokal_fp32.tflite` saat offline/fallback. Kedua jalur memakai urutan kelas
+`aceh`, `bali`, `limusin`, `madura`, `pasundan`, `po` dan mengembalikan hasil identifikasi,
 tingkat keyakinan, seluruh skor, mode inferensi, serta versi model.
 
 Preprocessing produksi mobile mengoreksi orientasi EXIF, melakukan resize
@@ -14,6 +14,13 @@ yang identik. Model menjalankan rescaling internal.
 Pengukuran perangkat pada 13 fixture nyata menghasilkan tensor input identik,
 13/13 kelas pemenang sama, dan selisih skor maksimum `0.000002233688736`.
 Lihat [`../model/parity.md`](../model/parity.md).
+
+Artikel Panduan ditampilkan dari cache Room per locale. Saat halaman Panduan
+dibuka, aplikasi langsung menampilkan cache (atau konten bawaan sebelum sync
+pertama) lalu mengambil snapshot `id-ID`/`en-US` tanpa memblokir UI. Snapshot
+valid mengganti seluruh locale dan mencatat keberhasilan secara atomik, termasuk
+snapshot kosong; kegagalan jaringan, HTTP, parsing, atau validasi mempertahankan
+cache terakhir.
 
 Checklist rehearsal perangkat berada di
 [`../../apps/mobile/SMOKE_TEST_CHECKLIST.md`](../../apps/mobile/SMOKE_TEST_CHECKLIST.md).

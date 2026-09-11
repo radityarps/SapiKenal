@@ -18,7 +18,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MODEL_PATH=${MODEL_PATH:-./model/best.keras}
       - MODEL_CLASS_NAMES_PATH=${MODEL_CLASS_NAMES_PATH:-./model/class_names.json}
-      - MODEL_VERSION=${MODEL_VERSION:-sapikenal-jenis-sapi-mobilenetv3-contract-v1-fp32}
+      - MODEL_VERSION=${MODEL_VERSION:-sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32}
       - MODEL_REGISTRY_DIR=${MODEL_REGISTRY_DIR:-./model/registry}
       - MODEL_UPLOAD_MAX_BYTES=${MODEL_UPLOAD_MAX_BYTES:-250000000}
       - MODEL_STARTUP_FALLBACK_ENABLED=${MODEL_STARTUP_FALLBACK_ENABLED:-false}

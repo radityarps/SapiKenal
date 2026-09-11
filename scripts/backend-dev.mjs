@@ -55,16 +55,6 @@ function runCompose(args) {
 	});
 }
 
-function composeImage() {
-	return execFileSync("docker", ["compose", "config", "--images"], {
-		cwd: backend,
-		env: environment,
-		encoding: "utf8",
-	})
-		.trim()
-		.split("\n")[0];
-}
-
 console.log("Resetting development backend containers and SQLite databases...");
 runCompose(["down", "-v", "--remove-orphans"]);
 for (const path of new Set([
@@ -74,13 +64,8 @@ for (const path of new Set([
 	if (path) rmSync(path, { force: true });
 }
 
-const image = composeImage();
-try {
-	execFileSync("docker", ["image", "inspect", image], { stdio: "ignore" });
-} catch {
-	console.log(`Backend image ${image} is missing; building it once...`);
-	runCompose(["build", "backend"]);
-}
+console.log("Building backend image to apply dependency changes...");
+runCompose(["build", "backend"]);
 runCompose(["run", "--rm", "backend", "python", "-m", "scripts.init_dev_db"]);
 runCompose([
 	"run",

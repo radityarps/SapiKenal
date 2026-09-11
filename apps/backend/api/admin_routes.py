@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
 from threading import RLock
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from fastapi import (  # pyright: ignore[reportMissingImports]
     APIRouter,
@@ -32,15 +32,15 @@ from sqlalchemy import (  # pyright: ignore[reportMissingImports]
     select,
 )
 from sqlalchemy.exc import IntegrityError  # pyright: ignore[reportMissingImports]
-from sqlalchemy.orm import Session  # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import Session, aliased  # pyright: ignore[reportMissingImports]
 
 from config import CANONICAL_LABELS, canonicalize_label, settings
 from db.core import get_db
 from db.models import (
     AuditLog,
-    BreedProfile,
-    BreedProfileRevision,
     DetectionHistory,
+    GuideArticle,
+    GuideArticleRevision,
     ModelActivation,
     ModelVersion,
     PredictionEvent,
@@ -68,10 +68,11 @@ from services.audit import mask_device_id, period_start, record_audit
 
 from .admin_schemas import (  # pyright: ignore[reportMissingImports]
     AuditLogResponse,
-    BreedProfilePatchRequest,
-    BreedProfileRequest,
-    BreedProfileResponse,
-    BreedProfileRevisionResponse,
+    GuideArticleLocalePairResponse,
+    GuideArticlePatchRequest,
+    GuideArticleRequest,
+    GuideArticleResponse,
+    GuideArticleRevisionResponse,
     ModelActivationRequest,
     ModelRegisterRequest,
     ModelVersionResponse,
@@ -90,7 +91,7 @@ content_router = APIRouter(prefix="/api/content", tags=["content"])
 
 _PAGE_SIZE_MAX = 100
 _ALLOWED_MODEL_CLASSES = set(CANONICAL_LABELS)
-_ALLOWED_PROFILE_LOCALES = {"id-ID", "en-US"}
+_ALLOWED_ARTICLE_LOCALES = {"id-ID", "en-US"}
 _MODEL_ACTIVATION_LOCK = RLock()
 _UPLOAD_CHUNK_SIZE = 1024 * 1024
 
@@ -201,10 +202,12 @@ def _prediction_event_response(event: PredictionEvent) -> dict[str, Any]:
     if not math.isfinite(confidence) or not 0 <= confidence <= 1:
         confidence = 0.0
     display_labels = {
+        "aceh": "Aceh",
         "bali": "Bali",
-        "brahman": "Brahman",
-        "brangus": "Brangus",
         "limusin": "Limusin",
+        "madura": "Madura",
+        "pasundan": "Pasundan",
+        "po": "PO",
     }
     display_label = (
         "Gagal teknis"
@@ -349,25 +352,47 @@ def _matches_prediction_filters(
     return not model_version or item["model_version"] == model_version
 
 
-def _latest_revision(db: Session, profile_id: str) -> BreedProfileRevision | None:
+def _latest_article_revision(
+    db: Session, article_id: str
+) -> GuideArticleRevision | None:
     return db.scalar(
-        select(BreedProfileRevision)
-        .where(BreedProfileRevision.profile_id == profile_id)
-        .order_by(desc(BreedProfileRevision.revision))
+        select(GuideArticleRevision)
+        .where(GuideArticleRevision.article_id == article_id)
+        .order_by(desc(GuideArticleRevision.revision))
     )
 
 
-def _profile_response(
-    profile: BreedProfile, revision: BreedProfileRevision
+def _active_article_revision(
+    db: Session, article_id: str
+) -> GuideArticleRevision | None:
+    return db.scalar(
+        select(GuideArticleRevision).where(
+            GuideArticleRevision.article_id == article_id,
+            GuideArticleRevision.status == "active",
+        )
+    )
+
+
+def _article_response(
+    article: GuideArticle,
+    revision: GuideArticleRevision,
+    active_revision: GuideArticleRevision | None = None,
+    locale_pair: GuideArticleLocalePairResponse | None = None,
 ) -> dict[str, Any]:
-    return BreedProfileResponse(
-        id=profile.id,
-        canonical_key=profile.canonical_key,
-        locale=profile.locale,
-        status=profile.status,
-        revision=BreedProfileRevisionResponse.model_validate(revision),
-        created_at=profile.created_at,
-        updated_at=profile.updated_at,
+    return GuideArticleResponse(
+        id=article.id,
+        article_key=article.article_key,
+        locale=article.locale,
+        publication_status=cast(Literal["draft", "active", "inactive"], article.status),
+        revision=GuideArticleRevisionResponse.model_validate(revision),
+        active_revision=(
+            GuideArticleRevisionResponse.model_validate(active_revision)
+            if active_revision is not None
+            else None
+        ),
+        locale_pair=locale_pair,
+        created_at=article.created_at,
+        updated_at=article.updated_at,
     ).model_dump(mode="json")
 
 
@@ -814,7 +839,8 @@ def reset_user_password(
 @router.get("/predictions")
 def list_predictions(
     search: str | None = Query(default=None, max_length=120),
-    predicted_class: Literal["bali", "brahman", "brangus", "limusin"] | None = None,
+    predicted_class: Literal["aceh", "bali", "limusin", "madura", "pasundan", "po"]
+    | None = None,
     status: Literal["success", "failed"] | None = None,
     min_confidence: float | None = Query(default=None, ge=0, le=1),
     max_confidence: float | None = Query(default=None, ge=0, le=1),
@@ -882,78 +908,142 @@ def get_prediction(
     raise AdminAPIError(404, "PREDICTION_NOT_FOUND", "Prediction metadata not found")
 
 
-@router.get("/profiles")
-def list_profiles(
-    status: Literal["draft", "active", "inactive"] | None = None,
+@router.get("/articles")
+def list_articles(
+    category: Literal[
+        "app_usage",
+        "aceh",
+        "bali",
+        "brahman",
+        "brangus",
+        "limusin",
+        "madura",
+        "pasundan",
+        "po",
+    ]
+    | None = None,
+    locale: Literal["id-ID", "en-US"] | None = None,
+    publication_status: Literal["draft", "active", "inactive"] | None = None,
+    revision_status: Literal["draft", "active", "inactive"] | None = None,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=25, ge=1, le=_PAGE_SIZE_MAX),
     db: Session = Depends(get_db),
     _admin: User = Depends(require_admin),
 ):
     page, page_size = _page(page, page_size)
-    filters = [BreedProfile.status == status] if status else []
-    total = (
-        db.scalar(select(func.count()).select_from(BreedProfile).where(*filters)) or 0
+    latest_number = (
+        select(
+            GuideArticleRevision.article_id,
+            func.max(GuideArticleRevision.revision).label("revision"),
+        )
+        .group_by(GuideArticleRevision.article_id)
+        .subquery()
     )
-    profiles = db.scalars(
-        select(BreedProfile)
+    latest = aliased(GuideArticleRevision)
+    active = aliased(GuideArticleRevision)
+    filters = []
+    if locale:
+        filters.append(GuideArticle.locale == locale)
+    if publication_status:
+        filters.append(GuideArticle.status == publication_status)
+    if category:
+        filters.append(latest.category == category)
+    if revision_status:
+        filters.append(latest.status == revision_status)
+    query = (
+        select(GuideArticle, latest, active)
+        .join(latest_number, latest_number.c.article_id == GuideArticle.id)
+        .join(
+            latest,
+            (latest.article_id == latest_number.c.article_id)
+            & (latest.revision == latest_number.c.revision),
+        )
+        .outerjoin(
+            active,
+            (active.article_id == GuideArticle.id) & (active.status == "active"),
+        )
         .where(*filters)
-        .order_by(asc(BreedProfile.canonical_key))
+    )
+    total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    # SQLAlchemy statement is built only from typed, allowlisted filters above.
+    # pi-lens-ignore: python-sql-injection
+    rows = db.execute(
+        query.order_by(asc(GuideArticle.article_key), asc(GuideArticle.locale))
         .offset((page - 1) * page_size)
         .limit(page_size)
     ).all()
+    pairs = {
+        (article_key, pair_locale): pair_status
+        for article_key, pair_locale, pair_status in db.execute(
+            select(GuideArticle.article_key, GuideArticle.locale, GuideArticle.status)
+        ).all()
+    }
     items = []
-    for profile in profiles:
-        revision = _latest_revision(db, profile.id)
-        if revision is not None:
-            items.append(_profile_response(profile, revision))
+    for article, revision, active_revision in rows:
+        pair_locale = "en-US" if article.locale == "id-ID" else "id-ID"
+        items.append(
+            _article_response(
+                article,
+                revision,
+                active_revision,
+                GuideArticleLocalePairResponse(
+                    locale=pair_locale,
+                    status=(
+                        "active"
+                        if pairs.get((article.article_key, pair_locale)) == "active"
+                        else (
+                            "inactive"
+                            if (article.article_key, pair_locale) in pairs
+                            else "missing"
+                        )
+                    ),
+                ),
+            )
+        )
     return {
         "status": "success",
         "page": page,
         "page_size": page_size,
-        "total": _safe_int(total),
+        "total": total,
         "items": items,
     }
 
 
-@router.post("/profiles", status_code=201)
-def create_profile(
-    payload: BreedProfileRequest,
+@router.post("/articles", status_code=201)
+def create_article(
+    payload: GuideArticleRequest,
     request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    if payload.locale not in _ALLOWED_PROFILE_LOCALES:
-        raise AdminAPIError(422, "INVALID_LOCALE", "Unsupported profile locale")
-    if (
-        db.scalar(
-            select(BreedProfile).where(
-                BreedProfile.canonical_key == payload.canonical_key,
-                BreedProfile.locale == payload.locale,
-            )
+    existing = db.scalar(
+        select(GuideArticle).where(
+            GuideArticle.article_key == payload.article_key,
+            GuideArticle.locale == payload.locale,
         )
-        is not None
-    ):
-        raise AdminAPIError(409, "PROFILE_EXISTS", "Breed profile already exists")
-    profile = BreedProfile(
-        canonical_key=payload.canonical_key,
+    )
+    if existing is not None:
+        raise AdminAPIError(409, "ARTICLE_EXISTS", "Guide article already exists")
+    article = GuideArticle(
+        article_key=payload.article_key,
         locale=payload.locale,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
     )
-    db.add(profile)
+    db.add(article)
     db.flush()
-    revision = BreedProfileRevision(
-        profile_id=profile.id,
+    revision = GuideArticleRevision(
+        article_id=article.id,
         revision=1,
-        display_name=payload.display_name,
+        category=payload.category,
+        icon=payload.icon,
+        sort_order=payload.sort_order,
+        title=payload.title,
         summary=payload.summary,
-        strengths=payload.strengths,
-        limitations=payload.limitations,
-        disclaimer=payload.disclaimer,
+        body=payload.body,
         sources=payload.sources,
-        content_reviewed=payload.content_reviewed,
+        content_reviewed=False,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
@@ -961,221 +1051,290 @@ def create_profile(
     db.add(revision)
     record_audit(
         db,
-        action="breed_profile_created",
+        action="article_created",
         actor_user_id=admin.id,
-        resource_type="breed_profile",
-        resource_id=profile.id,
+        resource_type="guide_article",
+        resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
-        changed_fields={
-            "canonical_key": "set",
-            "revision": "created",
-            "status": "draft",
-        },
+        changed_fields={"article_key": "set", "locale": "set", "revision": 1},
     )
     db.commit()
-    return {"status": "success", "item": _profile_response(profile, revision)}
+    return {"status": "success", "item": _article_response(article, revision)}
 
 
-@router.get("/profiles/{profile_id}")
-def get_profile(
-    profile_id: str,
+@router.get("/articles/{article_id}")
+def get_article(
+    article_id: str,
     db: Session = Depends(get_db),
     _admin: User = Depends(require_admin),
 ):
-    profile = db.get(BreedProfile, profile_id)
-    revision = _latest_revision(db, profile_id) if profile else None
-    if profile is None or revision is None:
-        raise AdminAPIError(404, "PROFILE_NOT_FOUND", "Breed profile not found")
-    return {"status": "success", "item": _profile_response(profile, revision)}
+    article = db.get(GuideArticle, article_id)
+    revision = _latest_article_revision(db, article_id) if article else None
+    if article is None or revision is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
+    return {
+        "status": "success",
+        "item": _article_response(
+            article, revision, _active_article_revision(db, article.id)
+        ),
+    }
 
 
-@router.patch("/profiles/{profile_id}")
-def update_profile(
-    profile_id: str,
-    payload: BreedProfilePatchRequest,
+@router.post("/articles/{article_id}/revise")
+def revise_article(
+    article_id: str,
+    payload: GuideArticlePatchRequest,
     request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    profile = db.get(BreedProfile, profile_id)
-    current = _latest_revision(db, profile_id) if profile else None
-    if profile is None or current is None:
-        raise AdminAPIError(404, "PROFILE_NOT_FOUND", "Breed profile not found")
+    article = db.get(GuideArticle, article_id)
+    current = _latest_article_revision(db, article_id) if article else None
+    if article is None or current is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
     changes = payload.model_dump(exclude_unset=True)
     if not changes:
         raise AdminAPIError(422, "NO_CHANGES", "At least one field must be changed")
-    changed_fields = set(changes)
-    if changes.get("content_reviewed") and changed_fields != {"content_reviewed"}:
+    if "article_key" in changes or "locale" in changes:
         raise AdminAPIError(
             422,
-            "PROFILE_REVIEW_INVALID",
-            "Review saved profile content separately from content changes",
+            "ARTICLE_IDENTITY_IMMUTABLE",
+            "Article key and locale cannot be changed",
         )
-    locale = changes.pop("locale", None)
-    if locale is not None and locale != profile.locale:
-        if (
-            db.scalar(
-                select(BreedProfile).where(
-                    BreedProfile.canonical_key == profile.canonical_key,
-                    BreedProfile.locale == locale,
-                    BreedProfile.id != profile.id,
-                )
-            )
-            is not None
-        ):
-            raise AdminAPIError(409, "PROFILE_EXISTS", "Breed profile already exists")
-        profile.locale = locale
+    if "content_reviewed" in changes:
+        raise AdminAPIError(
+            422,
+            "ARTICLE_REVIEW_INVALID",
+            "Review saved article content separately from content changes",
+        )
     values = {
-        "display_name": current.display_name,
+        "category": current.category,
+        "icon": current.icon,
+        "sort_order": current.sort_order,
+        "title": current.title,
         "summary": current.summary,
-        "strengths": current.strengths,
-        "limitations": current.limitations,
-        "disclaimer": current.disclaimer,
+        "body": current.body,
         "sources": current.sources,
-        "content_reviewed": current.content_reviewed,
     }
     values.update(changes)
-    if any(
-        field in changed_fields
-        for field in (
-            "display_name",
-            "summary",
-            "strengths",
-            "limitations",
-            "disclaimer",
-            "sources",
-            "locale",
-        )
-    ):
-        values["content_reviewed"] = False
-    revision = BreedProfileRevision(
-        profile_id=profile.id,
+    revision = GuideArticleRevision(
+        article_id=article.id,
         revision=current.revision + 1,
+        content_reviewed=False,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
         **values,
     )
     db.add(revision)
-    profile.status = "draft"
-    profile.updated_by = admin.id
+    # GuideArticle.status is publication state. Keep it active while the new
+    # editorial revision remains a draft; revision.status represents that draft.
+    article.updated_by = admin.id
     record_audit(
         db,
-        action="breed_profile_updated",
+        action="article_revised",
         actor_user_id=admin.id,
-        resource_type="breed_profile",
-        resource_id=profile.id,
+        resource_type="guide_article",
+        resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
-        changed_fields=dict.fromkeys(changed_fields, "changed"),
+        changed_fields=dict.fromkeys(changes, "changed"),
     )
     db.commit()
-    return {"status": "success", "item": _profile_response(profile, revision)}
+    return {
+        "status": "success",
+        "item": _article_response(
+            article, revision, _active_article_revision(db, article.id)
+        ),
+    }
 
 
-@router.post("/profiles/{profile_id}/activate")
-def activate_profile(
-    profile_id: str,
+@router.patch("/articles/{article_id}")
+def patch_article(
+    article_id: str,
+    payload: GuideArticlePatchRequest,
     request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    profile = db.get(BreedProfile, profile_id)
-    revision = _latest_revision(db, profile_id) if profile else None
-    if profile is None or revision is None:
-        raise AdminAPIError(404, "PROFILE_NOT_FOUND", "Breed profile not found")
+    changes = payload.model_dump(exclude_unset=True)
+    if set(changes) & {"article_key", "locale"}:
+        raise AdminAPIError(
+            422,
+            "ARTICLE_IDENTITY_IMMUTABLE",
+            "Article key and locale cannot be changed",
+        )
+    if changes == {"content_reviewed": True}:
+        return review_article(article_id, request, db, admin)
+    return revise_article(article_id, payload, request, db, admin)
+
+
+@router.post("/articles/{article_id}/review")
+def review_article(
+    article_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    article = db.get(GuideArticle, article_id)
+    revision = _latest_article_revision(db, article_id) if article else None
+    if article is None or revision is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
+    if revision.content_reviewed:
+        raise AdminAPIError(
+            409, "ARTICLE_ALREADY_REVIEWED", "Article is already reviewed"
+        )
+    revision.content_reviewed = True
+    revision.updated_by = admin.id
+    article.updated_by = admin.id
+    record_audit(
+        db,
+        action="article_reviewed",
+        actor_user_id=admin.id,
+        resource_type="guide_article",
+        resource_id=article.id,
+        request_id=_request_id(request),
+        ip_hash=_ip_hash(request),
+        changed_fields={"content_reviewed": True, "revision": revision.revision},
+    )
+    db.commit()
+    return {
+        "status": "success",
+        "item": _article_response(
+            article, revision, _active_article_revision(db, article.id)
+        ),
+    }
+
+
+@router.post("/articles/{article_id}/activate")
+def activate_article(
+    article_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    article = db.get(GuideArticle, article_id)
+    revision = _latest_article_revision(db, article_id) if article else None
+    if article is None or revision is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
     if not revision.content_reviewed or not revision.sources:
         raise AdminAPIError(
             422,
-            "PROFILE_REVIEW_REQUIRED",
-            "Profile content and sources must be reviewed before activation",
+            "ARTICLE_REVIEW_REQUIRED",
+            "Article content and sources must be reviewed before activation",
         )
-    for previous_revision in db.scalars(
-        select(BreedProfileRevision).where(
-            BreedProfileRevision.profile_id == profile.id,
-            BreedProfileRevision.status == "active",
+    for previous in db.scalars(
+        select(GuideArticleRevision).where(
+            GuideArticleRevision.article_id == article.id,
+            GuideArticleRevision.status == "active",
         )
     ).all():
-        previous_revision.status = "inactive"
+        previous.status = "inactive"
+    db.flush()
     revision.status = "active"
-    profile.status = "active"
-    profile.updated_by = admin.id
+    article.status = "active"
+    article.updated_by = admin.id
     record_audit(
         db,
-        action="breed_profile_activated",
+        action="article_activated",
         actor_user_id=admin.id,
-        resource_type="breed_profile",
-        resource_id=profile.id,
+        resource_type="guide_article",
+        resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
         changed_fields={"status": "active", "revision": revision.revision},
     )
     db.commit()
-    return {"status": "success", "item": _profile_response(profile, revision)}
+    return {
+        "status": "success",
+        "item": _article_response(article, revision, revision),
+    }
 
 
-@router.post("/profiles/{profile_id}/deactivate")
-def deactivate_profile(
-    profile_id: str,
+@router.post("/articles/{article_id}/deactivate")
+def deactivate_article(
+    article_id: str,
     request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    profile = db.get(BreedProfile, profile_id)
-    revision = _latest_revision(db, profile_id) if profile else None
-    if profile is None or revision is None:
-        raise AdminAPIError(404, "PROFILE_NOT_FOUND", "Breed profile not found")
-    profile.status = "inactive"
-    profile.updated_by = admin.id
-    if revision.status == "active":
-        revision.status = "inactive"
+    article = db.get(GuideArticle, article_id)
+    revision = _latest_article_revision(db, article_id) if article else None
+    if article is None or revision is None:
+        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
+    for active in db.scalars(
+        select(GuideArticleRevision).where(
+            GuideArticleRevision.article_id == article.id,
+            GuideArticleRevision.status == "active",
+        )
+    ).all():
+        active.status = "inactive"
+    article.status = "inactive"
+    article.updated_by = admin.id
     record_audit(
         db,
-        action="breed_profile_deactivated",
+        action="article_deactivated",
         actor_user_id=admin.id,
-        resource_type="breed_profile",
-        resource_id=profile.id,
+        resource_type="guide_article",
+        resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
         changed_fields={"status": "inactive"},
     )
     db.commit()
-    return {"status": "success", "item": _profile_response(profile, revision)}
+    return {
+        "status": "success",
+        "item": _article_response(
+            article, revision, _active_article_revision(db, article.id)
+        ),
+    }
 
 
-@content_router.get("/profiles")
-def public_profiles(db: Session = Depends(get_db)):
-    """Return only active breed profiles for mobile consumption."""
-    profiles = db.scalars(
-        select(BreedProfile)
-        .where(BreedProfile.status == "active")
-        .order_by(asc(BreedProfile.canonical_key))
+@content_router.get("/articles")
+def public_articles(
+    locale: Literal["id-ID", "en-US"] = Query(...),
+    db: Session = Depends(get_db),
+):
+    rows = db.execute(
+        select(GuideArticle, GuideArticleRevision)
+        .join(
+            GuideArticleRevision,
+            GuideArticleRevision.article_id == GuideArticle.id,
+        )
+        .where(
+            GuideArticle.locale == locale,
+            GuideArticleRevision.status == "active",
+        )
+        .order_by(
+            asc(GuideArticleRevision.category),
+            asc(GuideArticleRevision.sort_order),
+            asc(GuideArticle.article_key),
+        )
     ).all()
-    items = []
-    for profile in profiles:
-        revision = db.scalar(
-            select(BreedProfileRevision).where(
-                BreedProfileRevision.profile_id == profile.id,
-                BreedProfileRevision.status == "active",
-            )
-        )
-        if revision is None:
-            continue
-        items.append(
-            {
-                "canonical_key": profile.canonical_key,
-                "locale": profile.locale,
-                "display_name": revision.display_name,
-                "summary": revision.summary,
-                "strengths": revision.strengths,
-                "limitations": revision.limitations,
-                "disclaimer": revision.disclaimer,
-                "sources": revision.sources,
-                "revision": revision.revision,
-            }
-        )
-    return {"status": "success", "items": items}
+    items = [
+        {
+            "article_key": article.article_key,
+            "category": revision.category,
+            "icon": revision.icon,
+            "sort_order": revision.sort_order,
+            "title": revision.title,
+            "summary": revision.summary,
+            "body": revision.body,
+            "sources": revision.sources,
+            "revision": revision.revision,
+        }
+        for article, revision in rows
+    ]
+    canonical = json.dumps(
+        items, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    return {
+        "status": "success",
+        "locale": locale,
+        "snapshot_version": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+        "items": items,
+    }
 
 
 @router.get("/models")

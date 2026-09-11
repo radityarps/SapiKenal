@@ -450,43 +450,117 @@ def _try_process_and_save(
         return False
 
 
-def curate_existing_folder(target_dir: str):
+def curate_single_folder(folder_path: str) -> Tuple[int, int]:
     """
-    Fungsi utilitas untuk memindai dan memindahkan citra yang tidak layak dari folder yang sudah ada.
+    Memindai dan membersihkan satu folder jenis sapi:
+    - Memindahkan citra korup, aspek rasio salah, ber-banner solid ke subfolder 'rejected/'.
+    - Memindahkan citra duplikat (MD5 kembar) ke 'rejected/'.
     """
-    if not os.path.exists(target_dir):
-        print(f"Direktori {target_dir} tidak ditemukan.")
-        return
-
-    rejected_dir = os.path.join(target_dir, "rejected")
+    rejected_dir = os.path.join(folder_path, "rejected")
     os.makedirs(rejected_dir, exist_ok=True)
 
-    files = [f for f in os.listdir(target_dir) if f.lower().endswith(".jpg")]
-    print(f"\n[KURASI] Memeriksa {len(files)} file di {target_dir}...")
+    files = [
+        f for f in os.listdir(folder_path)
+        if os.path.isfile(os.path.join(folder_path, f))
+        and f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
+    ]
+
+    breed_name = os.path.basename(os.path.normpath(folder_path))
+    print(f"\n[KURASI: {breed_name.upper()}] Memeriksa {len(files)} file di {folder_path}...")
 
     rejected_count = 0
     accepted_count = 0
+    seen_hashes: Set[str] = set()
 
     for filename in sorted(files):
-        file_path = os.path.join(target_dir, filename)
+        file_path = os.path.join(folder_path, filename)
         try:
             with open(file_path, "rb") as f:
                 content = f.read()
+
+            # Cek duplikasi
+            content_hash = compute_image_hash(content)
+            if content_hash in seen_hashes:
+                print(f"  [REJECT] {filename} -> Duplikat (konten identik)")
+                os.rename(file_path, os.path.join(rejected_dir, filename))
+                rejected_count += 1
+                continue
+
             is_valid, _, reason = check_and_clean_image(content)
             if not is_valid:
                 print(f"  [REJECT] {filename} -> {reason}")
                 os.rename(file_path, os.path.join(rejected_dir, filename))
                 rejected_count += 1
             else:
+                seen_hashes.add(content_hash)
                 accepted_count += 1
         except Exception as e:
             print(f"  [REJECT] {filename} -> Gagal membaca ({e})")
             os.rename(file_path, os.path.join(rejected_dir, filename))
             rejected_count += 1
 
-    print(f"\nHasil Kurasi:")
-    print(f" - Lolos (Bersih)   : {accepted_count} citra")
-    print(f" - Ditolak (Dipindah ke {rejected_dir}) : {rejected_count} citra")
+    print(f"  => Hasil: {accepted_count} bersih, {rejected_count} ditolak (dipindah ke rejected/).")
+    return accepted_count, rejected_count
+
+
+def curate_existing_folder(target_dir: str):
+    """
+    Fungsi utilitas untuk membersihkan dataset:
+    - Jika target_dir berisi subdirektori jenis sapi (misal data/raw_cattle_dataset),
+      maka seluruh subfolder akan dikurasi otomatis secara berurutan.
+    - Jika target_dir adalah folder jenis sapi tunggal, langsung dikurasi.
+    """
+    if not os.path.exists(target_dir):
+        print(f"[ERROR] Direktori {target_dir} tidak ditemukan.")
+        return
+
+    # Periksa apakah ada subdirektori jenis sapi
+    subdirs = [
+        os.path.join(target_dir, d)
+        for d in sorted(os.listdir(target_dir))
+        if os.path.isdir(os.path.join(target_dir, d)) and d != "rejected"
+    ]
+
+    has_subfolders = len(subdirs) > 0 and any(
+        any(f.lower().endswith((".jpg", ".jpeg", ".png", ".webp")) for f in os.listdir(sd))
+        for sd in subdirs
+    )
+
+    print("================================================================")
+    print(" SapiKenal — Kurasi & Pembersihan Otomatis Dataset Sapi")
+    print("================================================================")
+
+    total_clean = 0
+    total_rejected = 0
+    summary_list = []
+
+    if has_subfolders:
+        print(f"Ditemukan {len(subdirs)} subdirektori jenis sapi di: {target_dir}")
+        for sd in subdirs:
+            breed = os.path.basename(sd)
+            clean_c, rej_c = curate_single_folder(sd)
+            total_clean += clean_c
+            total_rejected += rej_c
+            summary_list.append((breed, clean_c, rej_c))
+    else:
+        breed = os.path.basename(os.path.normpath(target_dir))
+        clean_c, rej_c = curate_single_folder(target_dir)
+        total_clean += clean_c
+        total_rejected += rej_c
+        summary_list.append((breed, clean_c, rej_c))
+
+    print("\n================================================================")
+    print(" RINGKASAN HASIL PEMBERSIHAN DATASET")
+    print("================================================================")
+    for breed, clean_c, rej_c in summary_list:
+        total = clean_c + rej_c
+        print(f" - {breed:<12}: {clean_c:>4} bersih | {rej_c:>4} ditolak (Total: {total:>4})")
+    print("----------------------------------------------------------------")
+    print(f" TOTAL SEMUA   : {total_clean:>4} bersih | {total_rejected:>4} ditolak")
+    print("================================================================")
+    print("File yang ditolak tidak dihapus permanen, melainkan dipindahkan ke")
+    print("subdirektori 'rejected/' pada masing-masing jenis sapi untuk review.")
+    print("================================================================")
 
 
 def main():

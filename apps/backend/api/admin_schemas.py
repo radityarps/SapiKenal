@@ -1,10 +1,10 @@
-"""Schemas for the protected admin MVP API."""
+"""Schemas for the protected admin API."""
 
 from datetime import datetime
 from typing import Any, Literal
 from urllib.parse import urlsplit
 
-from pydantic import (  # pyright: ignore[reportMissingImports]
+from pydantic import (
     BaseModel,
     ConfigDict,
     EmailStr,
@@ -77,7 +77,7 @@ class DashboardPeriod(BaseModel):
     end_timestamp: int
 
 
-def _profile_sources(value: list[str]) -> list[str]:
+def _article_sources(value: list[str]) -> list[str]:
     sources = [source.strip() for source in value]
     if any(
         not source
@@ -90,40 +90,73 @@ def _profile_sources(value: list[str]) -> list[str]:
     return sources
 
 
-class BreedProfileRequest(BaseModel):
-    canonical_key: Literal["bali", "brahman", "brangus", "limusin"]
-    display_name: str = Field(min_length=1, max_length=120)
-    summary: str = Field(min_length=1, max_length=500)
-    strengths: str = Field(min_length=1, max_length=10_000)
-    limitations: str = Field(min_length=1, max_length=10_000)
-    disclaimer: str = Field(min_length=1, max_length=1_000)
-    sources: list[str] = Field(min_length=1, max_length=20)
-    content_reviewed: bool = False
-    locale: Literal["id-ID", "en-US"] = "id-ID"
-
-    @field_validator(
-        "display_name", "summary", "strengths", "limitations", "disclaimer"
+class GuideArticleRequest(BaseModel):
+    article_key: str = Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
     )
+    locale: Literal["id-ID", "en-US"] = "id-ID"
+    category: Literal[
+        "app_usage",
+        "aceh",
+        "bali",
+        "brahman",
+        "brangus",
+        "limusin",
+        "madura",
+        "pasundan",
+        "po",
+    ]
+    icon: str = Field(min_length=1, max_length=16)
+    sort_order: int = Field(default=0, ge=0, le=100_000)
+    title: str = Field(min_length=1, max_length=120)
+    summary: str = Field(min_length=1, max_length=500)
+    body: str = Field(min_length=1, max_length=50_000)
+    sources: list[str] = Field(min_length=1, max_length=20)
+    content_reviewed: Literal[False] = False
+
+    @field_validator("article_key", "icon", "title", "summary", "body")
     @classmethod
     def non_blank_text(cls, value: str) -> str:
         value = value.strip()
         if not value:
-            raise ValueError("Profile text must not be blank")
+            raise ValueError("Article text must not be blank")
         return value
 
     @field_validator("sources")
     @classmethod
     def valid_sources(cls, value: list[str]) -> list[str]:
-        return _profile_sources(value)
+        return _article_sources(value)
 
 
-class BreedProfilePatchRequest(BaseModel):
+class GuideArticlePatchRequest(BaseModel):
+    article_key: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
+    )
     locale: Literal["id-ID", "en-US"] | None = None
-    display_name: str | None = Field(default=None, min_length=1, max_length=120)
+    category: (
+        Literal[
+            "app_usage",
+            "aceh",
+            "bali",
+            "brahman",
+            "brangus",
+            "limusin",
+            "madura",
+            "pasundan",
+            "po",
+        ]
+        | None
+    ) = None
+    icon: str | None = Field(default=None, min_length=1, max_length=16)
+    sort_order: int | None = Field(default=None, ge=0, le=100_000)
+    title: str | None = Field(default=None, min_length=1, max_length=120)
     summary: str | None = Field(default=None, min_length=1, max_length=500)
-    strengths: str | None = Field(default=None, min_length=1, max_length=10_000)
-    limitations: str | None = Field(default=None, min_length=1, max_length=10_000)
-    disclaimer: str | None = Field(default=None, max_length=1_000)
+    body: str | None = Field(default=None, min_length=1, max_length=50_000)
     sources: list[str] | None = Field(default=None, min_length=1, max_length=20)
     content_reviewed: bool | None = None
 
@@ -131,37 +164,36 @@ class BreedProfilePatchRequest(BaseModel):
     @classmethod
     def reject_null_fields(cls, value: Any) -> Any:
         if isinstance(value, dict) and any(item is None for item in value.values()):
-            raise ValueError("Profile patch fields must not be null")
+            raise ValueError("Article patch fields must not be null")
         return value
 
-    @field_validator(
-        "display_name", "summary", "strengths", "limitations", "disclaimer"
-    )
+    @field_validator("article_key", "icon", "title", "summary", "body")
     @classmethod
     def non_blank_text(cls, value: str | None) -> str | None:
         if value is None:
             return None
         value = value.strip()
         if not value:
-            raise ValueError("Profile text must not be blank")
+            raise ValueError("Article text must not be blank")
         return value
 
     @field_validator("sources")
     @classmethod
     def valid_sources(cls, value: list[str] | None) -> list[str] | None:
-        return None if value is None else _profile_sources(value)
+        return None if value is None else _article_sources(value)
 
 
-class BreedProfileRevisionResponse(BaseModel):
+class GuideArticleRevisionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     revision: int
-    display_name: str
+    category: str
+    icon: str
+    sort_order: int
+    title: str
     summary: str
-    strengths: str
-    limitations: str
-    disclaimer: str
+    body: str
     sources: list[str]
     content_reviewed: bool
     status: str
@@ -169,12 +201,19 @@ class BreedProfileRevisionResponse(BaseModel):
     updated_at: datetime
 
 
-class BreedProfileResponse(BaseModel):
+class GuideArticleLocalePairResponse(BaseModel):
+    locale: Literal["id-ID", "en-US"]
+    status: Literal["missing", "inactive", "active"]
+
+
+class GuideArticleResponse(BaseModel):
     id: str
-    canonical_key: str
+    article_key: str
     locale: str
-    status: str
-    revision: BreedProfileRevisionResponse
+    publication_status: Literal["draft", "active", "inactive"]
+    revision: GuideArticleRevisionResponse
+    active_revision: GuideArticleRevisionResponse | None
+    locale_pair: GuideArticleLocalePairResponse | None = None
     created_at: datetime
     updated_at: datetime
 

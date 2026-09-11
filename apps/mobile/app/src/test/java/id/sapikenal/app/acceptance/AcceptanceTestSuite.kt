@@ -78,10 +78,10 @@ class AcceptanceTestSuite {
     // Local Scan History (Issue #5)
     // ══════════════════════════════════════════════════════════════════════
     @Test
-    fun `identification result retains all four breed scores`() {
+    fun `identification result retains all six breed scores`() {
         val result = createResult()
-        assertEquals(4, result.allScores.size)
-        assertTrue(result.allScores.keys.containsAll(listOf("bali", "brahman", "brangus", "limusin")))
+        assertEquals(6, result.allScores.size)
+        assertTrue(result.allScores.keys.containsAll(listOf("aceh", "bali", "limusin", "madura", "pasundan", "po")))
     }
 
     @Test
@@ -160,7 +160,7 @@ class AcceptanceTestSuite {
     @Test
     fun `offline model version follows naming convention`() {
         assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("mobilenetv3"))
-        assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("contract-v1"))
+        assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("contract-v2"))
         assertTrue(OfflineInferenceEngine.MODEL_VERSION.contains("fp32"))
     }
 
@@ -191,11 +191,19 @@ class AcceptanceTestSuite {
         pdfCachePath: String? = null,
     ) = DetectionResult(
         id = 1L,
-        label = "brangus",
-        displayLabel = "Brangus",
+        label = "madura",
+        displayLabel = "Madura",
         confidence = confidence,
         isReliable = isReliable,
-        allScores = mapOf("bali" to 0.03f, "brahman" to 0.02f, "brangus" to 0.92f, "limusin" to 0.03f),
+        allScores =
+            mapOf(
+                "aceh" to 0.01f,
+                "bali" to 0.02f,
+                "limusin" to 0.02f,
+                "madura" to 0.92f,
+                "pasundan" to 0.02f,
+                "po" to 0.01f,
+            ),
         inferenceMode = InferenceMode.ONLINE,
         consentStatus = consentStatus,
         appVersion = appVersion,

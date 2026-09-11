@@ -21,11 +21,19 @@ class PdfReportContentTest {
         DetectionResult(
             id = 1L,
             imagePath = "/images/test.jpg",
-            label = "brangus",
-            displayLabel = "Brangus",
+            label = "madura",
+            displayLabel = "Madura",
             confidence = 0.92f,
             isReliable = true,
-            allScores = mapOf("bali" to 0.03f, "brahman" to 0.02f, "brangus" to 0.92f, "limusin" to 0.03f),
+            allScores =
+                mapOf(
+                    "aceh" to 0.01f,
+                    "bali" to 0.02f,
+                    "limusin" to 0.02f,
+                    "madura" to 0.92f,
+                    "pasundan" to 0.02f,
+                    "po" to 0.01f,
+                ),
             inferenceMode = InferenceMode.ONLINE,
             consentStatus = ConsentStatus.ALLOWED,
             timestamp = 1700000000000L,
@@ -55,7 +63,7 @@ class PdfReportContentTest {
     @Test
     fun `report includes breed class`() {
         val content = buildContent()
-        assertTrue(content.contains("Predicted Class: Brangus"))
+        assertTrue(content.contains("Predicted Class: Madura"))
     }
 
     @Test
@@ -79,17 +87,19 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes all four canonical class scores`() {
+    fun `report includes all six canonical class scores`() {
         val content = buildContent()
-        assertTrue(content.contains("Brangus: 92%"))
-        assertTrue(content.contains("Bali: 3%"))
-        assertTrue(content.contains("Brahman: 2%"))
-        assertTrue(content.contains("Limousin: 3%"))
+        assertTrue(content.contains("Madura: 92%"))
+        assertTrue(content.contains("Bali: 2%"))
+        assertTrue(content.contains("Limousin: 2%"))
+        assertTrue(content.contains("Aceh: 1%"))
+        assertTrue(content.contains("Pasundan: 2%"))
+        assertTrue(content.contains("PO: 1%"))
     }
 
     @Test(expected = IllegalStateException::class)
     fun `report rejects incomplete canonical scores`() {
-        buildContent(createResult().copy(allScores = mapOf("brangus" to 0.92f)))
+        buildContent(createResult().copy(allScores = mapOf("madura" to 0.92f)))
     }
 
     @Test
@@ -127,7 +137,7 @@ class PdfReportContentTest {
         val content = buildContent()
         assertTrue(content.contains("cattle breed identification result"))
         assertTrue(content.contains("not validation that the image contains cattle"))
-        assertTrue(content.contains("four supported breeds"))
+        assertTrue(content.contains("six supported breeds"))
         assertFalse(content.contains("diagnosis"))
         assertFalse(content.contains("treatment"))
     }
@@ -184,11 +194,13 @@ class PdfReportContentTest {
     @Test
     fun `build returns scores sorted by value descending`() {
         val report = ReportContentBuilder.build(createResult(), "1.0.0")
-        assertEquals(4, report.scoreLines.size)
-        assertTrue(report.scoreLines[0].startsWith("Brangus"))
+        assertEquals(6, report.scoreLines.size)
+        assertTrue(report.scoreLines[0].startsWith("Madura"))
         assertTrue(report.scoreLines[1].startsWith("Bali"))
         assertTrue(report.scoreLines[2].startsWith("Limousin"))
-        assertTrue(report.scoreLines[3].startsWith("Brahman"))
+        assertTrue(report.scoreLines[3].startsWith("Pasundan"))
+        assertTrue(report.scoreLines[4].startsWith("Aceh"))
+        assertTrue(report.scoreLines[5].startsWith("PO"))
     }
 
     @Test

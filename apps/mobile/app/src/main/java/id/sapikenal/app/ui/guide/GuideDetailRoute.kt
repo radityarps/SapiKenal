@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +35,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.sapikenal.app.R
 import id.sapikenal.app.ui.theme.SapiKenalColors
 
@@ -42,9 +45,11 @@ import id.sapikenal.app.ui.theme.SapiKenalColors
 fun GuideDetailRoute(
     articleId: String,
     onBack: () -> Unit,
+    viewModel: GuideDetailViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val article = GuideDataSource.articles(context).find { it.id == articleId }
+    val observedArticle by viewModel.article(context.guideLocale(), articleId).collectAsStateWithLifecycle(initialValue = null)
+    val article = observedArticle
 
     if (article == null) {
         Scaffold(

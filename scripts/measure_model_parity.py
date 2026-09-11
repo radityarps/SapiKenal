@@ -14,16 +14,16 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CLASSES = ["bali", "brahman", "brangus", "limusin"]
+CLASSES = ["aceh", "bali", "limusin", "madura", "pasundan", "po"]
 
 
 def validate_scores(scores):
     if (
-        len(scores) != 4
+        len(scores) != len(CLASSES)
         or any(not math.isfinite(v) or not 0 <= v <= 1 for v in scores)
         or abs(sum(scores) - 1) > 0.01
     ):
-        raise ValueError("Expected four finite probabilities summing to one")
+        raise ValueError(f"Expected {len(CLASSES)} finite probabilities summing to one")
 
 
 def check_regression(report, baseline):
@@ -100,7 +100,7 @@ def measure(capture):
         "schema": 1,
         "class_order": CLASSES,
         "input_shape": [1, 224, 224, 3],
-        "output_shape": [1, 4],
+        "output_shape": [1, 6],
         "dtype": "float32",
         "byte_order": "LITTLE_ENDIAN",
         "model_version": metadata["model_version"],
@@ -119,7 +119,7 @@ def measure(capture):
     ):
         raise ValueError("Unsafe or duplicate fixture IDs")
     if {Path(row["path"]).parts[0] for row in manifest} != set(CLASSES):
-        raise ValueError("Corpus must cover the four team-provided folders")
+        raise ValueError("Corpus must cover the six canonical class folders")
     service = InferenceService(str(keras_path))
     observations = []
     for row, source in zip(rows, manifest, strict=True):

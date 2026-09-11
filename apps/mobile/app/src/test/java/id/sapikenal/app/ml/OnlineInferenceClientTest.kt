@@ -31,14 +31,16 @@ class OnlineInferenceClientTest {
             val api =
                 clientForResponse(
                     responseFor(
-                        predictedClass = "brangus",
+                        predictedClass = "madura",
                         confidence = 0.7f,
                         scores =
                             mapOf(
-                                "bali" to 0.1f,
-                                "brahman" to 0.1f,
-                                "brangus" to 0.7f,
-                                "limusin" to 0.1f,
+                                "aceh" to 0.05f,
+                                "bali" to 0.05f,
+                                "limusin" to 0.05f,
+                                "madura" to 0.7f,
+                                "pasundan" to 0.05f,
+                                "po" to 0.1f,
                             ),
                     ),
                     onUpload = { uploaded = it },
@@ -46,44 +48,46 @@ class OnlineInferenceClientTest {
 
             val result: DetectionResult = api.classify(byteArrayOf(1, 2, 3))
 
-            assertEquals("brangus", result.label)
-            assertEquals("Brangus", result.displayLabel)
+            assertEquals("madura", result.label)
+            assertEquals("Madura", result.displayLabel)
             assertEquals(0.7f, result.confidence, 0.001f)
             assertEquals(
-                listOf("bali", "brahman", "brangus", "limusin"),
+                listOf("aceh", "bali", "limusin", "madura", "pasundan", "po"),
                 result.allScores.keys.toList(),
             )
-            assertEquals("breed-v1", result.modelVersion)
+            assertEquals("sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32", result.modelVersion)
             assertTrue(uploaded?.headers?.get("Content-Disposition")?.contains("filename=\"photo.png\"") == true)
             assertEquals("image/png", uploaded?.body?.contentType().toString())
         }
 
     @Test
-    fun `online response preserves low confidence as a successful four class result`() =
+    fun `online response preserves low confidence as a successful six class result`() =
         runTest {
             val api =
                 clientForResponse(
                     responseFor(
-                        predictedClass = " bali ",
+                        predictedClass = " aceh ",
                         confidence = 0.31f,
                         scores =
                             mapOf(
-                                "bali" to 0.31f,
-                                "brahman" to 0.30f,
-                                "brangus" to 0.29f,
-                                "limusin" to 0.10f,
+                                "aceh" to 0.31f,
+                                "bali" to 0.30f,
+                                "limusin" to 0.20f,
+                                "madura" to 0.10f,
+                                "pasundan" to 0.05f,
+                                "po" to 0.04f,
                             ),
                     ),
                 )
 
             val result = api.classify(byteArrayOf(1, 2, 3))
 
-            assertEquals("bali", result.label)
+            assertEquals("aceh", result.label)
             assertEquals(InferenceMode.ONLINE, result.inferenceMode)
-            assertEquals("breed-v1", result.modelVersion)
+            assertEquals("sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32", result.modelVersion)
             assertEquals(0.31f, result.confidence, 0.001f)
             assertEquals(false, result.isReliable)
-            assertEquals(4, result.allScores.size)
+            assertEquals(6, result.allScores.size)
         }
 
     @Test
@@ -95,13 +99,7 @@ class OnlineInferenceClientTest {
                         status = "error",
                         predictedClass = "bali",
                         confidence = 1.0f,
-                        scores =
-                            mapOf(
-                                "bali" to 1.0f,
-                                "brahman" to 0.0f,
-                                "brangus" to 0.0f,
-                                "limusin" to 0.0f,
-                            ),
+                        scores = canonicalScores("bali", 1.0f),
                     ),
                 )
 
@@ -121,13 +119,7 @@ class OnlineInferenceClientTest {
                     responseFor(
                         predictedClass = "unknown",
                         confidence = 1.0f,
-                        scores =
-                            mapOf(
-                                "bali" to 1.0f,
-                                "brahman" to 0.0f,
-                                "brangus" to 0.0f,
-                                "limusin" to 0.0f,
-                            ),
+                        scores = canonicalScores("bali", 1.0f),
                     ),
                 )
 
@@ -148,11 +140,14 @@ class OnlineInferenceClientTest {
                         predictedClass = "bali",
                         confidence = 0.6f,
                         scores =
-                            mapOf(
-                                "bali" to 0.9f,
-                                "brahman" to 0.05f,
-                                "brangus" to 0.04f,
-                                "limusin" to 0.01f,
+                            canonicalScores(
+                                "bali",
+                                0.9f,
+                                "aceh" to 0.05f,
+                                "limusin" to 0.02f,
+                                "madura" to 0.01f,
+                                "pasundan" to 0.01f,
+                                "po" to 0.01f,
                             ),
                     ),
                 )
@@ -183,12 +178,29 @@ class OnlineInferenceClientTest {
             }
         }
 
+    private fun canonicalScores(
+        top: String,
+        topScore: Float,
+        vararg others: Pair<String, Float>,
+    ): Map<String, Float> =
+        linkedMapOf(
+            "aceh" to 0f,
+            "bali" to 0f,
+            "limusin" to 0f,
+            "madura" to 0f,
+            "pasundan" to 0f,
+            "po" to 0f,
+        ).apply {
+            this[top] = topScore
+            others.forEach { (key, score) -> this[key] = score }
+        }
+
     private fun responseFor(
         status: String = "success",
         predictedClass: String,
         confidence: Float,
         scores: Map<String, Float>,
-        modelVersion: String = "breed-v1",
+        modelVersion: String = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
     ): PredictResponseDto =
         PredictResponseDto(
             status = status,
@@ -211,7 +223,8 @@ class OnlineInferenceClientTest {
                         return response
                     }
 
-                    override suspend fun health(): HealthResponseDto = HealthResponseDto("ok", "breed-v1", true)
+                    override suspend fun health(): HealthResponseDto =
+                        HealthResponseDto("ok", "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32", true)
 
                     override suspend fun upsertHistory(payload: HistorySyncRequestDto) = Response.success("{}".toResponseBody())
                 },
@@ -225,7 +238,7 @@ class OnlineInferenceClientTest {
                 override suspend fun health(): HealthResponseDto =
                     HealthResponseDto(
                         status = "ok",
-                        modelVersion = "four-class-v1",
+                        modelVersion = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
                         modelLoaded = true,
                     )
 

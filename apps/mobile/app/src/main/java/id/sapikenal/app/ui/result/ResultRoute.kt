@@ -72,7 +72,6 @@ import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.InferenceMode
-import id.sapikenal.app.domain.model.LocationSource
 import id.sapikenal.app.ui.theme.SapiKenalColors
 import id.sapikenal.app.ui.theme.SapiKenalTheme
 import org.json.JSONObject
@@ -189,16 +188,6 @@ fun ResultRoute(
     val noteSaved by viewModel.noteSaved.collectAsStateWithLifecycle()
     val noteTitle = displayedResult?.title?.takeIf { it.isNotBlank() }
     val noteDescription = displayedResult?.description?.takeIf { it.isNotBlank() }
-    // History metadata is read only from the persisted result; fresh scans use
-    // the complete result passed by the camera flow.
-    val resolvedConsentStatus = displayedResult?.consentStatus ?: if (!fromHistory) consentStatus else ConsentStatus.UNDECIDED
-    val resolvedAppVersion = displayedResult?.appVersion ?: if (!fromHistory) appVersion else null
-    val resolvedModelVersion = displayedResult?.modelVersion ?: if (!fromHistory) modelVersion else null
-    val resolvedPreprocessingSummary = displayedResult?.preprocessingSummary
-    val resolvedImageSource = displayedResult?.imageSource
-    val resolvedLatitude = displayedResult?.latitude
-    val resolvedLongitude = displayedResult?.longitude
-    val resolvedLocationSource = displayedResult?.locationSource
     val isExportReady = selectResultForExport(fromHistory, selectedDetection, initialResult) != null
     val exportLoadingMessage = stringResource(R.string.result_export_loading)
     val savedMessage = stringResource(R.string.result_saved)
@@ -554,91 +543,6 @@ fun ResultRoute(
             )
         }
 
-        // ── Metadata section ──────────────────────────────────────
-        val hasMetadata =
-            resolvedAppVersion != null || resolvedModelVersion != null ||
-                resolvedConsentStatus != ConsentStatus.UNDECIDED ||
-                resolvedPreprocessingSummary != null || resolvedImageSource != null
-        if (hasMetadata) {
-            Spacer(Modifier.height(16.dp))
-            Card(
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    ),
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        text = stringResource(R.string.result_metadata_title),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = SapiKenalColors.TextSecondary,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    resolvedAppVersion?.let {
-                        Text(
-                            text = stringResource(R.string.result_metadata_app_version, it),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SapiKenalColors.TextSecondary,
-                        )
-                    }
-                    resolvedModelVersion?.let {
-                        Text(
-                            text = stringResource(R.string.result_metadata_model_version, it),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SapiKenalColors.TextSecondary,
-                        )
-                    }
-                    resolvedPreprocessingSummary?.let {
-                        Text(
-                            text = stringResource(R.string.result_metadata_preprocessing, it),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SapiKenalColors.TextSecondary,
-                        )
-                    }
-                    resolvedImageSource?.let { source ->
-                        val sourceLabel =
-                            if (source.name == "CAMERA") {
-                                stringResource(R.string.result_source_camera)
-                            } else {
-                                stringResource(R.string.result_source_gallery)
-                            }
-                        Text(
-                            text = stringResource(R.string.result_metadata_source, sourceLabel),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SapiKenalColors.TextSecondary,
-                        )
-                    }
-                    if (resolvedLatitude != null && resolvedLongitude != null) {
-                        val sourceLabel =
-                            when (resolvedLocationSource) {
-                                LocationSource.GPS -> stringResource(R.string.result_location_source_gps)
-                                LocationSource.MANUAL -> stringResource(R.string.result_location_source_manual)
-                                else -> ""
-                            }
-                        val locationText =
-                            "%.2f, %.2f".format(resolvedLatitude, resolvedLongitude) +
-                                if (sourceLabel.isNotEmpty()) " ($sourceLabel)" else ""
-                        Text(
-                            text = stringResource(R.string.result_metadata_location, locationText),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SapiKenalColors.TextSecondary,
-                        )
-                    }
-                    val consentLabel =
-                        when (resolvedConsentStatus) {
-                            ConsentStatus.ALLOWED -> stringResource(R.string.result_consent_allowed)
-                            ConsentStatus.DENIED -> stringResource(R.string.result_consent_denied)
-                            ConsentStatus.UNDECIDED -> stringResource(R.string.result_consent_undecided)
-                        }
-                    Text(
-                        text = stringResource(R.string.result_metadata_consent, consentLabel),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SapiKenalColors.TextSecondary,
-                    )
-                }
-            }
-        }
 
         Spacer(Modifier.height(24.dp))
 

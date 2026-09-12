@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker  # pyright: ignore[reportMissingImports]
 
 import api.history_store as history_store_module
 import services.audit as audit_module
+from api.schemas import HistoryCreate
 from db.base import Base
 from db.models import PredictionEvent
 
@@ -51,9 +52,6 @@ def test_history_store_round_trips_labeled_scores_and_metadata(tmp_path):
                 consent_status="allowed",
                 image_source="camera",
                 preprocessing_summary="RGB 224x224",
-                latitude=-6.2,
-                longitude=106.8,
-                location_source="gps",
             )
         )
         assert created["predicted_class"] == "madura"
@@ -63,9 +61,6 @@ def test_history_store_round_trips_labeled_scores_and_metadata(tmp_path):
         assert created["consent_status"] == "allowed"
         assert created["image_source"] == "camera"
         assert created["preprocessing_summary"] == "RGB 224x224"
-        assert created["latitude"] == pytest.approx(-6.2)
-        assert created["longitude"] == pytest.approx(106.8)
-        assert created["location_source"] == "gps"
 
         updated = store.upsert(_item(title="updated"))
         assert updated["id"] == created["id"]
@@ -115,8 +110,6 @@ def test_history_schema_columns_are_explicit():
         "description",
         "consent_status",
         "image_source",
-        "latitude",
-        "longitude",
     } <= set(history_store_module.COLUMNS)
     assert not {
         "score_fmd",
@@ -125,7 +118,19 @@ def test_history_schema_columns_are_explicit():
         "score_non_cattle",
         "outcome",
         "rejection_reason",
+        "latitude",
+        "longitude",
+        "location_source",
     } & set(history_store_module.COLUMNS)
+
+
+def test_history_create_rejects_location_fields():
+    with pytest.raises(ValueError):
+        HistoryCreate.model_validate(_item(latitude=-6.2))
+    with pytest.raises(ValueError):
+        HistoryCreate.model_validate(_item(longitude=106.8))
+    with pytest.raises(ValueError):
+        HistoryCreate.model_validate(_item(location_source="gps"))
 
 
 def test_history_values_rejects_malformed_scores():
@@ -153,9 +158,6 @@ def test_history_values_normalizes_enum_and_preserves_scores():
         consent_status="allowed",
         image_source="camera",
         preprocessing_summary="RGB 224x224",
-        latitude=-6.2,
-        longitude=106.8,
-        location_source="gps",
     )
     values = audit_module._history_values(item)
     assert values["predicted_class"] == "madura"
@@ -165,9 +167,6 @@ def test_history_values_normalizes_enum_and_preserves_scores():
     assert values["consent_status"] == "allowed"
     assert values["image_source"] == "camera"
     assert values["preprocessing_summary"] == "RGB 224x224"
-    assert values["latitude"] == -6.2
-    assert values["longitude"] == 106.8
-    assert values["location_source"] == "gps"
 
 
 def test_prediction_event_drops_invalid_scores(monkeypatch):

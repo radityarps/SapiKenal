@@ -131,9 +131,6 @@ class HistoryCreate(BaseModel):
     model_version: str | None = Field(default=None, max_length=128)
     image_source: str | None = Field(default=None, max_length=32)
     preprocessing_summary: str | None = Field(default=None, max_length=500)
-    latitude: float | None = Field(default=None, ge=-90, le=90)
-    longitude: float | None = Field(default=None, ge=-180, le=180)
-    location_source: str | None = Field(default=None, max_length=32)
 
     @model_validator(mode="after")
     def validate_history_contract(self) -> HistoryCreate:

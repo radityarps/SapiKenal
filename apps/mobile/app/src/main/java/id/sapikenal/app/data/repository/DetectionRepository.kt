@@ -11,7 +11,6 @@ import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.ImageSource
 import id.sapikenal.app.domain.model.InferenceMode
-import id.sapikenal.app.domain.model.LocationSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.json.JSONObject
@@ -49,9 +48,6 @@ class DetectionRepository
                     modelVersion = result.modelVersion,
                     imageSource = result.imageSource?.name,
                     preprocessingSummary = result.preprocessingSummary,
-                    latitude = result.latitude,
-                    longitude = result.longitude,
-                    locationSource = result.locationSource?.name,
                     pdfCachePath = result.pdfCachePath,
                 )
             val id = detectionDao.insert(detectionEntity)
@@ -148,7 +144,6 @@ class DetectionRepository
             val mode = InferenceMode.parse(inferenceMode)
             val consent = runCatching { ConsentStatus.valueOf(consentStatus) }.getOrDefault(ConsentStatus.UNDECIDED)
             val source = imageSource?.let { runCatching { ImageSource.valueOf(it) }.getOrNull() }
-            val locSource = locationSource?.let { runCatching { LocationSource.valueOf(it) }.getOrNull() }
             return DetectionResult(
                 id = id,
                 imagePath = imagePath,
@@ -167,9 +162,6 @@ class DetectionRepository
                 modelVersion = modelVersion,
                 imageSource = source,
                 preprocessingSummary = preprocessingSummary,
-                latitude = latitude,
-                longitude = longitude,
-                locationSource = locSource,
                 deletedAt = deletedAt,
                 pdfCachePath = pdfCachePath,
             )

@@ -75,9 +75,6 @@ class HistorySyncRunner
                 modelVersion = modelVersion,
                 imageSource = imageSource?.lowercase(),
                 preprocessingSummary = preprocessingSummary,
-                latitude = latitude,
-                longitude = longitude,
-                locationSource = locationSource?.lowercase(),
             )
 
         private companion object {

@@ -22,10 +22,6 @@ class SettingsDataStore(
         val KEY_LANGUAGE = stringPreferencesKey("language")
         val KEY_TEXT_SIZE = stringPreferencesKey("text_size")
         val KEY_UPLOAD_CONSENT = booleanPreferencesKey("upload_consent")
-        val KEY_LOCATION_ENABLED = booleanPreferencesKey("location_enabled")
-        val KEY_MANUAL_LATITUDE = stringPreferencesKey("manual_latitude")
-        val KEY_MANUAL_LONGITUDE = stringPreferencesKey("manual_longitude")
-        val KEY_CRASH_REPORTING = booleanPreferencesKey("crash_reporting_consent")
     }
 
     val language: Flow<String> =
@@ -53,51 +49,5 @@ class SettingsDataStore(
 
     suspend fun setUploadConsent(value: Boolean) {
         context.dataStore.edit { prefs -> prefs[KEY_UPLOAD_CONSENT] = value }
-    }
-
-    val locationEnabled: Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[KEY_LOCATION_ENABLED] ?: false
-        }
-
-    suspend fun setLocationEnabled(value: Boolean) {
-        context.dataStore.edit { prefs -> prefs[KEY_LOCATION_ENABLED] = value }
-    }
-
-    val manualLatitude: Flow<String?> =
-        context.dataStore.data.map { prefs ->
-            prefs[KEY_MANUAL_LATITUDE]
-        }
-
-    val manualLongitude: Flow<String?> =
-        context.dataStore.data.map { prefs ->
-            prefs[KEY_MANUAL_LONGITUDE]
-        }
-
-    suspend fun setManualLocation(
-        latitude: String?,
-        longitude: String?,
-    ) {
-        context.dataStore.edit { prefs ->
-            if (latitude != null) {
-                prefs[KEY_MANUAL_LATITUDE] = latitude
-            } else {
-                prefs.remove(KEY_MANUAL_LATITUDE)
-            }
-            if (longitude != null) {
-                prefs[KEY_MANUAL_LONGITUDE] = longitude
-            } else {
-                prefs.remove(KEY_MANUAL_LONGITUDE)
-            }
-        }
-    }
-
-    val crashReportingConsent: Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[KEY_CRASH_REPORTING] ?: false
-        }
-
-    suspend fun setCrashReportingConsent(value: Boolean) {
-        context.dataStore.edit { prefs -> prefs[KEY_CRASH_REPORTING] = value }
     }
 }

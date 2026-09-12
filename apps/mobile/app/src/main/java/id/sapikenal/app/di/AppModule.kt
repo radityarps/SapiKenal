@@ -8,8 +8,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import id.sapikenal.app.data.local.SettingsDataStore
-import id.sapikenal.app.location.DefaultLocationProvider
-import id.sapikenal.app.location.LocationProvider
 import id.sapikenal.app.ml.DefaultNetworkChecker
 import id.sapikenal.app.ml.ImageClassifier
 import id.sapikenal.app.ml.ImagePreprocessor
@@ -50,8 +48,4 @@ object AppModule {
     fun provideSettingsDataStore(
         @ApplicationContext context: Context,
     ): SettingsDataStore = SettingsDataStore(context)
-
-    @Provides
-    @Singleton
-    fun provideLocationProvider(defaultLocationProvider: DefaultLocationProvider): LocationProvider = defaultLocationProvider
 }

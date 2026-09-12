@@ -47,6 +47,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_10_11,
                     AppDatabase.MIGRATION_11_12,
                     AppDatabase.MIGRATION_12_13,
+                    AppDatabase.MIGRATION_13_14,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -70,6 +71,9 @@ class AppDatabaseMigrationTest {
                 assertFalse(columns.contains("scoreNonCattle"))
                 assertFalse(columns.contains("outcome"))
                 assertFalse(columns.contains("rejectionReason"))
+                assertFalse(columns.contains("latitude"))
+                assertFalse(columns.contains("longitude"))
+                assertFalse(columns.contains("locationSource"))
             }
         database.close()
     }
@@ -86,6 +90,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_10_11,
                     AppDatabase.MIGRATION_11_12,
                     AppDatabase.MIGRATION_12_13,
+                    AppDatabase.MIGRATION_13_14,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -111,6 +116,39 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
+    fun `migration 13 to 14 drops location columns from detection_records`() {
+        clearLegacyRows()
+        val database =
+            Room
+                .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
+                .addMigrations(
+                    AppDatabase.MIGRATION_8_9,
+                    AppDatabase.MIGRATION_9_10,
+                    AppDatabase.MIGRATION_10_11,
+                    AppDatabase.MIGRATION_11_12,
+                    AppDatabase.MIGRATION_12_13,
+                    AppDatabase.MIGRATION_13_14,
+                ).build()
+
+        val migratedDatabase = database.openHelper.writableDatabase
+        migratedDatabase
+            .query("PRAGMA table_info(detection_records)")
+            .use { cursor ->
+                val columns =
+                    buildList {
+                        while (cursor.moveToNext()) add(cursor.getString(1))
+                    }
+                assertTrue(columns.contains("scoresJson"))
+                assertTrue(columns.contains("predictedClass"))
+                assertTrue(columns.contains("syncStatus"))
+                assertFalse(columns.contains("latitude"))
+                assertFalse(columns.contains("longitude"))
+                assertFalse(columns.contains("locationSource"))
+            }
+        database.close()
+    }
+
+    @Test
     fun `migration from populated legacy schema is refused without dropping rows`() {
         val database =
             Room
@@ -121,6 +159,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_10_11,
                     AppDatabase.MIGRATION_11_12,
                     AppDatabase.MIGRATION_12_13,
+                    AppDatabase.MIGRATION_13_14,
                 ).build()
 
         try {

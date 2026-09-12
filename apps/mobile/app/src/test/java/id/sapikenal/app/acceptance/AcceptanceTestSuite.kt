@@ -4,9 +4,7 @@ import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.ImageSource
 import id.sapikenal.app.domain.model.InferenceMode
-import id.sapikenal.app.domain.model.LocationSource
 import id.sapikenal.app.domain.usecase.ClassifyImageUseCase
-import id.sapikenal.app.location.LocationResolver
 import id.sapikenal.app.ml.OfflineInferenceEngine
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -107,22 +105,6 @@ class AcceptanceTestSuite {
     fun `preprocessing summary constant is set`() {
         assertNotNull(ClassifyImageUseCase.PREPROCESSING_SUMMARY)
         assertTrue(ClassifyImageUseCase.PREPROCESSING_SUMMARY.isNotEmpty())
-    }
-
-    // ══════════════════════════════════════════════════════════════════════
-    // Coarse Location (Issue #6)
-    // ══════════════════════════════════════════════════════════════════════
-
-    @Test
-    fun `location resolver with GPS disabled and no manual returns null`() {
-        val result = LocationResolver.resolve(false, null, null, null)
-        assertNull(result.latitude)
-    }
-
-    @Test
-    fun `location resolver with manual coords returns MANUAL source`() {
-        val result = LocationResolver.resolve(false, null, -6.20, 106.85)
-        assertEquals(LocationSource.MANUAL, result.source)
     }
 
     // ══════════════════════════════════════════════════════════════════════

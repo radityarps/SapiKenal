@@ -1,12 +1,8 @@
 package id.sapikenal.app.ui.settings
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +25,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -56,7 +51,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -102,14 +96,6 @@ class SettingsViewModel
             settingsDataStore.uploadConsent
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-        val locationEnabled: StateFlow<Boolean> =
-            settingsDataStore.locationEnabled
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
-
-        val crashReportingConsent: StateFlow<Boolean> =
-            settingsDataStore.crashReportingConsent
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
-
         private val _snackbarMessageRes = MutableStateFlow<Int?>(null)
         val snackbarMessageRes: StateFlow<Int?> = _snackbarMessageRes.asStateFlow()
 
@@ -125,34 +111,11 @@ class SettingsViewModel
             viewModelScope.launch { settingsDataStore.setUploadConsent(value) }
         }
 
-        fun setLocationEnabled(value: Boolean) {
-            viewModelScope.launch { settingsDataStore.setLocationEnabled(value) }
-        }
-
-        fun setCrashReportingConsent(value: Boolean) {
-            viewModelScope.launch { settingsDataStore.setCrashReportingConsent(value) }
-        }
-
         fun purgeDeletedRecords() {
             viewModelScope.launch {
                 runCatching { purgeManager.purgeExpired() }
                 _snackbarMessageRes.value = R.string.settings_purge_done
             }
-        }
-
-        val manualLatitude: StateFlow<String?> =
-            settingsDataStore.manualLatitude
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-        val manualLongitude: StateFlow<String?> =
-            settingsDataStore.manualLongitude
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-        fun setManualLocation(
-            latitude: String?,
-            longitude: String?,
-        ) {
-            viewModelScope.launch { settingsDataStore.setManualLocation(latitude, longitude) }
         }
 
         fun clearAllHistory() {
@@ -195,8 +158,6 @@ fun SettingsRoute(
     val language by viewModel.language.collectAsStateWithLifecycle()
     val textSize by viewModel.textSize.collectAsStateWithLifecycle()
     val uploadConsent by viewModel.uploadConsent.collectAsStateWithLifecycle()
-    val locationEnabled by viewModel.locationEnabled.collectAsStateWithLifecycle()
-    val crashReportingConsent by viewModel.crashReportingConsent.collectAsStateWithLifecycle()
     val snackbarMessageRes by viewModel.snackbarMessageRes.collectAsStateWithLifecycle()
 
     var showLanguageDialog by remember { mutableStateOf(false) }
@@ -286,21 +247,6 @@ fun SettingsRoute(
                 onCheckedChange = { viewModel.setUploadConsent(it) },
             )
 
-            // Crash reporting consent toggle
-            CrashReportingRow(
-                checked = crashReportingConsent,
-                onCheckedChange = { viewModel.setCrashReportingConsent(it) },
-            )
-
-            // Location toggle
-            LocationRow(
-                enabled = locationEnabled,
-                onEnabledChange = { viewModel.setLocationEnabled(it) },
-            )
-
-            // Manual location entry (always available, no permission needed)
-            ManualLocationRow(viewModel = viewModel)
-
             Spacer(Modifier.height(12.dp))
             HorizontalDivider()
             Spacer(Modifier.height(12.dp))
@@ -360,7 +306,6 @@ fun SettingsRoute(
                 R.string.settings_privacy_no_retention,
                 R.string.settings_privacy_local_history,
                 R.string.settings_privacy_offline,
-                R.string.settings_privacy_location,
             ).forEach { resId ->
                 Text(
                     text = "• ${stringResource(resId)}",
@@ -607,192 +552,6 @@ private fun UploadConsentRow(
                 onCheckedChange = onCheckedChange,
             )
         }
-    }
-}
-
-@Composable
-private fun CrashReportingRow(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = Color.Transparent,
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.settings_crash_reporting),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = stringResource(R.string.settings_crash_reporting_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SapiKenalColors.TextSecondary,
-                )
-            }
-            Spacer(Modifier.width(12.dp))
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-            )
-        }
-    }
-}
-
-@Composable
-private fun LocationRow(
-    enabled: Boolean,
-    onEnabledChange: (Boolean) -> Unit,
-) {
-    val context = LocalContext.current
-    val hasPermission =
-        remember(enabled) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-
-    val permissionLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission(),
-        ) { granted ->
-            if (granted) {
-                onEnabledChange(true)
-            } else {
-                // Permission denied — keep toggle off
-                onEnabledChange(false)
-            }
-        }
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = Color.Transparent,
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.settings_location_title),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = stringResource(R.string.settings_location_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SapiKenalColors.TextSecondary,
-                )
-                val statusText: String
-                val statusColor: Color
-                when {
-                    !enabled -> {
-                        statusText = stringResource(R.string.settings_location_status_disabled)
-                        statusColor = SapiKenalColors.TextSecondary
-                    }
-
-                    hasPermission -> {
-                        statusText = stringResource(R.string.settings_location_status_granted)
-                        statusColor = SapiKenalColors.Primary
-                    }
-
-                    else -> {
-                        statusText = stringResource(R.string.settings_location_status_denied)
-                        statusColor = SapiKenalColors.Secondary
-                    }
-                }
-                Text(
-                    text = statusText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = statusColor,
-                )
-            }
-            Spacer(Modifier.width(12.dp))
-            Switch(
-                checked = enabled,
-                onCheckedChange = { newValue ->
-                    if (newValue && !hasPermission) {
-                        // Request permission before enabling
-                        permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-                    } else {
-                        onEnabledChange(newValue)
-                    }
-                },
-            )
-        }
-    }
-}
-
-@Composable
-private fun ManualLocationRow(viewModel: SettingsViewModel) {
-    val manualLat by viewModel.manualLatitude.collectAsStateWithLifecycle()
-    val manualLng by viewModel.manualLongitude.collectAsStateWithLifecycle()
-
-    var showDialog by remember { mutableStateOf(false) }
-    val currentDisplay =
-        if (manualLat != null && manualLng != null) {
-            "$manualLat, $manualLng"
-        } else {
-            null
-        }
-
-    PreferenceRow(
-        title = stringResource(R.string.settings_location_manual_title),
-        value = currentDisplay ?: stringResource(R.string.settings_location_manual_desc),
-        onClick = { showDialog = true },
-    )
-
-    if (showDialog) {
-        var editLat by remember { mutableStateOf(manualLat ?: "") }
-        var editLng by remember { mutableStateOf(manualLng ?: "") }
-
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(stringResource(R.string.settings_location_manual_title)) },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = editLat,
-                        onValueChange = { editLat = it },
-                        label = { Text(stringResource(R.string.settings_location_lat_hint)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = editLng,
-                        onValueChange = { editLng = it },
-                        label = { Text(stringResource(R.string.settings_location_lng_hint)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val lat = editLat.trim().takeIf { it.isNotEmpty() }
-                    val lng = editLng.trim().takeIf { it.isNotEmpty() }
-                    viewModel.setManualLocation(lat, lng)
-                    showDialog = false
-                }) {
-                    Text(stringResource(R.string.btn_ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    viewModel.setManualLocation(null, null)
-                    showDialog = false
-                }) {
-                    Text(stringResource(R.string.btn_delete))
-                }
-            },
-        )
     }
 }
 

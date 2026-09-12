@@ -12,7 +12,7 @@ import id.sapikenal.app.data.local.entity.GuideSyncMetadataEntity
 
 @Database(
     entities = [DetectionEntity::class, GuideArticleEntity::class, GuideSyncMetadataEntity::class],
-    version = 13,
+    version = 14,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,6 +21,55 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun guideArticleDao(): GuideArticleDao
 
     companion object {
+        val MIGRATION_13_14 =
+            object : Migration(13, 14) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE detection_records_new (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                            timestamp INTEGER NOT NULL,
+                            imagePath TEXT,
+                            predictedClass TEXT NOT NULL,
+                            displayLabel TEXT NOT NULL,
+                            confidence REAL NOT NULL,
+                            scoresJson TEXT NOT NULL,
+                            inferenceMode TEXT NOT NULL,
+                            isReliable INTEGER NOT NULL,
+                            processingMs INTEGER,
+                            title TEXT,
+                            description TEXT,
+                            consentStatus TEXT NOT NULL,
+                            appVersion TEXT,
+                            modelVersion TEXT,
+                            imageSource TEXT,
+                            preprocessingSummary TEXT,
+                            deletedAt INTEGER,
+                            pdfCachePath TEXT,
+                            syncStatus TEXT NOT NULL
+                        )
+                        """.trimIndent(),
+                    )
+                    db.execSQL(
+                        """
+                        INSERT INTO detection_records_new (
+                            id, timestamp, imagePath, predictedClass, displayLabel, confidence,
+                            scoresJson, inferenceMode, isReliable, processingMs, title,
+                            description, consentStatus, appVersion, modelVersion, imageSource,
+                            preprocessingSummary, deletedAt, pdfCachePath, syncStatus
+                        )
+                        SELECT id, timestamp, imagePath, predictedClass, displayLabel, confidence,
+                               scoresJson, inferenceMode, isReliable, processingMs, title,
+                               description, consentStatus, appVersion, modelVersion, imageSource,
+                               preprocessingSummary, deletedAt, pdfCachePath, syncStatus
+                        FROM detection_records
+                        """.trimIndent(),
+                    )
+                    db.execSQL("DROP TABLE detection_records")
+                    db.execSQL("ALTER TABLE detection_records_new RENAME TO detection_records")
+                }
+            }
+
         val MIGRATION_12_13 =
             object : Migration(12, 13) {
                 override fun migrate(db: SupportSQLiteDatabase) {

@@ -23,7 +23,4 @@ data class HistorySyncRequestDto(
     @Json(name = "model_version") val modelVersion: String? = null,
     @Json(name = "image_source") val imageSource: String? = null,
     @Json(name = "preprocessing_summary") val preprocessingSummary: String? = null,
-    val latitude: Double? = null,
-    val longitude: Double? = null,
-    @Json(name = "location_source") val locationSource: String? = null,
 )

@@ -156,9 +156,6 @@ class DetectionHistory(Base):
     preprocessing_summary: Mapped[str | None] = mapped_column(
         String(500), nullable=True
     )
-    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
-    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
-    location_source: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )

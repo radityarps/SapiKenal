@@ -53,8 +53,6 @@ class DetectionDaoTest {
         modelVersion: String? = "MobileNetV2-v3",
         imageSource: String? = "CAMERA",
         preprocessingSummary: String? = "EXIF correct, resize, normalize",
-        latitude: Double? = null,
-        longitude: Double? = null,
         deletedAt: Long? = null,
         pdfCachePath: String? = null,
         title: String? = null,
@@ -77,8 +75,6 @@ class DetectionDaoTest {
         modelVersion = modelVersion,
         imageSource = imageSource,
         preprocessingSummary = preprocessingSummary,
-        latitude = latitude,
-        longitude = longitude,
         deletedAt = deletedAt,
         pdfCachePath = pdfCachePath,
     )
@@ -94,8 +90,6 @@ class DetectionDaoTest {
                     modelVersion = "v3-tflite",
                     imageSource = "GALLERY",
                     preprocessingSummary = "resize 224x224",
-                    latitude = -6.2,
-                    longitude = 106.8,
                     pdfCachePath = "/cache/report.pdf",
                     consentStatus = "DENIED",
                 )
@@ -107,8 +101,6 @@ class DetectionDaoTest {
             assertEquals("v3-tflite", loaded.modelVersion)
             assertEquals("GALLERY", loaded.imageSource)
             assertEquals("resize 224x224", loaded.preprocessingSummary)
-            assertEquals(-6.2, loaded.latitude!!, 0.001)
-            assertEquals(106.8, loaded.longitude!!, 0.001)
             assertEquals("/cache/report.pdf", loaded.pdfCachePath)
             assertEquals("DENIED", loaded.consentStatus)
         }
@@ -122,8 +114,6 @@ class DetectionDaoTest {
                     modelVersion = null,
                     imageSource = null,
                     preprocessingSummary = null,
-                    latitude = null,
-                    longitude = null,
                     pdfCachePath = null,
                 )
             val id = dao.insert(entity)
@@ -134,8 +124,6 @@ class DetectionDaoTest {
             assertNull(loaded.modelVersion)
             assertNull(loaded.imageSource)
             assertNull(loaded.preprocessingSummary)
-            assertNull(loaded.latitude)
-            assertNull(loaded.longitude)
             assertNull(loaded.pdfCachePath)
         }
 

@@ -5,7 +5,6 @@ import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.ImageSource
 import id.sapikenal.app.domain.model.InferenceMode
-import id.sapikenal.app.domain.model.LocationSource
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,9 +38,6 @@ object ReportContentBuilder {
         val allowed: String,
         val denied: String,
         val undecided: String,
-        val coarseLocation: String,
-        val gps: String,
-        val manual: String,
         val detectionResult: String,
         val classScores: String,
         val technicalInformation: String,
@@ -105,9 +101,6 @@ object ReportContentBuilder {
                     allowed = "Allowed",
                     denied = "Denied",
                     undecided = "Undecided",
-                    coarseLocation = "Coarse Location",
-                    gps = "GPS",
-                    manual = "Manual",
                     detectionResult = "Identification Result",
                     classScores = "Class Scores",
                     technicalInformation = "Technical Information",
@@ -175,18 +168,6 @@ object ReportContentBuilder {
         result.title?.let { metadataLines.add("${labels.recordTitle}: $it") }
         result.description?.let { metadataLines.add("${labels.recordDescription}: $it") }
         metadataLines.add("${labels.consentStatus}: ${labels.consentStatusLabel(result.consentStatus)}")
-        if (result.latitude != null && result.longitude != null) {
-            val sourceLabel =
-                when (result.locationSource) {
-                    LocationSource.GPS -> labels.gps
-                    LocationSource.MANUAL -> labels.manual
-                    else -> ""
-                }
-            val locText =
-                "%.2f, %.2f".format(result.latitude, result.longitude) +
-                    if (sourceLabel.isNotEmpty()) " ($sourceLabel)" else ""
-            metadataLines.add("${labels.coarseLocation}: $locText")
-        }
 
         val disclaimerLines =
             listOf(

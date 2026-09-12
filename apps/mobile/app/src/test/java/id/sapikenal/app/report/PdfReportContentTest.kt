@@ -4,7 +4,6 @@ import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.ImageSource
 import id.sapikenal.app.domain.model.InferenceMode
-import id.sapikenal.app.domain.model.LocationSource
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -13,7 +12,7 @@ import org.junit.Test
 /**
  * Tests verifying PDF report content requirements via [ReportContentBuilder]:
  * - Required fields are present
- * - Excluded fields (IMEI, serial, account ID, precise location) are absent
+ * - Excluded fields (IMEI, serial, account ID, location) are absent
  * - Wording avoids diagnosis/certificate claims
  */
 class PdfReportContentTest {
@@ -42,9 +41,6 @@ class PdfReportContentTest {
             modelVersion = "MobileNetV2-v3",
             preprocessingSummary = "EXIF correct, resize 224×224, lossless PNG, then RGB float32 raw [0..255]",
             imageSource = ImageSource.CAMERA,
-            latitude = -6.20,
-            longitude = 106.85,
-            locationSource = LocationSource.GPS,
         )
 
     private fun buildContent(result: DetectionResult = createResult()): String {
@@ -129,9 +125,10 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes coarse location with source`() {
+    fun `report does not contain location`() {
         val content = buildContent()
-        assertTrue(content.contains("Coarse Location: -6.20, 106.85 (GPS)"))
+        assertFalse(content.contains("Location"))
+        assertFalse(content.contains("GPS"))
     }
 
     @Test
@@ -204,13 +201,6 @@ class PdfReportContentTest {
         assertTrue(report.scoreLines[4].startsWith("Aceh"))
         assertTrue(report.scoreLines[5].startsWith("PO"))
         assertTrue(report.scoreLines[6].startsWith("Non-Cattle"))
-    }
-
-    @Test
-    fun `build omits location when not available`() {
-        val result = createResult().copy(latitude = null, longitude = null, locationSource = null)
-        val report = ReportContentBuilder.build(result, "1.0.0")
-        assertFalse(report.metadataLines.any { it.contains("Location") })
     }
 
     @Test

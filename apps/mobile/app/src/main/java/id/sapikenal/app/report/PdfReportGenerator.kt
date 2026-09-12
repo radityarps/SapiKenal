@@ -26,9 +26,9 @@ import javax.inject.Singleton
  *
  * Includes: image, timestamp, breed class, confidence, scores, inference mode,
  * advice, disclaimer, app version, model version, preprocessing summary,
- * consent status, and coarse location (if available).
+ * and consent status.
  *
- * Excludes: IMEI, serial number, account ID, precise location.
+ * Excludes: IMEI, serial number, account ID, location.
  * Wording states breed-identification and object-validation limitations.
  */
 @Singleton
@@ -314,9 +314,6 @@ class PdfReportGenerator
                 allowed = context.getString(R.string.report_allowed),
                 denied = context.getString(R.string.report_denied),
                 undecided = context.getString(R.string.report_undecided),
-                coarseLocation = context.getString(R.string.report_coarse_location),
-                gps = context.getString(R.string.result_location_source_gps),
-                manual = context.getString(R.string.result_location_source_manual),
                 detectionResult = context.getString(R.string.report_detection_result),
                 classScores = context.getString(R.string.report_class_scores),
                 technicalInformation = context.getString(R.string.report_technical_information),

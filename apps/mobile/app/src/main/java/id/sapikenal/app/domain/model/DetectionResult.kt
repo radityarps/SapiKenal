@@ -18,9 +18,6 @@ data class DetectionResult(
     val modelVersion: String? = null,
     val imageSource: ImageSource? = null,
     val preprocessingSummary: String? = null,
-    val latitude: Double? = null,
-    val longitude: Double? = null,
-    val locationSource: LocationSource? = null,
     val deletedAt: Long? = null,
     val pdfCachePath: String? = null,
 )

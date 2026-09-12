@@ -33,9 +33,6 @@ CREATE TABLE IF NOT EXISTS detection_history (
     model_version TEXT,
     image_source TEXT,
     preprocessing_summary TEXT,
-    latitude REAL,
-    longitude REAL,
-    location_source TEXT,
     created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
     UNIQUE(device_id, local_id)
@@ -63,9 +60,6 @@ COLUMNS = (
     "model_version",
     "image_source",
     "preprocessing_summary",
-    "latitude",
-    "longitude",
-    "location_source",
     "created_at",
     "updated_at",
 )
@@ -130,14 +124,12 @@ class HistoryStore:
                     device_id, local_id, timestamp, predicted_class, display_label,
                     confidence, scores, inference_mode, is_reliable, processing_ms,
                     title, description, consent_status,
-                    app_version, model_version, image_source, preprocessing_summary,
-                    latitude, longitude, location_source
+                    app_version, model_version, image_source, preprocessing_summary
                 ) VALUES (
                     :device_id, :local_id, :timestamp, :predicted_class, :display_label,
                     :confidence, :scores, :inference_mode, :is_reliable, :processing_ms,
                     :title, :description, :consent_status,
-                    :app_version, :model_version, :image_source, :preprocessing_summary,
-                    :latitude, :longitude, :location_source
+                    :app_version, :model_version, :image_source, :preprocessing_summary
                 )
                 ON CONFLICT(device_id, local_id) DO UPDATE SET
                     timestamp=excluded.timestamp,
@@ -155,9 +147,6 @@ class HistoryStore:
                     model_version=excluded.model_version,
                     image_source=excluded.image_source,
                     preprocessing_summary=excluded.preprocessing_summary,
-                    latitude=excluded.latitude,
-                    longitude=excluded.longitude,
-                    location_source=excluded.location_source,
                     updated_at=unixepoch() * 1000
                 """,
                 params,

@@ -53,10 +53,6 @@ class SettingsViewModelTest {
         whenever(settingsDataStore.uploadConsent).thenReturn(uploadConsentFlow)
         whenever(settingsDataStore.language).thenReturn(MutableStateFlow("system"))
         whenever(settingsDataStore.textSize).thenReturn(MutableStateFlow("system"))
-        whenever(settingsDataStore.locationEnabled).thenReturn(MutableStateFlow(false))
-        whenever(settingsDataStore.crashReportingConsent).thenReturn(MutableStateFlow(false))
-        whenever(settingsDataStore.manualLatitude).thenReturn(MutableStateFlow(null))
-        whenever(settingsDataStore.manualLongitude).thenReturn(MutableStateFlow(null))
 
         viewModel = SettingsViewModel(settingsDataStore, detectionRepository, purgeManager)
     }
@@ -165,33 +161,6 @@ class SettingsViewModelTest {
             advanceUntilIdle()
 
             verify(settingsDataStore).setTextSize("large")
-        }
-
-    @Test
-    fun `setLocationEnabled calls settingsDataStore setLocationEnabled`() =
-        runTest(testDispatcher) {
-            viewModel.setLocationEnabled(true)
-            advanceUntilIdle()
-
-            verify(settingsDataStore).setLocationEnabled(true)
-        }
-
-    @Test
-    fun `setCrashReportingConsent calls settingsDataStore setCrashReportingConsent`() =
-        runTest(testDispatcher) {
-            viewModel.setCrashReportingConsent(true)
-            advanceUntilIdle()
-
-            verify(settingsDataStore).setCrashReportingConsent(true)
-        }
-
-    @Test
-    fun `setManualLocation calls settingsDataStore setManualLocation`() =
-        runTest(testDispatcher) {
-            viewModel.setManualLocation("-6.2088", "106.8456")
-            advanceUntilIdle()
-
-            verify(settingsDataStore).setManualLocation("-6.2088", "106.8456")
         }
 
     @Test

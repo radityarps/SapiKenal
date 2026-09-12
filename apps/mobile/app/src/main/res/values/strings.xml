@@ -104,9 +104,6 @@
     <string name="result_metadata_source">Sumber Gambar: %1$s</string>
     <string name="result_source_camera">Kamera</string>
     <string name="result_source_gallery">Galeri</string>
-    <string name="result_metadata_location">Lokasi: %1$s</string>
-    <string name="result_location_source_gps">GPS</string>
-    <string name="result_location_source_manual">Manual</string>
     <string name="result_metadata_consent">Izin Upload: %1$s</string>
     <string name="result_consent_allowed">Diizinkan</string>
     <string name="result_consent_denied">Ditolak</string>
@@ -129,7 +126,6 @@
     <string name="report_allowed">Diizinkan</string>
     <string name="report_denied">Ditolak</string>
     <string name="report_undecided">Belum Ditentukan</string>
-    <string name="report_coarse_location">Lokasi Perkiraan</string>
     <string name="report_detection_result">Hasil Identifikasi</string>
     <string name="report_class_scores">Skor Kelas</string>
     <string name="report_technical_information">Informasi Teknis</string>
@@ -316,23 +312,10 @@
     <string name="settings_onboarding_reset">Onboarding direset</string>
     <string name="settings_upload_consent">Upload Gambar ke Server</string>
     <string name="settings_upload_consent_description">Jika dinonaktifkan, hanya identifikasi offline yang digunakan. Gambar tidak akan dikirim ke server.</string>
-    <string name="settings_crash_reporting">Pelaporan Crash</string>
-    <string name="settings_crash_reporting_description">Izinkan pengiriman laporan crash anonim untuk membantu meningkatkan kualitas aplikasi.</string>
     <string name="settings_purge_deleted">Hapus Permanen Rekaman Kedaluwarsa</string>
     <string name="settings_purge_deleted_description">Hapus permanen rekaman yang sudah di-soft-delete lebih dari 30 hari</string>
     <string name="settings_purge_deleted_message">Hapus semua rekaman yang sudah dihapus (soft-delete) lebih dari 30 hari? Tindakan ini tidak dapat dibatalkan.</string>
     <string name="settings_purge_done">Rekaman terhapus berhasil dibersihkan</string>
-    <string name="settings_location_title">GPS Lokasi Otomatis</string>
-    <string name="settings_location_description">Gunakan GPS untuk menyimpan lokasi kasar secara otomatis saat scan. Memerlukan izin lokasi.</string>
-    <string name="settings_location_status_granted">Izin diberikan</string>
-    <string name="settings_location_status_denied">Izin belum diberikan</string>
-    <string name="settings_location_status_disabled">Nonaktif</string>
-    <string name="settings_location_manual_title">Lokasi Manual</string>
-    <string name="settings_location_manual_desc">Masukkan koordinat lokasi secara manual (opsional)</string>
-    <string name="settings_location_lat_hint">Lintang (contoh: -6.20)</string>
-    <string name="settings_location_lng_hint">Bujur (contoh: 106.85)</string>
-    <string name="settings_location_manual_saved">Lokasi manual disimpan</string>
-    <string name="settings_location_manual_cleared">Lokasi manual dihapus</string>
 
     <!-- Consent Panel -->
     <string name="consent_title">Izin Upload Gambar</string>
@@ -349,7 +332,6 @@
     <string name="settings_privacy_no_retention">Server tidak menyimpan gambar setelah analisis</string>
     <string name="settings_privacy_local_history">Riwayat scan disimpan lokal di perangkat</string>
     <string name="settings_privacy_offline">Identifikasi offline tersedia tanpa mengirim data</string>
-    <string name="settings_privacy_location">Data lokasi hanya disimpan lokal, tidak diunggah</string>
 
     <!-- Quality Gate -->
     <string name="quality_warning_title">Masalah Kualitas Gambar</string>

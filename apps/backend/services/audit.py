@@ -80,9 +80,6 @@ def _history_values(item: dict[str, Any]) -> dict[str, Any]:
         "model_version": history.model_version,
         "image_source": history.image_source,
         "preprocessing_summary": history.preprocessing_summary,
-        "latitude": history.latitude,
-        "longitude": history.longitude,
-        "location_source": history.location_source,
     }
 
 

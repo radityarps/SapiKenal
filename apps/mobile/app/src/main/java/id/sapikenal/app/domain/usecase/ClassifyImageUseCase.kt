@@ -7,8 +7,6 @@ import id.sapikenal.app.data.repository.DetectionRepository
 import id.sapikenal.app.domain.model.ClassifyResponse
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.ImageSource
-import id.sapikenal.app.location.LocationProvider
-import id.sapikenal.app.location.LocationResolver
 import id.sapikenal.app.ml.InferenceRouter
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -19,7 +17,6 @@ class ClassifyImageUseCase
         private val inferenceRouter: InferenceRouter,
         private val detectionRepository: DetectionRepository,
         private val settingsDataStore: SettingsDataStore,
-        private val locationProvider: LocationProvider,
     ) {
         suspend operator fun invoke(
             imageUri: Uri,
@@ -58,28 +55,11 @@ class ClassifyImageUseCase
                     is ClassifyResponse.ConsentRequired -> return response
                 }
 
-            // Resolve location: GPS assist (if enabled) → manual fallback → none
-            val gpsAssistEnabled = settingsDataStore.locationEnabled.first()
-            val gpsLocation = if (gpsAssistEnabled) locationProvider.getCoarseLocation() else null
-            val manualLat = settingsDataStore.manualLatitude.first()?.toDoubleOrNull()
-            val manualLng = settingsDataStore.manualLongitude.first()?.toDoubleOrNull()
-
-            val location =
-                LocationResolver.resolve(
-                    gpsAssistEnabled = gpsAssistEnabled,
-                    gpsLocation = gpsLocation,
-                    manualLatitude = manualLat,
-                    manualLongitude = manualLng,
-                )
-
             val resultWithMetadata =
                 targetResult.copy(
                     appVersion = BuildConfig.VERSION_NAME,
                     imageSource = ImageSource.fromBoolean(isFromCamera),
                     preprocessingSummary = PREPROCESSING_SUMMARY,
-                    latitude = location.latitude,
-                    longitude = location.longitude,
-                    locationSource = location.source,
                 )
             val savedId =
                 detectionRepository.saveDetection(

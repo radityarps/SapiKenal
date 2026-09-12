@@ -61,9 +61,6 @@ Manual smoke test flow to verify core functionality before release.
 - [ ] Language switch changes UI language (System/ID/EN)
 - [ ] Text size changes apply
 - [ ] Upload consent toggle works
-- [ ] Crash reporting consent toggle works
-- [ ] GPS location toggle requests permission
-- [ ] Manual location entry saves coordinates
 - [ ] "Clear All History" shows confirmation and deletes all
 - [ ] "Purge Deleted Records" removes expired soft-deleted records
 - [ ] Reset onboarding shows onboarding on next launch

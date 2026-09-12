@@ -220,3 +220,22 @@ def test_migration_0011_removes_icon_column(
     assert "category" in columns
     assert "title" in columns
     assert "body" in columns
+
+
+def test_migration_0012_removes_location_columns(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "test_migration_0012.db"
+    config = _config(db_path, monkeypatch)
+    command.upgrade(config, "head")
+
+    engine = sa.create_engine(f"sqlite:///{db_path}")
+    inspector = sa.inspect(engine)
+    columns = {col["name"] for col in inspector.get_columns("detection_history")}
+    assert "latitude" not in columns
+    assert "longitude" not in columns
+    assert "location_source" not in columns
+    assert "predicted_class" in columns
+    assert "scores" in columns
+    assert "confidence" in columns
+

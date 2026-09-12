@@ -56,8 +56,6 @@ class LocalizationTest {
             "settings_language",
             "settings_clear_history",
             "settings_upload_consent",
-            "settings_crash_reporting",
-            "settings_crash_reporting_description",
             "settings_purge_deleted",
             "settings_purge_done",
             // Camera

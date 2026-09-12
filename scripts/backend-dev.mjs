@@ -1,31 +1,70 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
-import { rmSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const backend = resolve(root, "apps/backend");
+const envPath = resolve(backend, ".env");
+const envExamplePath = resolve(backend, ".env.example");
 
-if (process.env.FASTAPI_ENV !== "development") {
+function parseEnvFile(filePath) {
+	if (!existsSync(filePath)) return {};
+	const content = readFileSync(filePath, "utf-8");
+	const env = {};
+	for (const line of content.split("\n")) {
+		const trimmed = line.trim();
+		if (!trimmed || trimmed.startsWith("#")) continue;
+		const eqIndex = trimmed.indexOf("=");
+		if (eqIndex === -1) continue;
+		const key = trimmed.slice(0, eqIndex).trim();
+		let val = trimmed.slice(eqIndex + 1).trim();
+		if (
+			(val.startsWith('"') && val.endsWith('"')) ||
+			(val.startsWith("'") && val.endsWith("'"))
+		) {
+			val = val.slice(1, -1);
+		}
+		env[key] = val;
+	}
+	return env;
+}
+
+// Bootstrap .env from .env.example if missing
+if (!existsSync(envPath) && existsSync(envExamplePath)) {
+	copyFileSync(envExamplePath, envPath);
+	console.log("Created apps/backend/.env from .env.example");
+}
+
+const fileEnv = {
+	...parseEnvFile(envExamplePath),
+	...parseEnvFile(envPath),
+};
+
+const activeFastapiEnv = process.env.FASTAPI_ENV ?? fileEnv.FASTAPI_ENV ?? "development";
+const activeDebug = process.env.DEBUG ?? fileEnv.DEBUG ?? "true";
+
+if (activeFastapiEnv !== "development") {
 	console.error(
-		"backend:dev requires explicit FASTAPI_ENV=development; refusing a destructive reset.",
+		`backend:dev requires FASTAPI_ENV=development (got "${activeFastapiEnv}"); refusing a destructive reset.`,
 	);
 	process.exit(1);
 }
-if (process.env.DEBUG?.toLowerCase() !== "true") {
+if (activeDebug.toLowerCase() !== "true") {
 	console.error(
-		"backend:dev requires explicit DEBUG=true; refusing a destructive reset.",
+		`backend:dev requires DEBUG=true (got "${activeDebug}"); refusing a destructive reset.`,
 	);
 	process.exit(1);
 }
 
 const environment = {
+	...fileEnv,
 	...process.env,
 	FASTAPI_ENV: "development",
 	DEBUG: "true",
-	DATABASE_URL: process.env.DATABASE_URL || "sqlite:///./data/admin.sqlite3",
+	DATABASE_URL: process.env.DATABASE_URL || fileEnv.DATABASE_URL || "sqlite:///./data/admin.sqlite3",
 	ALLOW_DEV_DB_RESET: "true",
 	MODEL_STARTUP_FALLBACK_ENABLED: "true",
 };

@@ -6,6 +6,7 @@
   export let name: string;
   export let autocomplete: HTMLInputAttributes['autocomplete'];
   export let label: string;
+  export let value: string = '';
   export let minlength: number | undefined = undefined;
   export let required = false;
   export let disabled = false;
@@ -16,7 +17,7 @@
 <label for={id}>
   {label}
   <span class="relative block">
-    <input class="w-full pr-11" {id} {name} type={visible ? 'text' : 'password'} {autocomplete} {minlength} {required} {disabled} />
+    <input class="w-full pr-11" {id} {name} {value} type={visible ? 'text' : 'password'} {autocomplete} {minlength} {required} {disabled} />
     <button class="password-toggle" type="button" onclick={() => (visible = !visible)} aria-label={visible ? `Sembunyikan ${label.toLowerCase()}` : `Tampilkan ${label.toLowerCase()}`} aria-pressed={visible} {disabled}>
       {#if visible}<EyeOff size={17} strokeWidth={1.8} aria-hidden="true" />{:else}<Eye size={17} strokeWidth={1.8} aria-hidden="true" />{/if}
     </button>

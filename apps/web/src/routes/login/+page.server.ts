@@ -1,10 +1,19 @@
 import { dev } from "$app/environment";
+import { env } from "$env/dynamic/private";
 import { fail, redirect } from "@sveltejs/kit";
 import { backendJson } from "$lib/server/backend";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = ({ locals }) => {
 	if (locals.user) throw redirect(303, "/dashboard");
+
+	const envValue = (env.ENV || "").toLowerCase();
+	const isDev = envValue === "development" || (dev && envValue !== "production");
+
+	return {
+		defaultEmail: isDev ? (env.ADMIN_EMAIL || "admin@example.com") : "",
+		defaultPassword: isDev ? (env.ADMIN_PASSWORD || "password") : "",
+	};
 };
 
 export const actions: Actions = {

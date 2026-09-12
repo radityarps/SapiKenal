@@ -107,9 +107,9 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes model version`() {
+    fun `report does not include model version`() {
         val content = buildContent()
-        assertTrue(content.contains("Model Version: MobileNetV2-v3"))
+        assertFalse(content.contains("Model Version"))
     }
 
     @Test

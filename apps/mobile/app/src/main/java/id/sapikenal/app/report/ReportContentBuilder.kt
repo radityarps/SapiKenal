@@ -26,7 +26,6 @@ object ReportContentBuilder {
         val offlineFallback: String,
         val unknown: String,
         val appVersion: String,
-        val modelVersion: String,
         val processingTime: String,
         val preprocessing: String,
         val imageSource: String,
@@ -89,7 +88,6 @@ object ReportContentBuilder {
                     offlineFallback = "Offline fallback",
                     unknown = "Unknown mode",
                     appVersion = "App Version",
-                    modelVersion = "Model Version",
                     processingTime = "Processing Time",
                     preprocessing = "Preprocessing",
                     imageSource = "Image Source",
@@ -161,7 +159,6 @@ object ReportContentBuilder {
 
         val metadataLines = mutableListOf<String>()
         result.appVersion?.let { metadataLines.add("${labels.appVersion}: $it") }
-        result.modelVersion?.let { metadataLines.add("${labels.modelVersion}: $it") }
         result.processingMs?.let { metadataLines.add("${labels.processingTime}: $it ms") }
         result.preprocessingSummary?.let { metadataLines.add("${labels.preprocessing}: $it") }
         result.imageSource?.let { metadataLines.add("${labels.imageSource}: ${labels.imageSourceLabel(it)}") }

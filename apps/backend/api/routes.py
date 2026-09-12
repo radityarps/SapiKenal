@@ -6,7 +6,6 @@ import asyncio
 
 from fastapi import (  # pyright: ignore[reportMissingImports]
     APIRouter,
-    Depends,
     File,
     HTTPException,
     Query,
@@ -16,8 +15,6 @@ from fastapi import (  # pyright: ignore[reportMissingImports]
     WebSocketDisconnect,
 )
 from fastapi.responses import JSONResponse  # pyright: ignore[reportMissingImports]
-from sqlalchemy import desc, select  # pyright: ignore[reportMissingImports]
-from sqlalchemy.orm import Session  # pyright: ignore[reportMissingImports]
 
 from api.history_store import history_store
 from api.prediction import error_payload_for_http_exception, predict_image_bytes
@@ -30,8 +27,6 @@ from api.schemas import (
     PredictResponse,
 )
 from config import settings
-from db.core import get_db
-from db.models import ModelVersion
 from inference_server import get_model_status
 from services.audit import record_prediction_event, sync_history_to_admin
 from utils.logger import get_logger
@@ -204,24 +199,12 @@ async def benchmark_websocket(websocket: WebSocket):
 
 
 @router.get("/health", response_model=HealthResponse)
-async def health(db: Session = Depends(get_db)):
+async def health():
     try:
         model_status = get_model_status()
-        active_models = db.scalars(
-            select(ModelVersion)
-            .where(ModelVersion.status == "active")
-            .order_by(desc(ModelVersion.activated_at))
-        ).all()
         actual_version = model_status.get("model_version", settings.model_version)
-        registry_consistent = (
-            len(active_models) == 1 and actual_version == active_models[0].version
-        )
         return {
-            "status": (
-                "ok"
-                if model_status["model_loaded"] and registry_consistent
-                else "degraded"
-            ),
+            "status": "ok" if model_status["model_loaded"] else "degraded",
             "model_loaded": model_status["model_loaded"],
             "model_version": actual_version,
         }

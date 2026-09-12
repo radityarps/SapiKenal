@@ -99,7 +99,6 @@
     <string name="result_disclaimer">Ini adalah hasil klasifikasi citra dari model AI. Hasil ini bukan bukti identitas individual sapi dan bukan rekomendasi mutlak.</string>
     <string name="result_metadata_title">Informasi Teknis</string>
     <string name="result_metadata_app_version">Versi Aplikasi: %1$s</string>
-    <string name="result_metadata_model_version">Versi Model: %1$s</string>
     <string name="result_metadata_preprocessing">Preprocessing: %1$s</string>
     <string name="result_metadata_source">Sumber Gambar: %1$s</string>
     <string name="result_source_camera">Kamera</string>
@@ -116,7 +115,6 @@
     <string name="report_confidence">Keyakinan</string>
     <string name="report_inference_mode">Mode Inferensi</string>
     <string name="report_app_version">Versi Aplikasi</string>
-    <string name="report_model_version">Versi Model</string>
     <string name="report_processing_time">Waktu Pemrosesan</string>
     <string name="report_preprocessing">Prapemrosesan</string>
     <string name="report_image_source">Sumber Gambar</string>
@@ -322,7 +320,6 @@
     <string name="consent_btn_allow">Izinkan</string>
     <string name="consent_btn_offline">Gunakan Offline</string>
     <string name="settings_app_version">Versi Aplikasi</string>
-    <string name="settings_model_version">Versi Model</string>
     <string name="settings_privacy_title">Privasi &amp; Data</string>
     <string name="settings_privacy_exif">Metadata EXIF dihapus sebelum upload</string>
     <string name="settings_privacy_no_retention">Server tidak menyimpan gambar setelah analisis</string>

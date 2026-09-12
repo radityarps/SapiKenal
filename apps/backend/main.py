@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-import tempfile
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
@@ -18,7 +16,6 @@ from fastapi import (  # pyright: ignore[reportMissingImports]
 from fastapi.middleware.cors import (  # pyright: ignore[reportMissingImports]
     CORSMiddleware,
 )
-from sqlalchemy import desc, select  # pyright: ignore[reportMissingImports]
 from starlette.responses import JSONResponse  # pyright: ignore[reportMissingImports]
 
 import db.models  # noqa: F401 - register every model with Base.metadata
@@ -30,182 +27,50 @@ from api.rate_limiter import RateLimiterMiddleware
 from api.routes import router
 from config import settings
 from db.base import Base
-from db.core import SessionLocal, engine
-from db.models import ModelActivation, ModelVersion
+from db.core import engine
 from inference_server import mark_model_unavailable, reload_active_model
-from model.registry import (  # pyright: ignore[reportMissingImports]
-    artifact_name_for,
-    registry_root,
-    resolve_artifact_path,
-)
-from model.validation import (  # pyright: ignore[reportMissingImports]
-    sha256_file,
-    validate_model_file,
-)
-from services.audit import record_audit
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-def _register_startup_fallback(db) -> ModelVersion:
-    """Copy an enabled fallback into the registry and record it as active."""
+def _load_static_model() -> None:
+    """Load the configured static model artifact before serving inference traffic."""
     source = Path(settings.model_path).expanduser().resolve()
     if (
         not source.is_file()
         or source.is_symlink()
         or source.suffix.casefold() != ".keras"
     ):
-        raise ValueError("Configured fallback model artifact is unavailable")
-
-    metadata = validate_model_file(
-        source,
-        input_size=settings.input_size,
-        classes=list(settings.labels),
-    )
-    checksum = metadata["checksum"]
-    artifact_name = artifact_name_for(settings.model_version, checksum)
-    root = registry_root(create=True)
-    destination = resolve_artifact_path(artifact_name)
-    created_artifact = False
-    if not destination.exists():
-        with tempfile.NamedTemporaryFile(dir=root, delete=False) as temporary:
-            temporary_path = Path(temporary.name)
-            try:
-                with source.open("rb") as stream:
-                    while chunk := stream.read(1024 * 1024):
-                        temporary.write(chunk)
-                temporary.flush()
-                os.fsync(temporary.fileno())
-                os.replace(temporary_path, destination)
-                created_artifact = True
-            finally:
-                temporary_path.unlink(missing_ok=True)
-    if sha256_file(destination) != checksum:
-        raise ValueError("Fallback model copy checksum does not match")
-    reload_active_model(
-        destination,
-        settings.model_version,
-        list(settings.labels),
-        settings.input_size,
-    )
-
-    existing = db.scalar(
-        select(ModelVersion).where(ModelVersion.version == settings.model_version)
-    )
-    if existing is not None:
-        if (
-            existing.checksum.casefold() != checksum.casefold()
-            or existing.input_size != settings.input_size
-            or existing.classes != list(settings.labels)
-        ):
-            raise ValueError("Fallback model version conflicts with registry metadata")
-        existing.artifact_name = artifact_name
-        existing.status = "active"
-        existing.activated_at = datetime.now(timezone.utc)
-        model = existing
-    else:
-        model = ModelVersion(
-            version=settings.model_version,
-            artifact_name=artifact_name,
-            checksum=checksum,
-            status="active",
-            input_size=settings.input_size,
-            classes=list(settings.labels),
-            notes="Registered from the explicitly enabled startup fallback.",
-            activated_at=datetime.now(timezone.utc),
+        mark_model_unavailable("Configured model artifact is unavailable")
+        logger.error(
+            "Model file %s does not exist or is not a valid .keras file", source
         )
-        db.add(model)
-    db.flush()
-    db.add(
-        ModelActivation(
-            model_version_id=model.id,
-            previous_model_version_id=None,
-            action="activate",
-            reason="Explicit startup fallback registration",
-            status="success",
-        )
-    )
-    record_audit(
-        db,
-        action="model_fallback_registered",
-        resource_type="model_version",
-        resource_id=model.id,
-        changed_fields={"status": "active", "source": "startup_fallback"},
-    )
-    try:
-        db.commit()
-    except Exception:
-        db.rollback()
-        if created_artifact:
-            destination.unlink(missing_ok=True)
-        raise
-    return model
-
-
-def _restore_active_model_from_registry() -> None:
-    """Restore the database-selected model before serving inference traffic."""
-    try:
-        with SessionLocal() as db:
-            active_models = db.scalars(
-                select(ModelVersion)
-                .where(ModelVersion.status == "active")
-                .order_by(desc(ModelVersion.activated_at))
-            ).all()
-            if not active_models and settings.model_startup_fallback_enabled:
-                _register_startup_fallback(db)
-                logger.info(
-                    "Registered startup fallback model version %s",
-                    settings.model_version,
-                )
-                return
-    except Exception as exc:
-        mark_model_unavailable("Active model registry is unavailable")
-        logger.error("Could not query the active model registry: %s", str(exc))
-        raise
-
-    if len(active_models) > 1:
-        mark_model_unavailable("Multiple active model versions were found")
-        logger.error("Model registry contains %d active versions", len(active_models))
-        raise RuntimeError("Model registry contains multiple active versions")
-
-    active = active_models[0] if active_models else None
-    if active is None:
-        mark_model_unavailable("No active model has been registered")
         return
 
     try:
-        artifact_path = resolve_artifact_path(active.artifact_name)
-        if not artifact_path.is_file() or artifact_path.suffix.casefold() != ".keras":
-            raise ValueError("Active model artifact is unavailable")
-        if sha256_file(artifact_path).casefold() != active.checksum.casefold():
-            raise ValueError("Active model checksum does not match the registry")
         reload_active_model(
-            artifact_path,
-            active.version,
-            active.classes,
-            active.input_size,
+            source,
+            settings.model_version,
+            list(settings.labels),
+            settings.input_size,
         )
-        logger.info("Restored active model version %s", active.version)
+        logger.info("Loaded model from %s (version: %s)", source, settings.model_version)
     except Exception as exc:
-        mark_model_unavailable("Active model recovery failed")
-        logger.error(
-            "Could not restore active model version %s: %s",
-            active.version,
-            str(exc),
-        )
+        mark_model_unavailable("Model loading failed")
+        logger.error("Could not load model from %s: %s", source, str(exc))
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    """Create development tables and restore the selected model before serving."""
+    """Create development tables and load the configured model before serving."""
     if settings.fastapi_env == "development" and settings.debug:
         await asyncio.to_thread(Base.metadata.create_all, bind=engine)
         logger.info("Development database tables ensured")
     try:
-        await asyncio.to_thread(_restore_active_model_from_registry)
+        await asyncio.to_thread(_load_static_model)
     except Exception as exc:
-        logger.error("Active model recovery could not query the registry: %s", str(exc))
+        logger.error("Model loading error: %s", str(exc))
     yield
 
 

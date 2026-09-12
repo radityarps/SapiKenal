@@ -255,3 +255,18 @@ def test_migration_0013_removes_guide_article_locale(
     assert "status" in columns
 
 
+def test_migration_0014_removes_model_versioning_tables(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "test_migration_0014.db"
+    config = _config(db_path, monkeypatch)
+    command.upgrade(config, "head")
+
+    engine = sa.create_engine(f"sqlite:///{db_path}")
+    inspector = sa.inspect(engine)
+    table_names = set(inspector.get_table_names())
+    assert "model_versions" not in table_names
+    assert "model_activations" not in table_names
+
+
+

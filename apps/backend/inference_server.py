@@ -159,23 +159,17 @@ class InferenceService:
 
 _service_init_error: str | None = None
 
-# Singleton instance. The configured model path is only a startup fallback when
-# explicitly enabled; otherwise the database-selected active model is restored by
-# the application lifespan before traffic is served.
-if settings.model_startup_fallback_enabled:
-    try:
-        inference_service: InferenceService | None = InferenceService()
-    except Exception as exc:
-        inference_service = None
-        _service_init_error = str(exc)
-        logger.warning(
-            "Inference service unavailable at startup. "
-            "API will run in degraded mode until model is provided.",
-            extra={"model_path": settings.model_path, "error": _service_init_error},
-        )
-else:
+# Singleton instance. Initialized at startup from configured model_path.
+try:
+    inference_service: InferenceService | None = InferenceService()
+except Exception as exc:
     inference_service = None
-    _service_init_error = "No active model has been restored from the registry"
+    _service_init_error = str(exc)
+    logger.warning(
+        "Inference service unavailable at startup. "
+        "API will run in degraded mode until model is provided.",
+        extra={"model_path": settings.model_path, "error": _service_init_error},
+    )
 
 
 def reload_active_model(

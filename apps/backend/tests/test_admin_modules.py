@@ -23,8 +23,6 @@ from db.base import Base
 from db.core import get_db
 from db.models import (
     DetectionHistory,
-    ModelActivation,
-    ModelVersion,
     PredictionEvent,
     User,
 )
@@ -298,252 +296,40 @@ def test_last_admin_guard_and_prediction_masking(
     assert client.get("/api/admin/predictions?search=PMK").json()["total"] == 0
 
 
-def test_model_registration_rejects_missing_allowlisted_artifact(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
-) -> None:
-    client, _ = admin_client
-    response = client.post(
-        "/api/admin/models/register",
-        json={
-            "version": "candidate-1",
-            "artifact_name": "candidate.keras",
-            "checksum": "0" * 64,
-            "classes": ["aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po"],
-        },
-    )
-    assert response.status_code == 422
-    assert response.json()["code"] == "MODEL_ARTIFACT_INVALID"
-
-
-def test_enabled_startup_fallback_registers_active_model_metadata(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
+def test_static_model_loading(
     tmp_path,
     monkeypatch,
 ) -> None:
-    _, session_factory = admin_client
-    source = tmp_path / "fallback.keras"
-    source.write_bytes(b"fallback-model")
-    registry = tmp_path / "registry"
+    source = tmp_path / "model.keras"
+    source.write_bytes(b"static-model")
     monkeypatch.setattr(settings, "model_path", str(source))
-    monkeypatch.setattr(settings, "model_registry_dir", str(registry))
-    monkeypatch.setattr(settings, "model_startup_fallback_enabled", True)
-    monkeypatch.setattr(backend_main, "SessionLocal", session_factory)
-    monkeypatch.setattr(backend_main, "reload_active_model", lambda *args: None)
+    reloaded: list[tuple] = []
     monkeypatch.setattr(
         backend_main,
-        "validate_model_file",
-        lambda path, *, input_size, classes: {
-            "checksum": hashlib.sha256(path.read_bytes()).hexdigest()
-        },
+        "reload_active_model",
+        lambda path, version, classes, input_size: reloaded.append((path, version)),
     )
 
-    backend_main._restore_active_model_from_registry()
-
-    with session_factory() as db:
-        model = db.scalar(select(ModelVersion))
-        assert model is not None
-        assert model.version == settings.model_version
-        assert model.status == "active"
-        assert model.checksum == hashlib.sha256(source.read_bytes()).hexdigest()
-        assert model.classes == list(settings.labels)
-        assert model.input_size == settings.input_size
-        assert (registry / model.artifact_name).read_bytes() == source.read_bytes()
+    backend_main._load_static_model()
+    assert len(reloaded) == 1
+    assert reloaded[0][0] == source
+    assert reloaded[0][1] == settings.model_version
 
 
-def test_model_upload_registers_available_artifact_without_activation(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
+def test_static_model_loading_missing_file(
     tmp_path,
     monkeypatch,
 ) -> None:
-    client, _ = admin_client
-    registry = tmp_path / "registry"
-    monkeypatch.setattr(settings, "model_registry_dir", str(registry))
-
-    def fake_validate(path, *, input_size, classes):
-        return {
-            "checksum": hashlib.sha256(path.read_bytes()).hexdigest(),
-            "input_shape": [None, input_size, input_size, 3],
-            "output_shape": [None, len(classes)],
-            "classes": classes,
-        }
-
-    monkeypatch.setattr(admin_routes, "validate_model_file", fake_validate)
-    response = client.post(
-        "/api/admin/models/upload",
-        data={
-            "version": "candidate-upload-1",
-            "input_size": "224",
-            "classes": "aceh,bali,limusin,madura,non_sapi,pasundan,po",
-            "notes": "Candidate upload test",
-        },
-        files={
-            "artifact": (
-                "candidate.keras",
-                b"test-model-bytes",
-                "application/octet-stream",
-            )
-        },
+    source = tmp_path / "nonexistent.keras"
+    monkeypatch.setattr(settings, "model_path", str(source))
+    unavailable_reasons: list[str] = []
+    monkeypatch.setattr(
+        backend_main,
+        "mark_model_unavailable",
+        lambda reason: unavailable_reasons.append(reason),
     )
 
-    assert response.status_code == 201
-    item = response.json()["item"]
-    assert item["status"] == "available"
-    assert item["checksum"] == hashlib.sha256(b"test-model-bytes").hexdigest()
-    assert (registry / item["artifact_name"]).read_bytes() == b"test-model-bytes"
-    assert (
-        client.get("/api/admin/models").json()["active_version"]
-        == settings.model_version
-    )
-    models = client.get("/api/admin/models").json()
-    assert models["total"] == 1
-    assert models["items"][0]["version"] == "candidate-upload-1"
+    backend_main._load_static_model()
+    assert len(unavailable_reasons) == 1
+    assert "unavailable" in unavailable_reasons[0].lower()
 
-
-def test_model_upload_rejects_filename_path_separator(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
-    tmp_path,
-    monkeypatch,
-) -> None:
-    client, _ = admin_client
-    registry = tmp_path / "registry"
-    monkeypatch.setattr(settings, "model_registry_dir", str(registry))
-
-    response = client.post(
-        "/api/admin/models/upload",
-        data={"version": "candidate-traversal"},
-        files={
-            "artifact": (
-                "../candidate.keras",
-                b"not-a-model",
-                "application/octet-stream",
-            )
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.json()["code"] == "MODEL_FILE_NAME_INVALID"
-    assert not registry.exists()
-
-
-def test_model_activation_and_rollback_keep_one_active_version(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
-    tmp_path,
-    monkeypatch,
-) -> None:
-    client, session_factory = admin_client
-    registry = tmp_path / "registry"
-    registry.mkdir()
-    monkeypatch.setattr(settings, "model_registry_dir", str(registry))
-
-    first_bytes = b"first-model"
-    second_bytes = b"second-model"
-    first_name = "candidate-first.keras"
-    second_name = "candidate-second.keras"
-    (registry / first_name).write_bytes(first_bytes)
-    (registry / second_name).write_bytes(second_bytes)
-    with session_factory() as db:
-        admin = db.scalar(select(User).where(User.email == "admin@example.com"))
-        assert admin is not None
-        first = ModelVersion(
-            version="candidate-first",
-            artifact_name=first_name,
-            checksum=hashlib.sha256(first_bytes).hexdigest(),
-            status="available",
-            input_size=settings.input_size,
-            classes=list(settings.labels),
-            registered_by=admin.id,
-        )
-        second = ModelVersion(
-            version="candidate-second",
-            artifact_name=second_name,
-            checksum=hashlib.sha256(second_bytes).hexdigest(),
-            status="available",
-            input_size=settings.input_size,
-            classes=list(settings.labels),
-            registered_by=admin.id,
-        )
-        db.add_all([first, second])
-        db.commit()
-        first_id = first.id
-        second_id = second.id
-
-    monkeypatch.setattr(admin_routes, "reload_active_model", lambda *args: None)
-    first_response = client.post(
-        f"/api/admin/models/{first_id}/activate",
-        json={"reason": "Initial candidate"},
-    )
-    assert first_response.status_code == 200
-    second_response = client.post(
-        f"/api/admin/models/{second_id}/activate",
-        json={"reason": "Replace candidate"},
-    )
-    assert second_response.status_code == 200
-    rollback_response = client.post(
-        f"/api/admin/models/{first_id}/rollback",
-        json={"reason": "Restore prior candidate"},
-    )
-    assert rollback_response.status_code == 200
-
-    models = client.get("/api/admin/models").json()
-    statuses = {item["version"]: item["status"] for item in models["items"]}
-    assert statuses == {"candidate-first": "active", "candidate-second": "retired"}
-    assert models["active_version"] == "candidate-first"
-    by_version = {item["version"]: item for item in models["items"]}
-    assert by_version["candidate-first"]["rolled_back_at"] is not None
-    assert by_version["candidate-second"]["deactivated_at"] is not None
-    with session_factory() as db:
-        active_count = db.scalar(
-            select(ModelVersion.id).where(ModelVersion.status == "active")
-        )
-        assert active_count == first_id
-        activations = db.scalars(
-            select(ModelActivation).where(ModelActivation.status == "success")
-        ).all()
-        assert len(activations) == 3
-
-
-def test_failed_model_activation_keeps_candidate_inactive_and_audited(
-    admin_client: tuple[TestClient, sessionmaker[Session]],
-    tmp_path,
-    monkeypatch,
-) -> None:
-    client, session_factory = admin_client
-    registry = tmp_path / "registry"
-    registry.mkdir()
-    monkeypatch.setattr(settings, "model_registry_dir", str(registry))
-    payload = b"candidate-model"
-    artifact_name = "candidate-failure.keras"
-    (registry / artifact_name).write_bytes(payload)
-    with session_factory() as db:
-        admin = db.scalar(select(User).where(User.email == "admin@example.com"))
-        assert admin is not None
-        model = ModelVersion(
-            version="candidate-failure",
-            artifact_name=artifact_name,
-            checksum=hashlib.sha256(payload).hexdigest(),
-            status="available",
-            input_size=settings.input_size,
-            classes=list(settings.labels),
-            registered_by=admin.id,
-        )
-        db.add(model)
-        db.commit()
-        model_id = model.id
-
-    def fail_reload(*args):
-        raise RuntimeError("candidate warm-up failed")
-
-    monkeypatch.setattr(admin_routes, "reload_active_model", fail_reload)
-    response = client.post(
-        f"/api/admin/models/{model_id}/activate",
-        json={"reason": "Reject bad candidate"},
-    )
-
-    assert response.status_code == 422
-    assert response.json()["code"] == "MODEL_ACTIVATION_FAILED"
-    item = client.get(f"/api/admin/models/{model_id}").json()["item"]
-    assert item["status"] == "available"
-    assert (
-        client.get("/api/admin/audit-logs?action=model_activate_failed").json()["total"]
-        == 1
-    )

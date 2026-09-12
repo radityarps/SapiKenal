@@ -206,50 +206,6 @@ class GuideArticleResponse(BaseModel):
     updated_at: datetime
 
 
-class ModelRegisterRequest(BaseModel):
-    version: str = Field(min_length=1, max_length=128)
-    artifact_name: str = Field(min_length=1, max_length=255, pattern=r"^[^/\\\\]+$")
-    checksum: str = Field(min_length=64, max_length=128, pattern=r"^[0-9a-fA-F]+$")
-    input_size: int = Field(default=224, ge=1, le=4096)
-    classes: list[str] = Field(min_length=1, max_length=32)
-    metrics: dict[str, Any] | None = None
-    notes: str | None = Field(default=None, max_length=10_000)
-
-
-class ModelActivationRequest(BaseModel):
-    reason: str = Field(min_length=3, max_length=1_000)
-
-    @field_validator("reason")
-    @classmethod
-    def normalize_reason(cls, value: str) -> str:
-        value = value.strip()
-        if len(value) < 3:
-            raise ValueError(
-                "Reason must contain at least three non-whitespace characters"
-            )
-        return value
-
-
-class ModelVersionResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: str
-    version: str
-    artifact_name: str
-    checksum: str
-    status: str
-    input_size: int
-    classes: list[str]
-    metrics: dict[str, Any] | None
-    notes: str | None
-    registered_at: datetime
-    activated_at: datetime | None
-    deactivated_at: datetime | None
-    rolled_back_at: datetime | None
-    activated_by: str | None
-    compatible: bool = True
-
-
 class AuditLogResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

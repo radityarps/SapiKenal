@@ -107,11 +107,6 @@ class Settings(BaseSettings):
     admin_device_hash_salt: str = os.getenv(
         "ADMIN_DEVICE_HASH_SALT", "development-device-mask"
     )
-    model_registry_dir: str = os.getenv("MODEL_REGISTRY_DIR", "./model/registry")
-    model_upload_max_bytes: int = _env_int("MODEL_UPLOAD_MAX_BYTES", 250_000_000)
-    model_startup_fallback_enabled: bool = (
-        os.getenv("MODEL_STARTUP_FALLBACK_ENABLED", "false").lower() == "true"
-    )
 
     # Rate limiting
     rate_limit_max_requests: int = _env_int("RATE_LIMIT_MAX_REQUESTS", 10)

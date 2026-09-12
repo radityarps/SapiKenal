@@ -265,13 +265,6 @@ fun SettingsRoute(
                 enabled = false,
             )
 
-            // Model version (read-only)
-            PreferenceRow(
-                title = stringResource(R.string.settings_model_version),
-                value = id.sapikenal.app.ml.OfflineInferenceEngine.MODEL_VERSION,
-                enabled = false,
-            )
-
             Spacer(Modifier.height(12.dp))
             HorizontalDivider()
             Spacer(Modifier.height(12.dp))

@@ -302,7 +302,6 @@ class PdfReportGenerator
                 offlineFallback = context.getString(R.string.result_mode_offline_fallback),
                 unknown = context.getString(R.string.result_mode_unknown),
                 appVersion = context.getString(R.string.report_app_version),
-                modelVersion = context.getString(R.string.report_model_version),
                 processingTime = context.getString(R.string.report_processing_time),
                 preprocessing = context.getString(R.string.report_preprocessing),
                 imageSource = context.getString(R.string.report_image_source),

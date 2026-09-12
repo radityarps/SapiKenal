@@ -71,10 +71,7 @@
     { value: 'article_created', label: 'Artikel Panduan dibuat' },
     { value: 'article_reviewed', label: 'Artikel Panduan ditinjau' },
     { value: 'article_activated', label: 'Artikel Panduan diaktifkan' },
-    { value: 'article_deactivated', label: 'Artikel Panduan dinonaktifkan' },
-    { value: 'model_registered', label: 'Model didaftarkan' },
-    { value: 'model_activate', label: 'Model diaktifkan' },
-    { value: 'model_rollback', label: 'Model dikembalikan' }
+    { value: 'article_deactivated', label: 'Artikel Panduan dinonaktifkan' }
   ];
   const statusFilterItems = [
     { value: '__all__', label: 'Semua status' },

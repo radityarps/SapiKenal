@@ -7,6 +7,6 @@ import retrofit2.http.Query
 interface GuideContentApiService {
     @GET("api/content/articles")
     suspend fun articles(
-        @Query("locale") locale: String,
+        @Query("locale") locale: String? = null,
     ): GuideSnapshotDto
 }

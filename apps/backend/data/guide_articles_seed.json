@@ -1,7 +1,6 @@
 [
   {
     "article_key": "app_1",
-    "locale": "id-ID",
     "category": "app_usage",
     "sort_order": 10,
     "title": "Memulai Scan Pertama",
@@ -13,7 +12,6 @@
   },
   {
     "article_key": "app_2",
-    "locale": "id-ID",
     "category": "app_usage",
     "sort_order": 20,
     "title": "Mode Online vs Offline",
@@ -25,7 +23,6 @@
   },
   {
     "article_key": "app_3",
-    "locale": "id-ID",
     "category": "app_usage",
     "sort_order": 30,
     "title": "Memahami Hasil Klasifikasi",
@@ -37,7 +34,6 @@
   },
   {
     "article_key": "bali_1",
-    "locale": "id-ID",
     "category": "bali",
     "sort_order": 40,
     "title": "Profil Sapi Bali",
@@ -49,7 +45,6 @@
   },
   {
     "article_key": "bali_2",
-    "locale": "id-ID",
     "category": "bali",
     "sort_order": 50,
     "title": "Warna Bulu dan Bentuk Sapi Bali",
@@ -61,7 +56,6 @@
   },
   {
     "article_key": "bali_3",
-    "locale": "id-ID",
     "category": "bali",
     "sort_order": 60,
     "title": "Membandingkan Sapi Bali pada Citra",
@@ -73,7 +67,6 @@
   },
   {
     "article_key": "bali_4",
-    "locale": "id-ID",
     "category": "bali",
     "sort_order": 70,
     "title": "Batasan Profil Sapi Bali",
@@ -85,7 +78,6 @@
   },
   {
     "article_key": "brahman_1",
-    "locale": "id-ID",
     "category": "brahman",
     "sort_order": 80,
     "title": "Profil Sapi Brahman",
@@ -97,7 +89,6 @@
   },
   {
     "article_key": "brahman_2",
-    "locale": "id-ID",
     "category": "brahman",
     "sort_order": 90,
     "title": "Warna Bulu dan Bentuk Sapi Brahman",
@@ -109,7 +100,6 @@
   },
   {
     "article_key": "brahman_3",
-    "locale": "id-ID",
     "category": "brahman",
     "sort_order": 100,
     "title": "Membandingkan Sapi Brahman pada Citra",
@@ -121,7 +111,6 @@
   },
   {
     "article_key": "brahman_4",
-    "locale": "id-ID",
     "category": "brahman",
     "sort_order": 110,
     "title": "Batasan Profil Sapi Brahman",
@@ -133,7 +122,6 @@
   },
   {
     "article_key": "brangus_1",
-    "locale": "id-ID",
     "category": "brangus",
     "sort_order": 120,
     "title": "Profil Sapi Brangus",
@@ -145,7 +133,6 @@
   },
   {
     "article_key": "brangus_2",
-    "locale": "id-ID",
     "category": "brangus",
     "sort_order": 130,
     "title": "Warna Bulu dan Bentuk Sapi Brangus",
@@ -157,7 +144,6 @@
   },
   {
     "article_key": "brangus_3",
-    "locale": "id-ID",
     "category": "brangus",
     "sort_order": 140,
     "title": "Membandingkan Profil Sapi Brangus",
@@ -169,7 +155,6 @@
   },
   {
     "article_key": "limusin_1",
-    "locale": "id-ID",
     "category": "limusin",
     "sort_order": 150,
     "title": "Profil Sapi Limusin",
@@ -181,7 +166,6 @@
   },
   {
     "article_key": "limusin_2",
-    "locale": "id-ID",
     "category": "limusin",
     "sort_order": 160,
     "title": "Warna Bulu dan Bentuk Sapi Limusin",
@@ -192,200 +176,7 @@
     ]
   },
   {
-    "article_key": "app_1",
-    "locale": "en-US",
-    "category": "app_usage",
-    "sort_order": 10,
-    "title": "Your First Scan",
-    "summary": "A complete guide to using the scan feature to identify breeds in your cattle.",
-    "body": "How to Identify\n\nOpen SapiKenal and select the Check tab. Aim the camera at cattle with the body and visible breed characteristics clear in the frame. You can also select an image from the gallery.\n\nTips for Taking an Image\n\n• Show the whole body from a side or three-quarter angle\n• Include the head, shoulder, and legs when possible\n• Use even lighting and avoid strong shadows\n• Keep the camera steady and avoid blurry images\n• Do not assume the camera or gallery validates the object in the image\n\nAfter Selecting an Image\n\nThe app processes the image and displays one top breed, its confidence, and scores for Bali, Brahman, Brangus, and Limousin. This is a model classification result, not proof of pedigree or individual identity.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/pedoman-teknis"
-    ]
-  },
-  {
-    "article_key": "app_2",
-    "locale": "en-US",
-    "category": "app_usage",
-    "sort_order": 20,
-    "title": "Online vs Offline Mode",
-    "summary": "Differences between online and offline inference modes, and when to use each.",
-    "body": "Online Mode\n\nIn online mode, the image is sent to the server for analysis using the full MobileNetV3 model. This mode requires a stable internet connection.\n\nOnline mode advantages:\n• Higher accuracy using the full server-side model\n• Automatic model updates without needing to update the app\n\nOffline Mode\n\nIn offline mode, analysis is performed directly on your device using TensorFlow Lite. This mode works without an internet connection.\n\nOffline mode advantages:\n• Works in locations without internet signal\n• Faster processing since no data is sent to the server\n• Image data stays on your device (more private)\n\nWhen to Use Each?\n\nUse online mode when you have a stable internet connection and need the highest accuracy results. Use offline mode when in the field without signal or when you need instant results.\n\nThe app will automatically switch to offline mode if the server cannot be reached.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/pedoman-teknis"
-    ]
-  },
-  {
-    "article_key": "app_3",
-    "locale": "en-US",
-    "category": "app_usage",
-    "sort_order": 30,
-    "title": "Understanding Classification Results",
-    "summary": "How to read confidence and all four identification scores.",
-    "body": "Confidence and all four identification scores are shown. The confidence value expresses the model relative output for the selected breed, not proof of identity. Use the labels and numbers as supporting information. The camera or gallery does not validate the object in the image.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/pedoman-teknis"
-    ]
-  },
-  {
-    "article_key": "bali_1",
-    "locale": "en-US",
-    "category": "bali",
-    "sort_order": 40,
-    "title": "Bali Cattle Profile",
-    "summary": "Common traits, strengths, and limitations of Bali cattle for supporting information.",
-    "body": "Profile Summary\n\nBali cattle are commonly recognized by a relatively compact body, reddish-brown coat, white rump patch, and white lower legs.\n\nStrengths\n\n• Distinctive color markings can support visual comparison in a clear image\n• A compact build provides another cue when reviewing the model result\n\nLimitations\n\n• Color can vary with sex, age, lighting, and the individual animal\n• Camera angle, dirt, or crossbreeding can obscure visual traits\n\nThese are general traits, not proof of pedigree or an absolute recommendation.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-bali"
-    ]
-  },
-  {
-    "article_key": "bali_2",
-    "locale": "en-US",
-    "category": "bali",
-    "sort_order": 50,
-    "title": "Bali Cattle Coat and Build",
-    "summary": "Coat, proportions, and visible structure to review during identification.",
-    "body": "Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-bali"
-    ]
-  },
-  {
-    "article_key": "bali_3",
-    "locale": "en-US",
-    "category": "bali",
-    "sort_order": 60,
-    "title": "Comparing Bali Cattle in Photos",
-    "summary": "A practical checklist for consistent image-based comparison.",
-    "body": "Comparing Results\n\nUse similar framing and lighting when comparing images. Review this breed score alongside the other three class scores and record the image context.\n\nScores are relative model outputs. The app does not validate the object, pedigree, or individual identity.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-bali"
-    ]
-  },
-  {
-    "article_key": "bali_4",
-    "locale": "en-US",
-    "category": "bali",
-    "sort_order": 70,
-    "title": "Bali Profile Limitations",
-    "summary": "How to use strengths and limitations without treating them as an absolute recommendation.",
-    "body": "Profile Limitations\n\nThis information is general and does not represent every individual animal. The profile does not assess condition, quality, management needs, or purchasing and breeding decisions.\n\nThe model result is image classification, not proof of pedigree or registration. Use herd records and qualified professional advice for important decisions.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-bali"
-    ]
-  },
-  {
-    "article_key": "brahman_1",
-    "locale": "en-US",
-    "category": "brahman",
-    "sort_order": 80,
-    "title": "Brahman Cattle Profile",
-    "summary": "Common traits, strengths, and limitations of Brahman cattle for supporting information.",
-    "body": "Profile Summary\n\nBrahman cattle commonly have a shoulder hump, long ears, and loose skin; their coat color can vary.\n\nStrengths\n\n• The hump, ears, and skin folds provide several distinct visual cues\n• The head and shoulder silhouette can support comparison in a full-body image\n\nLimitations\n\n• Coat-color variation means color alone is insufficient for identification\n• A frontal or cropped image can hide the hump and body proportions\n\nThese are general traits, not proof of pedigree or an absolute recommendation.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-brahman"
-    ]
-  },
-  {
-    "article_key": "brahman_2",
-    "locale": "en-US",
-    "category": "brahman",
-    "sort_order": 90,
-    "title": "Brahman Cattle Coat and Build",
-    "summary": "Coat, proportions, and visible structure to review during identification.",
-    "body": "Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-brahman"
-    ]
-  },
-  {
-    "article_key": "brahman_3",
-    "locale": "en-US",
-    "category": "brahman",
-    "sort_order": 100,
-    "title": "Comparing Brahman Cattle in Photos",
-    "summary": "A practical checklist for consistent image-based comparison.",
-    "body": "Comparing Results\n\nUse similar framing and lighting when comparing images. Review this breed score alongside the other three class scores and record the image context.\n\nScores are relative model outputs. The app does not validate the object, pedigree, or individual identity.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-brahman"
-    ]
-  },
-  {
-    "article_key": "brahman_4",
-    "locale": "en-US",
-    "category": "brahman",
-    "sort_order": 110,
-    "title": "Brahman Profile Limitations",
-    "summary": "How to use strengths and limitations without treating them as an absolute recommendation.",
-    "body": "Profile Limitations\n\nThis information is general and does not represent every individual animal. The profile does not assess condition, quality, management needs, or purchasing and breeding decisions.\n\nThe model result is image classification, not proof of pedigree or registration. Use herd records and qualified professional advice for important decisions.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-brahman"
-    ]
-  },
-  {
-    "article_key": "brangus_1",
-    "locale": "en-US",
-    "category": "brangus",
-    "sort_order": 120,
-    "title": "Brangus Cattle Profile",
-    "summary": "Common traits, strengths, and limitations of Brangus cattle for supporting information.",
-    "body": "Profile Summary\n\nBrangus is a composite of Brahman and Angus; cattle are commonly solidly built, black or red, and polled.\n\nStrengths\n\n• A solid build combined with a polled head provides a distinct visual context\n• A relatively uniform coat can support comparison when lighting is adequate\n\nLimitations\n\n• Composite traits can overlap with Angus, Brahman, and other crossbred cattle\n• Dark coats can lose body detail in shadows or underexposed images\n\nThese are general traits, not proof of pedigree or an absolute recommendation.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-brangus"
-    ]
-  },
-  {
-    "article_key": "brangus_2",
-    "locale": "en-US",
-    "category": "brangus",
-    "sort_order": 130,
-    "title": "Brangus Cattle Coat and Build",
-    "summary": "Coat, proportions, and visible structure to review during identification.",
-    "body": "Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-brangus"
-    ]
-  },
-  {
-    "article_key": "brangus_3",
-    "locale": "en-US",
-    "category": "brangus",
-    "sort_order": 140,
-    "title": "Comparing a Brangus Profile",
-    "summary": "How to review visible traits and four scores consistently.",
-    "body": "Comparing Results\n\nUse similar framing and lighting when comparing images. Review this breed score alongside the other three class scores and record the image context.\n\nScores are relative model outputs. The app does not validate the object, pedigree, or individual identity.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-brangus"
-    ]
-  },
-  {
-    "article_key": "limusin_1",
-    "locale": "en-US",
-    "category": "limusin",
-    "sort_order": 150,
-    "title": "Limousin Cattle Profile",
-    "summary": "Common traits, strengths, and limitations of Limousin cattle for supporting information.",
-    "body": "Profile Summary\n\nLimousin cattle commonly have a muscular build, golden-red to reddish-brown coat, and lighter coloring around the eyes or muzzle.\n\nStrengths\n\n• Muscling and hindquarter proportions provide a characteristic visual context\n• Lighter facial coloring can support comparison in a sharp image\n\nLimitations\n\n• Coat color and horn status can vary by bloodline and individual animal\n• Pose and camera angle can make muscling appear different\n\nThese are general traits, not proof of pedigree or an absolute recommendation.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-limusin"
-    ]
-  },
-  {
-    "article_key": "limusin_2",
-    "locale": "en-US",
-    "category": "limusin",
-    "sort_order": 160,
-    "title": "Limousin Cattle Coat and Build",
-    "summary": "Coat, proportions, and visible structure to review during identification.",
-    "body": "Reviewing an Image\n\nUse an image as visual context, not proof of breed. Show the whole body from a side or three-quarter angle with even lighting and enough detail.\n\nDo not infer pedigree, individual quality, or management recommendations from one feature. Compare the model result with herd records when available.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-limusin"
-    ]
-  },
-  {
     "article_key": "aceh_1",
-    "locale": "id-ID",
     "category": "aceh",
     "sort_order": 10,
     "title": "Profil Sapi Aceh",
@@ -397,7 +188,6 @@
   },
   {
     "article_key": "aceh_2",
-    "locale": "id-ID",
     "category": "aceh",
     "sort_order": 20,
     "title": "Karakteristik Visual Sapi Aceh",
@@ -409,7 +199,6 @@
   },
   {
     "article_key": "madura_1",
-    "locale": "id-ID",
     "category": "madura",
     "sort_order": 10,
     "title": "Profil Sapi Madura",
@@ -421,7 +210,6 @@
   },
   {
     "article_key": "madura_2",
-    "locale": "id-ID",
     "category": "madura",
     "sort_order": 20,
     "title": "Karakteristik Visual Sapi Madura",
@@ -433,7 +221,6 @@
   },
   {
     "article_key": "pasundan_1",
-    "locale": "id-ID",
     "category": "pasundan",
     "sort_order": 10,
     "title": "Profil Sapi Pasundan",
@@ -445,7 +232,6 @@
   },
   {
     "article_key": "pasundan_2",
-    "locale": "id-ID",
     "category": "pasundan",
     "sort_order": 20,
     "title": "Karakteristik Visual Sapi Pasundan",
@@ -457,7 +243,6 @@
   },
   {
     "article_key": "po_1",
-    "locale": "id-ID",
     "category": "po",
     "sort_order": 10,
     "title": "Profil Sapi Peranakan Ongole (PO)",
@@ -469,108 +254,11 @@
   },
   {
     "article_key": "po_2",
-    "locale": "id-ID",
     "category": "po",
     "sort_order": 20,
     "title": "Karakteristik Visual Sapi PO",
     "summary": "Bentuk punuk, gelambir berlipat, dan siluet tubuh Sapi PO pada citra.",
     "body": "Meninjau Citra\n\nSapi PO jantan memiliki punuk yang besar dan tegak di atas bahu, sedangkan betina memiliki punuk lebih kecil. Gelambir (dewlap) membentang longgar dari rahang bawah hingga dada depan. Moncong, kuku, dan ujung ekor berwarna hitam pekat.\n\nTips Pengambilan Citra\n\nPastikan kepala, punuk bahu, dan gelambir tidak terpotong dari bingkai kamera untuk memaksimalkan akurasi pengenalan ciri jenis.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-peranakan-ongole"
-    ]
-  },
-  {
-    "article_key": "aceh_1",
-    "locale": "en-US",
-    "category": "aceh",
-    "sort_order": 10,
-    "title": "Aceh Cattle Profile",
-    "summary": "Common traits, strengths, and limitations of Aceh cattle for supporting information.",
-    "body": "Profile Summary\n\nAceh cattle are an Indonesian indigenous beef cattle breed native to Aceh province. They have a compact, lean build, small upward-curving horns, and high adaptability to tropical climates and coarse forage.\n\nStrengths\n\n• High resilience against heat stress and tropical parasites\n• Good fertility and reproductive efficiency under limited forage\n• Compact silhouette provides distinctive visual cues on images\n\nLimitations\n\n• Smaller frame size compared to exotic commercial beef breeds\n• Coat color varies from reddish-brown to dark brown depending on age and sex\n\nThese traits are general guidance, not proof of pedigree or absolute recommendations.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-aceh"
-    ]
-  },
-  {
-    "article_key": "aceh_2",
-    "locale": "en-US",
-    "category": "aceh",
-    "sort_order": 20,
-    "title": "Coat Color and Visual Traits of Aceh Cattle",
-    "summary": "Coat color, body proportions, and visual features of Aceh cattle on images.",
-    "body": "Reviewing Images\n\nMale Aceh cattle generally feature darker reddish-brown to brownish-black shading around the neck and shoulders, while females exhibit lighter brick-red tones. Males have a small shoulder hump and thin dewlap.\n\nImage Capture Tips\n\nCapture the animal from a side angle under uniform lighting. Ensure the body is free from heavy mud cover so the coat hue and topline remain visible.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-aceh"
-    ]
-  },
-  {
-    "article_key": "madura_1",
-    "locale": "en-US",
-    "category": "madura",
-    "sort_order": 10,
-    "title": "Madura Cattle Profile",
-    "summary": "Common traits, strengths, and limitations of Madura cattle for supporting information.",
-    "body": "Profile Summary\n\nMadura cattle are an Indonesian local dual-purpose and beef breed developed through generations of crossing between banteng (Bos sondaicus) and Zebu (Bos indicus). They have a compact conformation, sturdy legs, and a characteristic brick-red or yellowish-brown coat.\n\nStrengths\n\n• Compact, well-muscled body conformation\n• Excellent tolerance to hot climates and low-quality forage\n• Consistent reddish coat color aids visual comparison on clear images\n\nLimitations\n\n• Moderate daily gain compared to exotic breeds\n• Color similarity to Bali cattle under certain lighting requires attention to rump and head traits\n\nThese traits are general guidance, not proof of pedigree or absolute recommendations.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-madura"
-    ]
-  },
-  {
-    "article_key": "madura_2",
-    "locale": "en-US",
-    "category": "madura",
-    "sort_order": 20,
-    "title": "Physical Conformation and Head Shape of Madura Cattle",
-    "summary": "Horn shape, muzzle, and body structure of Madura cattle during identification.",
-    "body": "Reviewing Images\n\nMadura cattle possess small horns that curve upward or outward. The muzzle and eyelids are black, surrounded by a reddish rim. The rump lacks the sharp white patch seen in Bali cattle, blending smoothly with body color.\n\nImage Capture Tips\n\nCapture side or three-quarter angles to display the head profile, neck, and straight topline clearly.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-madura"
-    ]
-  },
-  {
-    "article_key": "pasundan_1",
-    "locale": "en-US",
-    "category": "pasundan",
-    "sort_order": 10,
-    "title": "Pasundan Cattle Profile",
-    "summary": "Common traits, strengths, and limitations of Pasundan cattle for supporting information.",
-    "body": "Profile Summary\n\nPasundan cattle are an indigenous breed from West Java adapted over centuries to humid tropical agroclimates. They feature a brick-reddish coat with a signature dark dorsal stripe along the spine.\n\nStrengths\n\n• High tolerance to humid tropical climates\n• Ability to utilize crop residues and forage efficiently\n• Distinctive dorsal stripe provides a recognizable visual marker on images\n\nLimitations\n\n• Phenotypic variations across breeding regions\n• Dorsal stripe and lower leg shades may be less apparent from distant camera shots\n\nThese traits are general guidance, not proof of pedigree or absolute recommendations.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-pasundan"
-    ]
-  },
-  {
-    "article_key": "pasundan_2",
-    "locale": "en-US",
-    "category": "pasundan",
-    "sort_order": 20,
-    "title": "Dorsal Stripe and Build of Pasundan Cattle",
-    "summary": "Observing the back stripe, coat color, and posture of Pasundan cattle on images.",
-    "body": "Reviewing Images\n\nThe primary diagnostic trait of Pasundan cattle is the dark dorsal stripe running from behind the withers to the tail head. The lower legs show slight whitish shading without the stark white stocking contrast of Bali cattle.\n\nImage Capture Tips\n\nPosition the camera slightly above eye level from the side so that both the dorsal line and the side profile are captured.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-pasundan"
-    ]
-  },
-  {
-    "article_key": "po_1",
-    "locale": "en-US",
-    "category": "po",
-    "sort_order": 10,
-    "title": "PO (Peranakan Ongole) Cattle Profile",
-    "summary": "Common traits, strengths, and limitations of PO cattle for supporting information.",
-    "body": "Profile Summary\n\nPeranakan Ongole (PO) cattle are an Indonesian breed originating from crosses between Indian Ongole (Bos indicus) and indigenous Javanese cattle. They are recognized by a whitish-grey coat, a prominent shoulder hump, and loose neck dewlap folds.\n\nStrengths\n\n• Prominent shoulder hump and large dewlap provide unmistakable visual markers\n• Large frame size, tall stature, and excellent tropical heat resilience\n• High resistance against heat and external parasites\n\nLimitations\n\n• Daily weight gain relies on balanced nutritional management\n• White coat can appear grayish or soiled in wet pen conditions\n\nThese traits are general guidance, not proof of pedigree or absolute recommendations.",
-    "sources": [
-      "https://ditjenpkh.pertanian.go.id/rumpun-sapi-peranakan-ongole"
-    ]
-  },
-  {
-    "article_key": "po_2",
-    "locale": "en-US",
-    "category": "po",
-    "sort_order": 20,
-    "title": "Hump, Dewlap, and Silhouette of PO Cattle",
-    "summary": "Hump shape, dewlap folds, and body silhouette of PO cattle on images.",
-    "body": "Reviewing Images\n\nMale PO cattle display a large, upright shoulder hump, while females have a smaller hump. The dewlap extends loosely from the jaw to the chest. Muzzle, hooves, and switch of tail are dark black.\n\nImage Capture Tips\n\nFrame the subject so that the head, shoulder hump, and lower dewlap remain fully within the frame.",
     "sources": [
       "https://ditjenpkh.pertanian.go.id/rumpun-sapi-peranakan-ongole"
     ]

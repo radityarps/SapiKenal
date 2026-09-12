@@ -68,7 +68,6 @@ from services.audit import mask_device_id, period_start, record_audit
 
 from .admin_schemas import (  # pyright: ignore[reportMissingImports]
     AuditLogResponse,
-    GuideArticleLocalePairResponse,
     GuideArticlePatchRequest,
     GuideArticleRequest,
     GuideArticleResponse,
@@ -91,7 +90,17 @@ content_router = APIRouter(prefix="/api/content", tags=["content"])
 
 _PAGE_SIZE_MAX = 100
 _ALLOWED_MODEL_CLASSES = set(CANONICAL_LABELS)
-_ALLOWED_ARTICLE_LOCALES = {"id-ID", "en-US"}
+_ALLOWED_ARTICLE_CATEGORIES = {
+    "app_usage",
+    "aceh",
+    "bali",
+    "brahman",
+    "brangus",
+    "limusin",
+    "madura",
+    "pasundan",
+    "po",
+}
 _MODEL_ACTIVATION_LOCK = RLock()
 _UPLOAD_CHUNK_SIZE = 1024 * 1024
 
@@ -378,12 +387,10 @@ def _article_response(
     article: GuideArticle,
     revision: GuideArticleRevision,
     active_revision: GuideArticleRevision | None = None,
-    locale_pair: GuideArticleLocalePairResponse | None = None,
 ) -> dict[str, Any]:
     return GuideArticleResponse(
         id=article.id,
         article_key=article.article_key,
-        locale=article.locale,
         publication_status=cast(Literal["draft", "active", "inactive"], article.status),
         revision=GuideArticleRevisionResponse.model_validate(revision),
         active_revision=(
@@ -391,7 +398,6 @@ def _article_response(
             if active_revision is not None
             else None
         ),
-        locale_pair=locale_pair,
         created_at=article.created_at,
         updated_at=article.updated_at,
     ).model_dump(mode="json")
@@ -925,7 +931,6 @@ def list_articles(
         "po",
     ]
     | None = None,
-    locale: Literal["id-ID", "en-US"] | None = None,
     publication_status: Literal["draft", "active", "inactive"] | None = None,
     revision_status: Literal["draft", "active", "inactive"] | None = None,
     page: int = Query(default=1, ge=1),
@@ -945,8 +950,6 @@ def list_articles(
     latest = aliased(GuideArticleRevision)
     active = aliased(GuideArticleRevision)
     filters = []
-    if locale:
-        filters.append(GuideArticle.locale == locale)
     if publication_status:
         filters.append(GuideArticle.status == publication_status)
     if category:
@@ -971,38 +974,14 @@ def list_articles(
     # SQLAlchemy statement is built only from typed, allowlisted filters above.
     # pi-lens-ignore: python-sql-injection
     rows = db.execute(
-        query.order_by(asc(GuideArticle.article_key), asc(GuideArticle.locale))
+        query.order_by(asc(GuideArticle.article_key))
         .offset((page - 1) * page_size)
         .limit(page_size)
     ).all()
-    pairs = {
-        (article_key, pair_locale): pair_status
-        for article_key, pair_locale, pair_status in db.execute(
-            select(GuideArticle.article_key, GuideArticle.locale, GuideArticle.status)
-        ).all()
-    }
-    items = []
-    for article, revision, active_revision in rows:
-        pair_locale = "en-US" if article.locale == "id-ID" else "id-ID"
-        items.append(
-            _article_response(
-                article,
-                revision,
-                active_revision,
-                GuideArticleLocalePairResponse(
-                    locale=pair_locale,
-                    status=(
-                        "active"
-                        if pairs.get((article.article_key, pair_locale)) == "active"
-                        else (
-                            "inactive"
-                            if (article.article_key, pair_locale) in pairs
-                            else "missing"
-                        )
-                    ),
-                ),
-            )
-        )
+    items = [
+        _article_response(article, revision, active_revision)
+        for article, revision, active_revision in rows
+    ]
     return {
         "status": "success",
         "page": page,
@@ -1022,14 +1001,12 @@ def create_article(
     existing = db.scalar(
         select(GuideArticle).where(
             GuideArticle.article_key == payload.article_key,
-            GuideArticle.locale == payload.locale,
         )
     )
     if existing is not None:
         raise AdminAPIError(409, "ARTICLE_EXISTS", "Guide article already exists")
     article = GuideArticle(
         article_key=payload.article_key,
-        locale=payload.locale,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
@@ -1059,7 +1036,7 @@ def create_article(
         resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
-        changed_fields={"article_key": "set", "locale": "set", "revision": 1},
+        changed_fields={"article_key": "set", "revision": 1},
     )
     db.commit()
     return {"status": "success", "item": _article_response(article, revision)}
@@ -1098,11 +1075,11 @@ def revise_article(
     changes = payload.model_dump(exclude_unset=True)
     if not changes:
         raise AdminAPIError(422, "NO_CHANGES", "At least one field must be changed")
-    if "article_key" in changes or "locale" in changes:
+    if "article_key" in changes:
         raise AdminAPIError(
             422,
             "ARTICLE_IDENTITY_IMMUTABLE",
-            "Article key and locale cannot be changed",
+            "Article key cannot be changed",
         )
     if "content_reviewed" in changes:
         raise AdminAPIError(
@@ -1160,11 +1137,11 @@ def patch_article(
     admin: User = Depends(require_admin),
 ):
     changes = payload.model_dump(exclude_unset=True)
-    if set(changes) & {"article_key", "locale"}:
+    if "article_key" in changes:
         raise AdminAPIError(
             422,
             "ARTICLE_IDENTITY_IMMUTABLE",
-            "Article key and locale cannot be changed",
+            "Article key cannot be changed",
         )
     if changes == {"content_reviewed": True}:
         return review_article(article_id, request, db, admin)
@@ -1294,7 +1271,7 @@ def deactivate_article(
 
 @content_router.get("/articles")
 def public_articles(
-    locale: Literal["id-ID", "en-US"] = Query(...),
+    locale: str | None = None,
     db: Session = Depends(get_db),
 ):
     rows = db.execute(
@@ -1304,7 +1281,6 @@ def public_articles(
             GuideArticleRevision.article_id == GuideArticle.id,
         )
         .where(
-            GuideArticle.locale == locale,
             GuideArticleRevision.status == "active",
         )
         .order_by(
@@ -1331,7 +1307,7 @@ def public_articles(
     )
     return {
         "status": "success",
-        "locale": locale,
+        "locale": locale or "id-ID",
         "snapshot_version": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
         "items": items,
     }

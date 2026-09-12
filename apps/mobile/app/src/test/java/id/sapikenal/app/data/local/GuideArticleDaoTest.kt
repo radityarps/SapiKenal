@@ -32,7 +32,7 @@ class GuideArticleDaoTest {
     fun replaceSnapshotRollsBackRowsAndMetadataWhenInsertFailsAfterDelete() =
         runTest {
             val dao = database.guideArticleDao()
-            dao.replaceSnapshot("id-ID", "old-version", 10, listOf(article("old", "Cached")))
+            dao.replaceSnapshot("old-version", 10, listOf(article("old", "Cached")))
             database.openHelper.writableDatabase.execSQL(
                 "CREATE TRIGGER reject_broken_article BEFORE INSERT ON guide_articles " +
                     "WHEN NEW.title = 'reject' BEGIN SELECT RAISE(ABORT, 'test insert failure'); END",
@@ -41,7 +41,6 @@ class GuideArticleDaoTest {
             val result =
                 runCatching {
                     dao.replaceSnapshot(
-                        "id-ID",
                         "new-version",
                         20,
                         listOf(article("new", "New"), article("broken", "reject")),
@@ -49,16 +48,15 @@ class GuideArticleDaoTest {
                 }
 
             check(result.isFailure)
-            assertEquals(listOf("old"), dao.observeLocale("id-ID").first().map { it.articleKey })
-            assertEquals("old-version", dao.metadata("id-ID")?.snapshotVersion)
-            assertEquals(10L, dao.metadata("id-ID")?.syncedAt)
+            assertEquals(listOf("old"), dao.observeArticles().first().map { it.articleKey })
+            assertEquals("old-version", dao.metadata()?.snapshotVersion)
+            assertEquals(10L, dao.metadata()?.syncedAt)
         }
 
     private fun article(
         key: String,
         title: String,
     ) = GuideArticleEntity(
-        locale = "id-ID",
         articleKey = key,
         category = "app_usage",
         sortOrder = 10,

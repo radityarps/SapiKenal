@@ -48,6 +48,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_11_12,
                     AppDatabase.MIGRATION_12_13,
                     AppDatabase.MIGRATION_13_14,
+                    AppDatabase.MIGRATION_14_15,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -79,7 +80,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun `migration 12 to 13 drops icon column from guide_articles`() {
+    fun `migration 12 to 15 drops icon and locale columns from guide_articles`() {
         clearLegacyRows()
         val database =
             Room
@@ -91,6 +92,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_11_12,
                     AppDatabase.MIGRATION_12_13,
                     AppDatabase.MIGRATION_13_14,
+                    AppDatabase.MIGRATION_14_15,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -101,7 +103,7 @@ class AppDatabaseMigrationTest {
                     buildList {
                         while (cursor.moveToNext()) add(cursor.getString(1))
                     }
-                assertTrue(columns.contains("locale"))
+                assertFalse(columns.contains("locale"))
                 assertTrue(columns.contains("articleKey"))
                 assertTrue(columns.contains("category"))
                 assertTrue(columns.contains("sortOrder"))
@@ -128,6 +130,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_11_12,
                     AppDatabase.MIGRATION_12_13,
                     AppDatabase.MIGRATION_13_14,
+                    AppDatabase.MIGRATION_14_15,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -160,6 +163,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_11_12,
                     AppDatabase.MIGRATION_12_13,
                     AppDatabase.MIGRATION_13_14,
+                    AppDatabase.MIGRATION_14_15,
                 ).build()
 
         try {

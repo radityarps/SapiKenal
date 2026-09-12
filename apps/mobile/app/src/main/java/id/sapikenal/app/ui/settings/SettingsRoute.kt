@@ -63,7 +63,6 @@ import id.sapikenal.app.R
 import id.sapikenal.app.data.local.SettingsDataStore
 import id.sapikenal.app.data.repository.DetectionRepository
 import id.sapikenal.app.ui.theme.SapiKenalColors
-import id.sapikenal.app.utils.LocaleManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -84,10 +83,6 @@ class SettingsViewModel
         private val detectionRepository: DetectionRepository,
         private val purgeManager: id.sapikenal.app.data.repository.PurgeManager,
     ) : ViewModel() {
-        val language: StateFlow<String> =
-            settingsDataStore.language
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "system")
-
         val textSize: StateFlow<String> =
             settingsDataStore.textSize
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "system")
@@ -98,10 +93,6 @@ class SettingsViewModel
 
         private val _snackbarMessageRes = MutableStateFlow<Int?>(null)
         val snackbarMessageRes: StateFlow<Int?> = _snackbarMessageRes.asStateFlow()
-
-        fun setLanguage(value: String) {
-            viewModelScope.launch { settingsDataStore.setLanguage(value) }
-        }
 
         fun setTextSize(value: String) {
             viewModelScope.launch { settingsDataStore.setTextSize(value) }
@@ -155,12 +146,10 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val language by viewModel.language.collectAsStateWithLifecycle()
     val textSize by viewModel.textSize.collectAsStateWithLifecycle()
     val uploadConsent by viewModel.uploadConsent.collectAsStateWithLifecycle()
     val snackbarMessageRes by viewModel.snackbarMessageRes.collectAsStateWithLifecycle()
 
-    var showLanguageDialog by remember { mutableStateOf(false) }
     var showTextSizeDialog by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     var showResetOnboardingDialog by remember { mutableStateOf(false) }
@@ -227,13 +216,6 @@ fun SettingsRoute(
                     .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            // Language
-            PreferenceRow(
-                title = stringResource(R.string.settings_language),
-                value = languageDisplayName(language),
-                onClick = { showLanguageDialog = true },
-            )
-
             // Text size
             PreferenceRow(
                 title = stringResource(R.string.settings_text_size),
@@ -319,29 +301,6 @@ fun SettingsRoute(
 
     // ── Dialogs ──────────────────────────────────────────────────────
 
-    if (showLanguageDialog) {
-        SelectionDialog(
-            title = stringResource(R.string.settings_language),
-            options =
-                listOf(
-                    "system" to stringResource(R.string.settings_language_system),
-                    "id" to stringResource(R.string.settings_language_id),
-                    "en" to stringResource(R.string.settings_language_en),
-                ),
-            selected = language,
-            onSelect = {
-                val shouldApplyLanguage = it != LocaleManager.currentLanguageSetting()
-                viewModel.setLanguage(it)
-                if (shouldApplyLanguage) {
-                    LocaleManager.applyLanguage(it)
-                    context.findActivity()?.recreate()
-                }
-                showLanguageDialog = false
-            },
-            onDismiss = { showLanguageDialog = false },
-        )
-    }
-
     if (showTextSizeDialog) {
         SelectionDialog(
             title = stringResource(R.string.settings_text_size),
@@ -423,15 +382,6 @@ fun SettingsRoute(
             },
         )
     }
-}
-
-private fun Context.findActivity(): Activity? {
-    var current: Context? = this
-    while (current is ContextWrapper) {
-        if (current is Activity) return current
-        current = current.baseContext
-    }
-    return null
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -554,14 +504,6 @@ private fun UploadConsentRow(
         }
     }
 }
-
-@Composable
-private fun languageDisplayName(code: String): String =
-    when (code) {
-        "id" -> stringResource(R.string.settings_language_id)
-        "en" -> stringResource(R.string.settings_language_en)
-        else -> stringResource(R.string.settings_language_system)
-    }
 
 @Composable
 private fun textSizeDisplayName(code: String): String =

@@ -1,6 +1,5 @@
 package id.sapikenal.app.ui.guide
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,12 +17,11 @@ class GuideViewModel
     constructor(
         private val repository: GuideRepository,
     ) : ViewModel() {
-        private val locale = MutableStateFlow("id-ID")
         val searchQuery = MutableStateFlow("")
         val selectedCategory = MutableStateFlow<GuideCategory?>(null)
         val isRefreshing = MutableStateFlow(false)
 
-        private val articles = locale.flatMapLatest(repository::articles)
+        private val articles = repository.articles()
 
         val filteredArticles: StateFlow<List<GuideArticle>> =
             combine(articles, searchQuery, selectedCategory) { items, query, category ->
@@ -42,9 +39,7 @@ class GuideViewModel
                 initialValue = emptyList(),
             )
 
-        fun loadArticles(context: Context) {
-            val target = context.guideLocale()
-            locale.value = target
+        fun loadArticles() {
             refreshArticles()
         }
 
@@ -52,7 +47,7 @@ class GuideViewModel
             viewModelScope.launch {
                 isRefreshing.value = true
                 try {
-                    repository.refresh(locale.value)
+                    repository.refresh()
                 } finally {
                     isRefreshing.value = false
                 }
@@ -66,14 +61,4 @@ class GuideViewModel
         fun onCategoryFilter(category: GuideCategory?) {
             selectedCategory.value = category
         }
-    }
-
-internal fun Context.guideLocale(): String =
-    if (resources.configuration.locales[0]
-            .language
-            .equals("en", ignoreCase = true)
-    ) {
-        "en-US"
-    } else {
-        "id-ID"
     }

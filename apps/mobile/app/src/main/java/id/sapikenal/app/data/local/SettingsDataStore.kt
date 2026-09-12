@@ -19,24 +19,14 @@ class SettingsDataStore(
     @ApplicationContext private val context: Context,
 ) {
     companion object Keys {
-        val KEY_LANGUAGE = stringPreferencesKey("language")
         val KEY_TEXT_SIZE = stringPreferencesKey("text_size")
         val KEY_UPLOAD_CONSENT = booleanPreferencesKey("upload_consent")
     }
-
-    val language: Flow<String> =
-        context.dataStore.data.map { prefs ->
-            prefs[KEY_LANGUAGE] ?: "system"
-        }
 
     val textSize: Flow<String> =
         context.dataStore.data.map { prefs ->
             prefs[KEY_TEXT_SIZE] ?: "system"
         }
-
-    suspend fun setLanguage(value: String) {
-        context.dataStore.edit { prefs -> prefs[KEY_LANGUAGE] = value }
-    }
 
     suspend fun setTextSize(value: String) {
         context.dataStore.edit { prefs -> prefs[KEY_TEXT_SIZE] = value }

@@ -5,14 +5,13 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Verifies that key string resource names exist in both
- * values/strings.xml (Indonesian) and values-en/strings.xml (English).
+ * Verifies that key string resource names exist in values/strings.xml.
  *
- * This ensures no localization gaps for critical user-facing strings.
+ * This ensures no gaps for critical user-facing strings.
  */
 class LocalizationTest {
     /**
-     * Key string resource names that must be present in both locale files.
+     * Key string resource names that must be present in values/strings.xml.
      * These cover all major screens and features.
      */
     private val requiredStringNames =
@@ -53,7 +52,6 @@ class LocalizationTest {
             "guide_title",
             // Settings
             "settings_title",
-            "settings_language",
             "settings_clear_history",
             "settings_upload_consent",
             "settings_purge_deleted",
@@ -64,12 +62,9 @@ class LocalizationTest {
         )
 
     private fun findProjectRoot(): File {
-        // Walk up from the test class location to find the project root
         var dir = File(System.getProperty("user.dir") ?: ".")
-        // If we're in the mobile project root, use it directly
         val resDir = File(dir, "app/src/main/res")
         if (resDir.exists()) return dir
-        // Try common CI paths
         val candidates =
             listOf(
                 File(dir, "apps/mobile"),
@@ -91,7 +86,6 @@ class LocalizationTest {
         val root = findProjectRoot()
         val file = File(root, "app/src/main/res/values/strings.xml")
         if (!file.exists()) {
-            // Skip gracefully in environments where resource files aren't available
             println("SKIP: values/strings.xml not found at ${file.absolutePath}")
             return
         }
@@ -104,32 +98,14 @@ class LocalizationTest {
     }
 
     @Test
-    fun `all required strings exist in values-en strings xml`() {
-        val root = findProjectRoot()
-        val file = File(root, "app/src/main/res/values-en/strings.xml")
-        if (!file.exists()) {
-            println("SKIP: values-en/strings.xml not found at ${file.absolutePath}")
-            return
-        }
-        val names = readStringNames(file)
-        val missing = requiredStringNames.filter { it !in names }
-        assertTrue(
-            "Missing strings in values-en/strings.xml: $missing",
-            missing.isEmpty(),
-        )
-    }
-
-    @Test
-    fun `breed profiles are specific and bilingual`() {
+    fun `breed profiles are specific in indonesian`() {
         val root = findProjectRoot()
         val defaultFile = File(root, "app/src/main/res/values/strings.xml")
-        val englishFile = File(root, "app/src/main/res/values-en/strings.xml")
-        if (!defaultFile.exists() || !englishFile.exists()) {
+        if (!defaultFile.exists()) {
             println("SKIP: profile string resources not found")
             return
         }
         val defaultStrings = defaultFile.readText()
-        val englishStrings = englishFile.readText()
         val indonesianTraits =
             mapOf(
                 "bali" to "bagian pantat putih",
@@ -137,43 +113,9 @@ class LocalizationTest {
                 "brangus" to "komposit Brahman dan Angus",
                 "limusin" to "merah keemasan",
             )
-        val englishTraits =
-            mapOf(
-                "bali" to "white rump patch",
-                "brahman" to "shoulder hump",
-                "brangus" to "composite of Brahman and Angus",
-                "limusin" to "golden-red",
-            )
         indonesianTraits.forEach { (breed, trait) ->
             assertTrue("Missing Indonesian profile for $breed", defaultStrings.contains("guide_${breed}_title_1"))
             assertTrue("Indonesian profile for $breed is generic", defaultStrings.contains(trait))
-            assertTrue("Missing English profile for $breed", englishStrings.contains("guide_${breed}_title_1"))
-            assertTrue("English profile for $breed is generic", englishStrings.contains(englishTraits.getValue(breed)))
         }
-    }
-
-    @Test
-    fun `values and values-en have same string names`() {
-        val root = findProjectRoot()
-        val defaultFile = File(root, "app/src/main/res/values/strings.xml")
-        val enFile = File(root, "app/src/main/res/values-en/strings.xml")
-        if (!defaultFile.exists() || !enFile.exists()) {
-            println("SKIP: string resource files not found")
-            return
-        }
-        val defaultNames = readStringNames(defaultFile)
-        val enNames = readStringNames(enFile)
-
-        val missingInEn = defaultNames - enNames
-        val missingInDefault = enNames - defaultNames
-
-        assertTrue(
-            "Strings in values/ but missing in values-en/: $missingInEn",
-            missingInEn.isEmpty(),
-        )
-        assertTrue(
-            "Strings in values-en/ but missing in values/: $missingInDefault",
-            missingInDefault.isEmpty(),
-        )
     }
 }

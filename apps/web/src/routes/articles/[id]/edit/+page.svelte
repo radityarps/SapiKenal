@@ -20,9 +20,6 @@
 		{ value: "pasundan", label: "Pasundan" },
 		{ value: "po", label: "PO" },
 	];
-	const localeLabel = (locale: string) =>
-		({ "id-ID": "Indonesia (id-ID)", "en-US": "English (en-US)" })[locale] ?? locale;
-
 	const a = data.article;
 </script>
 
@@ -41,7 +38,7 @@
 			</a>
 		</div>
 		<p class="muted mt-3">
-			Mengedit artikel <strong>{a.revision.title}</strong> (<code>{a.article_key}</code>) · {localeLabel(a.locale)}.
+			Mengedit artikel <strong>{a.revision.title}</strong> (<code>{a.article_key}</code>).
 			Menyimpan perubahan akan membuat revisi draft baru yang memerlukan review dan aktivasi ulang.
 		</p>
 	</section>
@@ -53,14 +50,10 @@
 	<section class="panel mt-4 max-w-4xl p-6">
 		<form class="space-y-5" method="POST" action="?/revise" use:enhance>
 			<div class="grid gap-4 sm:grid-cols-2 pb-4 border-b border-[#e0e7e3]">
-				<label>
+				<label class="sm:col-span-2">
 					<span>Kunci artikel</span>
 					<input value={a.article_key} readonly aria-readonly="true" class="opacity-60" />
 					<small class="text-[.72rem] font-normal text-[#66766f]">Kunci tidak dapat diubah setelah artikel dibuat.</small>
-				</label>
-				<label>
-					<span>Locale</span>
-					<input value={localeLabel(a.locale)} readonly aria-readonly="true" class="opacity-60" />
 				</label>
 				<label>
 					<span>Kategori</span>

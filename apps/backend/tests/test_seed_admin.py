@@ -51,13 +51,12 @@ def test_seed_is_idempotent(seed_context: sessionmaker[Session]) -> None:
 def test_guide_article_seed_is_complete_and_does_not_overwrite_edits(
     seed_context: sessionmaker[Session],
 ) -> None:
-    assert seed_module.seed_guide_articles() == 48
+    assert seed_module.seed_guide_articles() == 24
     assert seed_module.seed_guide_articles() == 0
 
     with seed_context() as db:
         articles = db.scalars(select(GuideArticle)).all()
-        assert len(articles) == 48
-        assert {article.locale for article in articles} == {"id-ID", "en-US"}
+        assert len(articles) == 24
         expected = {
             "app_1",
             "app_2",
@@ -110,7 +109,6 @@ def test_guide_article_seed_is_complete_and_does_not_overwrite_edits(
     ("mutate", "message"),
     [
         (lambda items: items + [items[0]], "duplicates"),
-        (lambda items: [{**items[0], "locale": "xx"}], "locale"),
         (lambda items: [{**items[0], "category": "unknown"}], "category"),
         (lambda items: [{**items[0], "article_key": "Unsafe Key"}], "article_key"),
         (lambda items: [{**items[0], "sources": ["file:///tmp/source"]}], "sources"),
@@ -246,15 +244,15 @@ def test_explicit_rotation_revokes_existing_sessions(
 def test_seed_guide_articles_activate_flag_and_activate_helper(
     seed_context: sessionmaker[Session],
 ) -> None:
-    assert seed_module.seed_guide_articles(activate=False) == 48
+    assert seed_module.seed_guide_articles(activate=False) == 24
     with seed_context() as db:
         drafts = db.scalars(
             select(GuideArticle).where(GuideArticle.status == "draft")
         ).all()
-        assert len(drafts) == 48
+        assert len(drafts) == 24
 
     activated = seed_module.activate_guide_articles()
-    assert activated == 48
+    assert activated == 24
 
     with seed_context() as db:
         active_articles = db.scalars(
@@ -263,7 +261,7 @@ def test_seed_guide_articles_activate_flag_and_activate_helper(
         active_revs = db.scalars(
             select(GuideArticleRevision).where(GuideArticleRevision.status == "active")
         ).all()
-        assert len(active_articles) == 48
-        assert len(active_revs) == 48
+        assert len(active_articles) == 24
+        assert len(active_revs) == 24
         assert all(rev.content_reviewed for rev in active_revs)
 

@@ -51,7 +51,6 @@ class SettingsViewModelTest {
         // Set up flows for the mock
         uploadConsentFlow = MutableStateFlow(null)
         whenever(settingsDataStore.uploadConsent).thenReturn(uploadConsentFlow)
-        whenever(settingsDataStore.language).thenReturn(MutableStateFlow("system"))
         whenever(settingsDataStore.textSize).thenReturn(MutableStateFlow("system"))
 
         viewModel = SettingsViewModel(settingsDataStore, detectionRepository, purgeManager)
@@ -143,15 +142,6 @@ class SettingsViewModelTest {
 
             assertEquals(false, viewModel.uploadConsent.value)
             job.cancel()
-        }
-
-    @Test
-    fun `setLanguage calls settingsDataStore setLanguage`() =
-        runTest(testDispatcher) {
-            viewModel.setLanguage("id")
-            advanceUntilIdle()
-
-            verify(settingsDataStore).setLanguage("id")
         }
 
     @Test

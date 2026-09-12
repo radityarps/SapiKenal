@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 
 data class GuideSnapshotDto(
     val status: String,
-    val locale: String,
+    val locale: String? = null,
     @Json(name = "snapshot_version") val snapshotVersion: String,
     val items: List<GuideArticleDto>,
 )

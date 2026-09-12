@@ -30,18 +30,17 @@ function actionEvent(fields: Record<string, string>) {
 function articleFields() {
 	return {
 		article_key: "panduan-identifikasi",
-		locale: "en-US",
 		category: "app_usage",
 		sort_order: "10",
-		title: "Identify cattle",
-		summary: "A short guide.",
-		body: "Use a clear image.",
+		title: "Panduan identifikasi",
+		summary: "Ringkasan panduan.",
+		body: "Gunakan foto yang jelas.",
 		sources: "https://example.org/guide\n https://example.org/terms ",
 	};
 }
 
 describe("Artikel Panduan page server", () => {
-	it("forwards category, locale, publication, and revision filters", async () => {
+	it("forwards category, publication, and revision filters", async () => {
 		vi.mocked(backendJson).mockResolvedValueOnce({
 			page: 2,
 			page_size: 25,
@@ -52,13 +51,13 @@ describe("Artikel Panduan page server", () => {
 		await load!({
 			locals: { user: { id: "admin" }, sessionToken: "test-only" },
 			url: new URL(
-				"http://localhost/articles?page=2&category=bali&locale=en-US&publication_status=active&revision_status=draft",
+				"http://localhost/articles?page=2&category=bali&publication_status=active&revision_status=draft",
 			),
 			fetch: vi.fn(),
 		} as never);
 
 		expect(backendJson).toHaveBeenCalledWith(
-			"/api/admin/articles?page=2&page_size=25&category=bali&locale=en-US&publication_status=active&revision_status=draft",
+			"/api/admin/articles?page=2&page_size=25&category=bali&publication_status=active&revision_status=draft",
 			expect.objectContaining({ headers: {} }),
 			expect.any(Function),
 		);
@@ -84,7 +83,6 @@ describe("Artikel Panduan page server", () => {
 							{
 								id: "article-1",
 								article_key: "bali_1",
-								locale: "id-ID",
 								publication_status: "active",
 								revision: {
 									revision: 2,
@@ -95,13 +93,11 @@ describe("Artikel Panduan page server", () => {
 									content_reviewed: false,
 								},
 								active_revision: { revision: 1 },
-								locale_pair: { locale: "en-US", status: "active" },
 							},
 						],
 					},
 					filters: {
 						category: "",
-						locale: "",
 						publication_status: "",
 						revision_status: "",
 					},
@@ -146,8 +142,8 @@ describe("Artikel Panduan page server", () => {
 					category: "app_usage",
 					sort_order: 10,
 					title: "Updated title",
-					summary: "A short guide.",
-					body: "Use a clear image.",
+					summary: "Ringkasan panduan.",
+					body: "Gunakan foto yang jelas.",
 					sources: ["https://example.org/guide", "https://example.org/terms"],
 				}),
 			}),
@@ -159,27 +155,6 @@ describe("Artikel Panduan page server", () => {
 		expect(request).not.toHaveProperty("article_key");
 		expect(request).not.toHaveProperty("locale");
 		expect(request).not.toHaveProperty("content_reviewed");
-	});
-
-	it("detects locale-pair metadata independently of the filtered page", async () => {
-		vi.mocked(backendJson).mockResolvedValueOnce({
-			items: [
-				{
-					article_key: "bali_1",
-					locale: "id-ID",
-					locale_pair: { locale: "en-US", status: "active" },
-				},
-			],
-		});
-		const result = await load!({
-			locals: { user: { id: "admin" }, sessionToken: "test-only" },
-			url: new URL("http://localhost/articles?locale=id-ID"),
-			fetch: vi.fn(),
-		} as never);
-		expect((result as any).articles.items[0].locale_pair).toEqual({
-			locale: "en-US",
-			status: "active",
-		});
 	});
 
 	it("requires an explicit review confirmation", async () => {
@@ -256,16 +231,16 @@ describe("Artikel Panduan create page server", () => {
 		expect(request).not.toHaveProperty("image");
 	});
 
-	it("creates Indonesian article and auto-generates article_key when only ID is provided", async () => {
+	it("creates article and auto-generates article_key from title", async () => {
 		await expect(
 			createActions.create!(
 				actionEvent({
 					category: "bali",
 					sort_order: "5",
 					sources: "https://example.org/bali",
-					title_id: "Sapi Bali Unggulan",
-					summary_id: "Ringkasan sapi Bali",
-					body_id: "Deskripsi lengkap sapi Bali",
+					title: "Sapi Bali Unggulan",
+					summary: "Ringkasan sapi Bali",
+					body: "Deskripsi lengkap sapi Bali",
 				}) as never,
 			),
 		).rejects.toMatchObject({ status: 303, location: "/articles" });
@@ -276,7 +251,6 @@ describe("Artikel Panduan create page server", () => {
 				method: "POST",
 				body: JSON.stringify({
 					article_key: "sapi-bali-unggulan",
-					locale: "id-ID",
 					category: "bali",
 					sort_order: 5,
 					title: "Sapi Bali Unggulan",
@@ -290,98 +264,20 @@ describe("Artikel Panduan create page server", () => {
 		);
 	});
 
-	it("creates both ID and EN articles sharing the same article_key when EN is also provided", async () => {
-		await expect(
-			createActions.create!(
-				actionEvent({
-					category: "bali",
-					sort_order: "5",
-					sources: "https://example.org/bali",
-					title_id: "Sapi Bali Unggulan",
-					summary_id: "Ringkasan sapi Bali",
-					body_id: "Deskripsi lengkap sapi Bali",
-					title_en: "Superior Bali Cattle",
-					summary_en: "Summary of Bali cattle",
-					body_en: "Full description of Bali cattle",
-				}) as never,
-			),
-		).rejects.toMatchObject({ status: 303, location: "/articles" });
-
-		expect(backendJson).toHaveBeenCalledTimes(2);
-		expect(backendJson).toHaveBeenNthCalledWith(
-			1,
-			"/api/admin/articles",
-			expect.objectContaining({
-				method: "POST",
-				body: JSON.stringify({
-					article_key: "sapi-bali-unggulan",
-					locale: "id-ID",
-					category: "bali",
-					sort_order: 5,
-					title: "Sapi Bali Unggulan",
-					summary: "Ringkasan sapi Bali",
-					body: "Deskripsi lengkap sapi Bali",
-					sources: ["https://example.org/bali"],
-					content_reviewed: false,
-				}),
-			}),
-			expect.any(Function),
-		);
-		expect(backendJson).toHaveBeenNthCalledWith(
-			2,
-			"/api/admin/articles",
-			expect.objectContaining({
-				method: "POST",
-				body: JSON.stringify({
-					article_key: "sapi-bali-unggulan",
-					locale: "en-US",
-					category: "bali",
-					sort_order: 5,
-					title: "Superior Bali Cattle",
-					summary: "Summary of Bali cattle",
-					body: "Full description of Bali cattle",
-					sources: ["https://example.org/bali"],
-					content_reviewed: false,
-				}),
-			}),
-			expect.any(Function),
-		);
-	});
-
-	it("fails when Indonesian content is incomplete", async () => {
+	it("fails when content is incomplete", async () => {
 		const result = await createActions.create!(
 			actionEvent({
 				category: "bali",
-				title_id: "",
-				summary_id: "Ringkasan saja",
-				body_id: "",
+				title: "",
+				summary: "Ringkasan saja",
+				body: "",
 				sources: "https://example.org/bali",
 			}) as never,
 		);
 		expect(result).toMatchObject({
 			status: 400,
 			data: expect.objectContaining({
-				error: expect.stringContaining("Bahasa Indonesia"),
-			}),
-		});
-		expect(backendJson).not.toHaveBeenCalled();
-	});
-
-	it("fails when English content is only partially filled", async () => {
-		const result = await createActions.create!(
-			actionEvent({
-				category: "bali",
-				title_id: "Sapi Bali",
-				summary_id: "Ringkasan",
-				body_id: "Isi",
-				sources: "https://example.org/bali",
-				title_en: "Bali Cattle",
-			}) as never,
-		);
-		expect(result).toMatchObject({
-			status: 400,
-			data: expect.objectContaining({
-				error: expect.stringContaining("Bahasa Inggris"),
+				error: expect.stringContaining("Judul, ringkasan, dan isi artikel wajib diisi lengkap"),
 			}),
 		});
 		expect(backendJson).not.toHaveBeenCalled();
@@ -400,9 +296,9 @@ describe("Artikel Panduan create page server", () => {
 					category: "bali",
 					sort_order: "5",
 					sources: "https://example.org/bali",
-					title_id: "Sapi Bali Unggulan",
-					summary_id: "Ringkasan sapi Bali",
-					body_id: "Deskripsi lengkap sapi Bali",
+					title: "Sapi Bali Unggulan",
+					summary: "Ringkasan sapi Bali",
+					body: "Deskripsi lengkap sapi Bali",
 				}) as never,
 			),
 		).rejects.toMatchObject({ status: 303, location: "/articles" });
@@ -431,4 +327,3 @@ describe("Artikel Panduan create page server", () => {
 		);
 	});
 });
-

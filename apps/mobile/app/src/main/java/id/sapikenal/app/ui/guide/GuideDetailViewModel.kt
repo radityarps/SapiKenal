@@ -11,8 +11,5 @@ class GuideDetailViewModel
     constructor(
         private val repository: GuideRepository,
     ) : ViewModel() {
-        fun article(
-            locale: String,
-            articleKey: String,
-        ): Flow<GuideArticle?> = repository.article(locale, articleKey)
+        fun article(articleKey: String): Flow<GuideArticle?> = repository.article(articleKey)
     }

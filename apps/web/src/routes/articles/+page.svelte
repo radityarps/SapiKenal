@@ -9,7 +9,7 @@
 	export let data: {
 		user: App.Locals["user"];
 		articles: any;
-		filters: { category: string; locale: string; publication_status: string; revision_status: string };
+		filters: { category: string; publication_status: string; revision_status: string };
 		error: string | null;
 	};
 	export let form: { success?: boolean; error?: string } | null;
@@ -26,11 +26,6 @@
 		{ value: "pasundan", label: "Pasundan" },
 		{ value: "po", label: "PO" },
 	];
-	const locales = [
-		{ value: "__all__", label: "Semua locale" },
-		{ value: "id-ID", label: "Indonesia (id-ID)" },
-		{ value: "en-US", label: "English (en-US)" },
-	];
 	const publicationStatuses = [
 		{ value: "__all__", label: "Semua publikasi" },
 		{ value: "draft", label: "Draft" },
@@ -46,8 +41,6 @@
 
 	const categoryLabel = (category: string) =>
 		categories.find((item) => item.value === category)?.label ?? category;
-	const localeLabel = (locale: string) =>
-		locales.find((item) => item.value === locale)?.label ?? locale;
 	const statusLabel = (status: string) =>
 		({ draft: "Draft", active: "Aktif", inactive: "Nonaktif" })[status] ?? status;
 	const reviewed = (article: any) => Boolean(article.revision?.content_reviewed);
@@ -81,17 +74,11 @@
 		query.set("page", String(page));
 		goto(`?${query}`, { keepFocus: true, noScroll: true, invalidateAll: true });
 	}
-	function pairingState(article: any) {
-		const pair = article.locale_pair;
-		if (!pair || pair.status === "missing") return "Pasangan locale belum dibuat";
-		if (pair.status !== "active") return `Pasangan ${localeLabel(pair.locale)} belum aktif`;
-		return `Pasangan ${localeLabel(pair.locale)} aktif`;
-	}
 </script>
 
 <svelte:head><title>Artikel Panduan — SapiKenal Admin</title></svelte:head>
 <AdminShell title="Artikel Panduan" eyebrow="Konten dan publikasi" active="/articles" user={data.user}>
-	<section class="page-intro"><p class="muted">Kelola panduan penggunaan aplikasi dan informasi jenis sapi. Setiap locale memiliki revisi, review, dan status publikasi sendiri.</p></section>
+	<section class="page-intro"><p class="muted">Kelola panduan penggunaan aplikasi dan informasi jenis sapi.</p></section>
 	{#if data.error}<p class="error" role="alert">Data Artikel Panduan tidak dapat dimuat: {data.error}</p>{/if}
 	{#if form?.error}<p class="error" role="alert">{form.error}</p>{/if}
 	{#if form?.success}<p class="notice" role="status">Perubahan Artikel Panduan berhasil disimpan.</p>{/if}
@@ -107,9 +94,8 @@
 		</a>
 	</div>
 
-	<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+	<div class="mt-4 grid gap-3 sm:grid-cols-3">
 		<AdminFilterSelect label="Kategori" value={data.filters.category} items={categories} placeholder="Semua kategori" onChange={(value) => updateFilter("category", value)} />
-		<AdminFilterSelect label="Locale" value={data.filters.locale} items={locales} placeholder="Semua locale" onChange={(value) => updateFilter("locale", value)} />
 		<AdminFilterSelect label="Status publikasi" value={data.filters.publication_status} items={publicationStatuses} placeholder="Semua publikasi" onChange={(value) => updateFilter("publication_status", value)} />
 		<AdminFilterSelect label="Status revisi terbaru" value={data.filters.revision_status} items={revisionStatuses} placeholder="Semua revisi terbaru" onChange={(value) => updateFilter("revision_status", value)} />
 	</div>
@@ -121,11 +107,10 @@
 				<table class="w-full table-fixed border-collapse">
 					<thead>
 						<tr class="border-b border-[#e2e8e4] bg-[#f8faf9]">
-							<th class="w-[34%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Artikel</th>
-							<th class="w-[14%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Kategori</th>
-							<th class="w-[12%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Locale</th>
-							<th class="w-[18%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Status</th>
-							<th class="w-[18%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Review & Pasangan</th>
+							<th class="w-[38%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Artikel</th>
+							<th class="w-[18%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Kategori</th>
+							<th class="w-[20%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Status</th>
+							<th class="w-[14%] px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#35483f]">Review</th>
 							<th class="w-24 px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-[#35483f]">Aksi</th>
 						</tr>
 					</thead>
@@ -147,13 +132,6 @@
 								<!-- Kategori -->
 								<td class="whitespace-normal px-4 py-3.5 text-sm font-medium text-[#1e3228] align-top">
 									{categoryLabel(article.revision.category)}
-								</td>
-
-								<!-- Locale -->
-								<td class="whitespace-normal px-4 py-3.5 align-top">
-									<span class="inline-flex items-center rounded-md border border-[#d3ded8] bg-[#f4f7f5] px-2 py-0.5 font-mono text-xs font-semibold text-[#1f372c]">
-										{localeLabel(article.locale)}
-									</span>
 								</td>
 
 								<!-- Status -->
@@ -179,7 +157,7 @@
 									{/if}
 								</td>
 
-								<!-- Review & Pasangan -->
+								<!-- Review -->
 								<td class="whitespace-normal px-4 py-3.5 align-top">
 									<div class="flex items-center gap-1.5">
 										{#if reviewed(article)}
@@ -192,7 +170,6 @@
 											</span>
 										{/if}
 									</div>
-									<span class="mt-1.5 block text-xs text-[#52655c]">{pairingState(article)}</span>
 								</td>
 
 								<!-- Aksi -->
@@ -317,16 +294,8 @@
 								<span class="mt-0.5 block font-medium text-[#1e3228]">{categoryLabel(article.revision.category)}</span>
 							</div>
 							<div>
-								<span class="block text-[0.68rem] font-bold uppercase tracking-wider text-[#566a60]">Locale</span>
-								<span class="mt-0.5 block font-medium text-[#1e3228]">{localeLabel(article.locale)}</span>
-							</div>
-							<div>
 								<span class="block text-[0.68rem] font-bold uppercase tracking-wider text-[#566a60]">Review</span>
 								<span class="mt-0.5 block font-medium text-[#1e3228]">{reviewed(article) ? 'Sudah ditinjau' : 'Perlu ditinjau'}</span>
-							</div>
-							<div>
-								<span class="block text-[0.68rem] font-bold uppercase tracking-wider text-[#566a60]">Pasangan</span>
-								<span class="mt-0.5 block font-medium text-[#1e3228]">{pairingState(article)}</span>
 							</div>
 							<div class="col-span-2 border-t border-[#e2e8e4] pt-2">
 								<span class="block text-xs text-[#52655c]">

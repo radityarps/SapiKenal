@@ -26,7 +26,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	if (!locals.user) throw redirect(303, "/login");
 	const filters = {
 		category: url.searchParams.get("category") || "",
-		locale: url.searchParams.get("locale") || "",
 		publication_status: url.searchParams.get("publication_status") || "",
 		revision_status: url.searchParams.get("revision_status") || "",
 	};
@@ -59,7 +58,6 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const payload = {
 			article_key: String(form.get("article_key") || "").trim(),
-			locale: String(form.get("locale") || "id-ID").trim(),
 			...revisionFields(form),
 			content_reviewed: false,
 		};

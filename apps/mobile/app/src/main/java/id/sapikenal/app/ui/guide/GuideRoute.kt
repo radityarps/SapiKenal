@@ -73,10 +73,8 @@ fun GuideRoute(
     onOpenArticle: (articleId: String) -> Unit,
     viewModel: GuideViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
-    // Load articles with the Activity context so strings resolve to the user's preferred locale
-    androidx.compose.runtime.LaunchedEffect(context) {
-        viewModel.loadArticles(context)
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.loadArticles()
     }
 
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()

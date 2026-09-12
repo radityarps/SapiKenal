@@ -191,20 +191,16 @@ class PredictionEvent(Base):
 class GuideArticle(Base):
     __tablename__ = "guide_articles"
     __table_args__ = (
-        UniqueConstraint("article_key", "locale", name="uq_guide_articles_key_locale"),
-        CheckConstraint(
-            "locale IN ('id-ID', 'en-US')", name="ck_guide_articles_locale"
-        ),
+        UniqueConstraint("article_key", name="uq_guide_articles_article_key"),
         CheckConstraint(
             "status IN ('draft', 'active', 'inactive')",
             name="ck_guide_articles_status",
         ),
-        Index("ix_guide_articles_locale_status", "locale", "status"),
+        Index("ix_guide_articles_status", "status"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    article_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    locale: Mapped[str] = mapped_column(String(16), nullable=False, default="id-ID")
+    article_key: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_by: Mapped[str | None] = mapped_column(
         ForeignKey("users.id"), nullable=True

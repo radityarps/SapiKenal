@@ -47,8 +47,7 @@ fun GuideDetailRoute(
     onBack: () -> Unit,
     viewModel: GuideDetailViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
-    val observedArticle by viewModel.article(context.guideLocale(), articleId).collectAsStateWithLifecycle(initialValue = null)
+    val observedArticle by viewModel.article(articleId).collectAsStateWithLifecycle(initialValue = null)
     val article = observedArticle
 
     if (article == null) {

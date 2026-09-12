@@ -2,9 +2,8 @@ package id.sapikenal.app.data.local.entity
 
 import androidx.room.Entity
 
-@Entity(tableName = "guide_articles", primaryKeys = ["locale", "articleKey"])
+@Entity(tableName = "guide_articles", primaryKeys = ["articleKey"])
 data class GuideArticleEntity(
-    val locale: String,
     val articleKey: String,
     val category: String,
     val sortOrder: Int,
@@ -17,7 +16,7 @@ data class GuideArticleEntity(
 
 @Entity(tableName = "guide_sync_metadata")
 data class GuideSyncMetadataEntity(
-    @androidx.room.PrimaryKey val locale: String,
+    @androidx.room.PrimaryKey val syncKey: String = "default",
     val snapshotVersion: String,
     val syncedAt: Long,
 )

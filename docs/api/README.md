@@ -54,13 +54,12 @@ memisahkan `publication_status` (status publikasi artikel), `revision.status`
 (status editorial revisi terbaru), dan `active_revision` (revisi publik saat ini
 atau `null`). Karena itu artikel dengan publikasi aktif tetap dapat mempunyai
 revisi terbaru berstatus draft. Listing menerima filter `publication_status` dan
-`revision_status` secara terpisah; filter dapat digabung dengan `category` dan
-`locale`.
+`revision_status` secara terpisah; filter dapat digabung dengan `category`.
 
-Endpoint publik `GET /api/content/articles?locale=id-ID` (atau `en-US`)
-mengembalikan snapshot lengkap revisi aktif, `snapshot_version` deterministik,
+Endpoint publik `GET /api/content/articles`
+mengembalikan snapshot lengkap revisi aktif (Bahasa Indonesia), `snapshot_version` deterministik,
 dan tidak mengirim metadata admin. Snapshot sukses kosong adalah valid dan
-berarti semua artikel locale tersebut telah ditarik.
+berarti semua artikel telah ditarik.
 
 Setelah migration, jalankan bootstrap admin dan draft Artikel Panduan secara
 eksplisit dari `apps/backend`:

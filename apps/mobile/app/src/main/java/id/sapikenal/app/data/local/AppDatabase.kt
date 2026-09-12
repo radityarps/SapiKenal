@@ -12,7 +12,7 @@ import id.sapikenal.app.data.local.entity.GuideSyncMetadataEntity
 
 @Database(
     entities = [DetectionEntity::class, GuideArticleEntity::class, GuideSyncMetadataEntity::class],
-    version = 14,
+    version = 15,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,6 +21,61 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun guideArticleDao(): GuideArticleDao
 
     companion object {
+        val MIGRATION_14_15 =
+            object : Migration(14, 15) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE guide_articles_new (
+                            articleKey TEXT NOT NULL PRIMARY KEY,
+                            category TEXT NOT NULL,
+                            sortOrder INTEGER NOT NULL,
+                            title TEXT NOT NULL,
+                            summary TEXT NOT NULL,
+                            body TEXT NOT NULL,
+                            sourcesJson TEXT NOT NULL,
+                            revision INTEGER NOT NULL
+                        )
+                        """.trimIndent(),
+                    )
+                    db.execSQL(
+                        """
+                        INSERT OR REPLACE INTO guide_articles_new (
+                            articleKey, category, sortOrder, title, summary, body, sourcesJson, revision
+                        )
+                        SELECT articleKey, category, sortOrder, title, summary, body, sourcesJson, revision
+                        FROM guide_articles
+                        WHERE locale = 'id-ID'
+                        """.trimIndent(),
+                    )
+                    db.execSQL("DROP TABLE guide_articles")
+                    db.execSQL("ALTER TABLE guide_articles_new RENAME TO guide_articles")
+
+                    db.execSQL(
+                        """
+                        CREATE TABLE guide_sync_metadata_new (
+                            syncKey TEXT NOT NULL PRIMARY KEY,
+                            snapshotVersion TEXT NOT NULL,
+                            syncedAt INTEGER NOT NULL
+                        )
+                        """.trimIndent(),
+                    )
+                    db.execSQL(
+                        """
+                        INSERT OR REPLACE INTO guide_sync_metadata_new (
+                            syncKey, snapshotVersion, syncedAt
+                        )
+                        SELECT 'default', snapshotVersion, syncedAt
+                        FROM guide_sync_metadata
+                        WHERE locale = 'id-ID'
+                        LIMIT 1
+                        """.trimIndent(),
+                    )
+                    db.execSQL("DROP TABLE guide_sync_metadata")
+                    db.execSQL("ALTER TABLE guide_sync_metadata_new RENAME TO guide_sync_metadata")
+                }
+            }
+
         val MIGRATION_13_14 =
             object : Migration(13, 14) {
                 override fun migrate(db: SupportSQLiteDatabase) {

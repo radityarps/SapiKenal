@@ -11,22 +11,11 @@ import id.sapikenal.app.data.local.SettingsDataStore
 import id.sapikenal.app.data.local.dataStore
 import id.sapikenal.app.ui.navigation.SapiKenalNavHost
 import id.sapikenal.app.ui.theme.SapiKenalTheme
-import id.sapikenal.app.utils.LocaleManager
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        val savedLanguage =
-            runBlocking {
-                applicationContext.dataStore.data
-                    .map { prefs -> prefs[SettingsDataStore.KEY_LANGUAGE] ?: "system" }
-                    .first()
-            }
-        LocaleManager.applyLanguage(savedLanguage)
-
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()

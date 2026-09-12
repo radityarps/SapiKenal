@@ -64,7 +64,6 @@ class GuideArticleSeed(BaseModel):
         max_length=64,
         pattern=r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
     )
-    locale: Literal["id-ID", "en-US"]
     category: Literal[
         "app_usage",
         "aceh",
@@ -117,7 +116,7 @@ def _guide_article_seeds(path: Path) -> list[GuideArticleSeed]:
         raise RuntimeError(f"Guide article seed exceeds 200 items: {path}")
 
     seeds: list[GuideArticleSeed] = []
-    seen: set[tuple[str, str]] = set()
+    seen: set[str] = set()
     for index, item in enumerate(raw):
         try:
             seed = GuideArticleSeed.model_validate(item)
@@ -125,11 +124,11 @@ def _guide_article_seeds(path: Path) -> list[GuideArticleSeed]:
             raise RuntimeError(
                 f"Guide article seed item {index} is invalid in {path}: {exc}"
             ) from exc
-        identity = (seed.article_key, seed.locale)
+        identity = seed.article_key
         if identity in seen:
             raise RuntimeError(
                 f"Guide article seed item {index} duplicates "
-                f"({seed.article_key}, {seed.locale}) in {path}"
+                f"{seed.article_key} in {path}"
             )
         seen.add(identity)
         seeds.append(seed)
@@ -147,7 +146,6 @@ def seed_guide_articles(*, activate: bool = False) -> int:
                 existing = db.scalar(
                     select(GuideArticle).where(
                         GuideArticle.article_key == seed.article_key,
-                        GuideArticle.locale == seed.locale,
                     )
                 )
                 if existing is not None:
@@ -155,7 +153,6 @@ def seed_guide_articles(*, activate: bool = False) -> int:
                 status = "active" if activate else "draft"
                 article = GuideArticle(
                     article_key=seed.article_key,
-                    locale=seed.locale,
                     status=status,
                 )
                 db.add(article)

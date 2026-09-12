@@ -29,37 +29,31 @@ class GuideRepository
                 Types.newParameterizedType(List::class.java, String::class.java),
             )
 
-        fun articles(locale: String): Flow<List<GuideArticle>> =
-            dao.observeLocale(locale).map { cached ->
-                if (cached.isNotEmpty() || dao.metadata(locale) != null) {
+        fun articles(): Flow<List<GuideArticle>> =
+            dao.observeArticles().map { cached ->
+                if (cached.isNotEmpty() || dao.metadata() != null) {
                     cached.map(::toArticle)
                 } else {
-                    GuideDataSource.articles(localizedContext(locale))
+                    GuideDataSource.articles(context)
                 }
             }
 
-        fun article(
-            locale: String,
-            key: String,
-        ): Flow<GuideArticle?> = articles(locale).map { items -> items.find { it.id == key } }
+        fun article(key: String): Flow<GuideArticle?> =
+            articles().map { items -> items.find { it.id == key } }
 
-        suspend fun refresh(locale: String): Result<Unit> =
+        suspend fun refresh(): Result<Unit> =
             runCatching {
-                val snapshot = api.articles(locale)
-                validate(snapshot, locale)
+                val snapshot = api.articles()
+                validate(snapshot)
                 dao.replaceSnapshot(
-                    locale = locale,
                     snapshotVersion = snapshot.snapshotVersion,
                     syncedAt = System.currentTimeMillis(),
-                    items = snapshot.items.map { it.toEntity(locale, sourcesAdapter.toJson(it.sources)) },
+                    items = snapshot.items.map { it.toEntity(sourcesAdapter.toJson(it.sources)) },
                 )
             }
 
-        private fun validate(
-            snapshot: GuideSnapshotDto,
-            locale: String,
-        ) {
-            require(snapshot.status == "success" && snapshot.locale == locale)
+        private fun validate(snapshot: GuideSnapshotDto) {
+            require(snapshot.status == "success")
             require(snapshot.snapshotVersion.isNotBlank() && snapshot.snapshotVersion.length <= 256)
             require(snapshot.items.size <= 200)
             require(
@@ -86,12 +80,6 @@ class GuideRepository
                 value.length <= 2_048 && uri.scheme in setOf("http", "https") && !uri.host.isNullOrBlank()
             }.getOrDefault(false)
 
-        private fun localizedContext(locale: String): Context {
-            val config = android.content.res.Configuration(context.resources.configuration)
-            config.setLocale(java.util.Locale.forLanguageTag(locale))
-            return context.createConfigurationContext(config)
-        }
-
         private fun toArticle(entity: GuideArticleEntity) =
             GuideArticle(
                 id = entity.articleKey,
@@ -101,20 +89,17 @@ class GuideRepository
                 body = entity.body,
             )
 
-        private fun GuideArticleDto.toEntity(
-            locale: String,
-            sourcesJson: String,
-        ) = GuideArticleEntity(
-            locale,
-            articleKey,
-            category,
-            sortOrder,
-            title,
-            summary,
-            body,
-            sourcesJson,
-            revision,
-        )
+        private fun GuideArticleDto.toEntity(sourcesJson: String) =
+            GuideArticleEntity(
+                articleKey = articleKey,
+                category = category,
+                sortOrder = sortOrder,
+                title = title,
+                summary = summary,
+                body = body,
+                sourcesJson = sourcesJson,
+                revision = revision,
+            )
 
         companion object {
             private val CATEGORIES =

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
-	import { ArrowLeft, Check, Globe } from "lucide-svelte";
+	import { ArrowLeft } from "lucide-svelte";
 	import AdminShell from "$lib/components/AdminShell.svelte";
 
 	export let data: {
@@ -12,12 +12,10 @@
 			category?: string;
 			sort_order?: number;
 			sources?: string;
-			title_id?: string;
-			summary_id?: string;
-			body_id?: string;
-			title_en?: string;
-			summary_en?: string;
-			body_en?: string;
+			title?: string;
+			summary?: string;
+			body?: string;
+			article_key?: string;
 		};
 	} | null;
 
@@ -32,20 +30,6 @@
 		{ value: "pasundan", label: "Pasundan" },
 		{ value: "po", label: "PO" },
 	];
-
-	let activeLocale = "id-ID";
-
-	let title_id = form?.values?.title_id ?? "";
-	let summary_id = form?.values?.summary_id ?? "";
-	let body_id = form?.values?.body_id ?? "";
-
-	let title_en = form?.values?.title_en ?? "";
-	let summary_en = form?.values?.summary_en ?? "";
-	let body_en = form?.values?.body_en ?? "";
-
-	$: isIdComplete = Boolean(title_id.trim() && summary_id.trim() && body_id.trim());
-	$: isEnFilled = Boolean(title_en.trim() || summary_en.trim() || body_en.trim());
-	$: isEnComplete = Boolean(title_en.trim() && summary_en.trim() && body_en.trim());
 </script>
 
 <svelte:head><title>Tambah Artikel Panduan — SapiKenal Admin</title></svelte:head>
@@ -57,7 +41,7 @@
 				Kembali ke daftar artikel
 			</a>
 		</div>
-		<p class="muted mt-3">Buat artikel panduan baru untuk aplikasi atau profil jenis sapi. Anda dapat menulis konten dalam Bahasa Indonesia (wajib) dan versi Bahasa Inggris (opsional) dalam satu formulir ini.</p>
+		<p class="muted mt-3">Buat artikel panduan baru untuk aplikasi atau profil jenis sapi.</p>
 	</section>
 
 	{#if form?.error}
@@ -66,7 +50,7 @@
 
 	<section class="panel mt-4 max-w-4xl p-6">
 		<form class="space-y-6" method="POST" action="?/create" use:enhance>
-			<!-- Atribut Umum (Shared across locales) -->
+			<!-- Atribut Umum -->
 			<div class="grid gap-4 sm:grid-cols-2 pb-4 border-b border-[#e0e7e3]">
 				<label>
 					<span>Kategori</span>
@@ -104,121 +88,39 @@
 				</label>
 			</div>
 
-			<!-- Locale Switcher & Content Section -->
-			<div>
-				<div class="mb-3">
-					<h3 class="text-sm font-bold text-[#17241f] m-0">Konten & Terjemahan Artikel</h3>
-					<p class="text-xs text-[#66766f] mt-0.5 mb-3">
-						Gunakan tab di bawah untuk beralih bahasa. Kunci artikel dibuat secara otomatis di belakang layar.
-					</p>
+			<!-- Konten Artikel -->
+			<div class="grid gap-4">
+				<label>
+					<span>Judul</span>
+					<input
+						name="title"
+						value={form?.values?.title ?? ""}
+						maxlength="120"
+						placeholder="Contoh: Karakteristik dan Ciri Fisik Sapi Bali"
+						required
+					/>
+				</label>
 
-					<!-- Tab Switcher -->
-					<div class="flex items-center gap-2 border-b border-[#e5ebe8] pb-3">
-						<button
-							type="button"
-							class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all {activeLocale === 'id-ID' ? 'bg-[#176b49] text-white shadow-xs' : 'bg-[#e8f2ed] text-[#145c3e] hover:bg-[#d8e9e0]'}"
-							on:click={() => activeLocale = 'id-ID'}
-						>
-							<Globe size={14} />
-							<span>Bahasa Indonesia (ID)</span>
-							<span class="rounded px-1.5 py-0.5 text-[10px] font-medium {activeLocale === 'id-ID' ? 'bg-white/20 text-white' : 'bg-[#176b49]/10 text-[#176b49]'}">Wajib</span>
-							{#if isIdComplete}
-								<Check size={13} class="text-[#a7f3d0]" />
-							{/if}
-						</button>
+				<label>
+					<span>Ringkasan</span>
+					<textarea
+						name="summary"
+						maxlength="500"
+						placeholder="Ringkasan singkat mengenai isi artikel..."
+						required
+					>{form?.values?.summary ?? ""}</textarea>
+				</label>
 
-						<button
-							type="button"
-							class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all {activeLocale === 'en-US' ? 'bg-[#176b49] text-white shadow-xs' : 'bg-[#e8f2ed] text-[#145c3e] hover:bg-[#d8e9e0]'}"
-							on:click={() => activeLocale = 'en-US'}
-						>
-							<Globe size={14} />
-							<span>English (EN)</span>
-							<span class="rounded px-1.5 py-0.5 text-[10px] font-medium {activeLocale === 'en-US' ? 'bg-white/20 text-white' : 'bg-[#176b49]/10 text-[#176b49]'}">Opsional</span>
-							{#if isEnComplete}
-								<Check size={13} class="text-[#a7f3d0]" />
-							{:else if isEnFilled}
-								<span class="text-[10px] text-amber-600 font-medium">(Sebagian)</span>
-							{/if}
-						</button>
-					</div>
-				</div>
-
-				<!-- Panel Bahasa Indonesia (ID) -->
-				<div class="grid gap-4 {activeLocale === 'id-ID' ? 'block' : 'hidden'}">
-					<div class="notice !mt-0 !py-2 !px-3 text-xs">
-						Mengedit versi <strong>Bahasa Indonesia</strong> (Bahasa utama yang wajib diisi).
-					</div>
-
-					<label>
-						<span>Judul (ID)</span>
-						<input
-							name="title_id"
-							bind:value={title_id}
-							maxlength="120"
-							placeholder="Contoh: Karakteristik dan Ciri Fisik Sapi Bali"
-						/>
-					</label>
-
-					<label>
-						<span>Ringkasan (ID)</span>
-						<textarea
-							name="summary_id"
-							bind:value={summary_id}
-							maxlength="500"
-							placeholder="Ringkasan singkat mengenai isi artikel dalam bahasa Indonesia..."
-						></textarea>
-					</label>
-
-					<label>
-						<span>Isi Artikel (ID)</span>
-						<textarea
-							name="body_id"
-							bind:value={body_id}
-							class="min-h-48"
-							maxlength="50000"
-							placeholder="Tuliskan isi lengkap artikel dalam bahasa Indonesia..."
-						></textarea>
-					</label>
-				</div>
-
-				<!-- Panel English (EN) -->
-				<div class="grid gap-4 {activeLocale === 'en-US' ? 'block' : 'hidden'}">
-					<div class="notice !mt-0 !py-2 !px-3 text-xs bg-[#f8f9fa] border-[#e9ecef] text-[#495057]">
-						Mengedit terjemahan <strong>English</strong> (Opsional. Jika diisi, sistem otomatis membuat kedua versi ID & EN dengan kunci yang sama).
-					</div>
-
-					<label>
-						<span>Title (EN)</span>
-						<input
-							name="title_en"
-							bind:value={title_en}
-							maxlength="120"
-							placeholder="e.g. Physical Characteristics of Bali Cattle"
-						/>
-					</label>
-
-					<label>
-						<span>Summary (EN)</span>
-						<textarea
-							name="summary_en"
-							bind:value={summary_en}
-							maxlength="500"
-							placeholder="Brief overview explaining what readers will learn..."
-						></textarea>
-					</label>
-
-					<label>
-						<span>Body Content (EN)</span>
-						<textarea
-							name="body_en"
-							bind:value={body_en}
-							class="min-h-48"
-							maxlength="50000"
-							placeholder="Full guide content in English..."
-						></textarea>
-					</label>
-				</div>
+				<label>
+					<span>Isi Artikel</span>
+					<textarea
+						name="body"
+						class="min-h-48"
+						maxlength="50000"
+						placeholder="Tuliskan isi lengkap artikel..."
+						required
+					>{form?.values?.body ?? ""}</textarea>
+				</label>
 			</div>
 
 			<!-- Opsi Publikasi -->

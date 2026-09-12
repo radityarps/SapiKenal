@@ -96,7 +96,6 @@ class GuideArticleRequest(BaseModel):
         max_length=64,
         pattern=r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
     )
-    locale: Literal["id-ID", "en-US"] = "id-ID"
     category: Literal[
         "app_usage",
         "aceh",
@@ -136,7 +135,6 @@ class GuideArticlePatchRequest(BaseModel):
         max_length=64,
         pattern=r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
     )
-    locale: Literal["id-ID", "en-US"] | None = None
     category: (
         Literal[
             "app_usage",
@@ -198,19 +196,12 @@ class GuideArticleRevisionResponse(BaseModel):
     updated_at: datetime
 
 
-class GuideArticleLocalePairResponse(BaseModel):
-    locale: Literal["id-ID", "en-US"]
-    status: Literal["missing", "inactive", "active"]
-
-
 class GuideArticleResponse(BaseModel):
     id: str
     article_key: str
-    locale: str
     publication_status: Literal["draft", "active", "inactive"]
     revision: GuideArticleRevisionResponse
     active_revision: GuideArticleRevisionResponse | None
-    locale_pair: GuideArticleLocalePairResponse | None = None
     created_at: datetime
     updated_at: datetime
 

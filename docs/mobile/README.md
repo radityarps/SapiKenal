@@ -15,10 +15,10 @@ Pengukuran perangkat pada 13 fixture nyata menghasilkan tensor input identik,
 13/13 kelas pemenang sama, dan selisih skor maksimum `0.000002233688736`.
 Lihat [`../model/parity.md`](../model/parity.md).
 
-Artikel Panduan ditampilkan dari cache Room per locale. Saat halaman Panduan
-dibuka, aplikasi langsung menampilkan cache (atau konten bawaan sebelum sync
-pertama) lalu mengambil snapshot `id-ID`/`en-US` tanpa memblokir UI. Snapshot
-valid mengganti seluruh locale dan mencatat keberhasilan secara atomik, termasuk
+Artikel Panduan ditampilkan dari cache Room lokal (Bahasa Indonesia). Saat halaman
+Panduan dibuka, aplikasi langsung menampilkan cache (atau konten bawaan sebelum sync
+pertama) lalu mengambil snapshot dari backend tanpa memblokir UI. Snapshot
+valid mengganti seluruh katalog dan mencatat keberhasilan secara atomik, termasuk
 snapshot kosong; kegagalan jaringan, HTTP, parsing, atau validasi mempertahankan
 cache terakhir.
 

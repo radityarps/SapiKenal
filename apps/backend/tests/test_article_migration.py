@@ -239,3 +239,19 @@ def test_migration_0012_removes_location_columns(
     assert "scores" in columns
     assert "confidence" in columns
 
+
+def test_migration_0013_removes_guide_article_locale(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "test_migration_0013.db"
+    config = _config(db_path, monkeypatch)
+    command.upgrade(config, "head")
+
+    engine = sa.create_engine(f"sqlite:///{db_path}")
+    inspector = sa.inspect(engine)
+    columns = {col["name"] for col in inspector.get_columns("guide_articles")}
+    assert "locale" not in columns
+    assert "article_key" in columns
+    assert "status" in columns
+
+

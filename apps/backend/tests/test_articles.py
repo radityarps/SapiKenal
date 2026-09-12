@@ -51,7 +51,6 @@ def article_client() -> Generator[tuple[TestClient, sessionmaker[Session]], None
 def _payload(**overrides: object) -> dict[str, object]:
     payload: dict[str, object] = {
         "article_key": "profil-bali",
-        "locale": "id-ID",
         "category": "bali",
         "sort_order": 10,
         "title": "Profil Sapi Bali",
@@ -71,10 +70,10 @@ def test_article_lifecycle_and_deterministic_locale_snapshot(
     assert created.status_code == 201
     article_id = created.json()["item"]["id"]
 
-    assert client.get("/api/content/articles?locale=id-ID").json() == {
+    assert client.get("/api/content/articles").json() == {
         "status": "success",
         "locale": "id-ID",
-        "snapshot_version": client.get("/api/content/articles?locale=id-ID").json()[
+        "snapshot_version": client.get("/api/content/articles").json()[
             "snapshot_version"
         ],
         "items": [],
@@ -82,8 +81,8 @@ def test_article_lifecycle_and_deterministic_locale_snapshot(
     assert client.post(f"/api/admin/articles/{article_id}/review").status_code == 200
     assert client.post(f"/api/admin/articles/{article_id}/activate").status_code == 200
 
-    first = client.get("/api/content/articles", params={"locale": "id-ID"})
-    second = client.get("/api/content/articles", params={"locale": "id-ID"})
+    first = client.get("/api/content/articles")
+    second = client.get("/api/content/articles")
     assert first.status_code == 200
     assert first.json() == second.json()
     assert first.json()["locale"] == "id-ID"
@@ -109,7 +108,7 @@ def test_article_lifecycle_and_deterministic_locale_snapshot(
     assert (
         client.post(f"/api/admin/articles/{article_id}/deactivate").status_code == 200
     )
-    assert client.get("/api/content/articles?locale=id-ID").json()["items"] == []
+    assert client.get("/api/content/articles").json()["items"] == []
 
 
 def test_article_revision_preserves_public_version_until_activation(
@@ -207,28 +206,6 @@ def test_article_listing_paginates_after_database_filters(
     assert second["items"][0]["article_key"] == "bali_3"
 
 
-def test_locale_pair_metadata_ignores_current_filter(
-    article_client: tuple[TestClient, sessionmaker[Session]],
-) -> None:
-    client, _ = article_client
-    indonesia = client.post("/api/admin/articles", json=_payload()).json()["item"]
-    english = client.post(
-        "/api/admin/articles",
-        json=_payload(locale="en-US", title="Bali Cattle Profile"),
-    ).json()["item"]
-    assert client.post(f"/api/admin/articles/{english['id']}/review").status_code == 200
-    assert (
-        client.post(f"/api/admin/articles/{english['id']}/activate").status_code == 200
-    )
-
-    filtered = client.get("/api/admin/articles", params={"locale": "id-ID"}).json()
-    assert filtered["items"][0]["id"] == indonesia["id"]
-    assert filtered["items"][0]["locale_pair"] == {
-        "locale": "en-US",
-        "status": "active",
-    }
-
-
 def test_article_boundary_validation_and_stable_identity(
     article_client: tuple[TestClient, sessionmaker[Session]],
 ) -> None:
@@ -258,7 +235,9 @@ def test_article_boundary_validation_and_stable_identity(
     assert changed_key.status_code == 422
     assert changed_key.json()["code"] == "ARTICLE_IDENTITY_IMMUTABLE"
 
-    assert client.get("/api/content/articles?locale=fr-FR").status_code == 422
+    # Duplicate article_key should be rejected with 409
+    assert client.post("/api/admin/articles", json=_payload(title="Duplicate")).status_code == 409
+
     assert (
         client.get("/api/admin/articles", params={"category": "unknown"}).status_code
         == 422

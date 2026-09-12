@@ -44,6 +44,7 @@ pnpm run mobile:build
 pnpm run mobile:deploy
 pnpm run mobile:run
 pnpm run mobile:test
+pnpm run web:setup
 pnpm run web:dev
 pnpm run web:test
 pnpm run test

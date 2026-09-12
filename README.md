@@ -45,6 +45,7 @@ pnpm run mobile:release  # Build AAB release bertanda tangan untuk Play Store
 pnpm run mobile:deploy   # Build dan install APK
 pnpm run mobile:run      # Build, install, dan jalankan aplikasi
 pnpm run mobile:test     # Jalankan unit test Android
+pnpm run web:setup       # Install dependensi Web Admin
 pnpm run web:test        # Jalankan test Web Admin
 pnpm run web:check       # Periksa tipe dan komponen Svelte
 pnpm run test            # Jalankan seluruh unit test

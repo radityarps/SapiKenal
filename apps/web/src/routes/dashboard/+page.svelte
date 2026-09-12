@@ -27,12 +27,13 @@
     { value: '30d', label: '30 hari' }
   ];
 
-  const breedCards = ['aceh', 'bali', 'limusin', 'madura', 'pasundan', 'po'];
+  const breedCards = ['aceh', 'bali', 'limusin', 'madura', 'non_sapi', 'pasundan', 'po'];
   const classLabels: Record<string, string> = {
     aceh: 'Aceh',
     bali: 'Bali',
     limusin: 'Limusin',
     madura: 'Madura',
+    non_sapi: 'Bukan Sapi',
     pasundan: 'Pasundan',
     po: 'PO'
   };

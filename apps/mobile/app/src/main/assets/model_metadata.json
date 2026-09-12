@@ -2,26 +2,27 @@
   "model_version": "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32",
   "architecture": "mobilenetv3",
   "asset": "lokal_fp32.tflite",
-  "sha256": "cc1b9a74af5ef44a7dead8848d6c41795aef9399c76e647f434277867eb113d9",
-  "size_bytes": 12382316,
+  "sha256": "e083d87486d9f23e8b9ad732aecb5beaa71043cc573f8ad1b7c0be27966fcc4f",
+  "size_bytes": 12382832,
   "backend_artifact": {
     "path": "apps/backend/model/best.keras",
-    "sha256": "0d92bc9afec8ce8b57f3637720720fb6530664b8c38391ecf3b380df614b8f65",
-    "size_bytes": 14159179
+    "sha256": "231de918b6c4f821a76daea378eced59831666074edd71bf3c7dc8b9b8f5ba65",
+    "size_bytes": 14160727
   },
-  "class_order": ["aceh", "bali", "limusin", "madura", "pasundan", "po"],
+  "class_order": ["aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po"],
   "class_indices": {
     "0": "aceh",
     "1": "bali",
     "2": "limusin",
     "3": "madura",
-    "4": "pasundan",
-    "5": "po"
+    "4": "non_sapi",
+    "5": "pasundan",
+    "6": "po"
   },
   "tensor_contract": {
     "input_shape": [1, 224, 224, 3],
     "input_dtype": "float32",
-    "output_shape": [1, 6],
+    "output_shape": [1, 7],
     "output_dtype": "float32",
     "input_tensor_count": 1,
     "output_tensor_count": 1,
@@ -42,5 +43,5 @@
     "client_encoding": "PNG",
     "resize_method": "bilinear"
   },
-  "warning": "Image classification model only; output is not validation that an image contains a cow."
+  "warning": "Image classification model only; includes non_sapi classification for non-cattle images."
 }

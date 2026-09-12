@@ -30,7 +30,7 @@ open class OfflineInferenceEngine
             /** Offline model version identifier. Configured via BuildConfig / local.properties. */
             val MODEL_VERSION = BuildConfig.MODEL_VERSION
             private val EXPECTED_INPUT_SHAPE = intArrayOf(1, 224, 224, 3)
-            private val EXPECTED_OUTPUT_SHAPE = intArrayOf(1, 6)
+            private val EXPECTED_OUTPUT_SHAPE = intArrayOf(1, 7)
 
             // Canonical labels matching backend model/class_names.json.
             val CANONICAL_LABELS = BreedContract.CANONICAL_LABELS

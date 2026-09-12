@@ -19,6 +19,7 @@ object BreedContract {
             BreedDefinition("bali", "Bali", "Bali", "bali_1", R.string.result_breed_bali),
             BreedDefinition("limusin", "Limusin", "Limousin", "limusin_1", R.string.result_breed_limusin),
             BreedDefinition("madura", "Madura", "Madura", "madura_1", R.string.result_breed_madura),
+            BreedDefinition("non_sapi", "Bukan Sapi", "Non-Cattle", "app_1", R.string.result_breed_non_sapi),
             BreedDefinition("pasundan", "Pasundan", "Pasundan", "pasundan_1", R.string.result_breed_pasundan),
             BreedDefinition("po", "PO", "PO", "po_1", R.string.result_breed_po),
         )

@@ -35,7 +35,7 @@ class ModelParityCaptureTest {
             val fixtures = File(root, "input").listFiles()?.sortedBy { it.name }.orEmpty()
             assertTrue("Stage real JPEG fixtures in files/parity/input first", fixtures.isNotEmpty())
             val output = File(root, "output").apply { mkdirs() }
-            val labels = listOf("aceh", "bali", "limusin", "madura", "pasundan", "po")
+            val labels = listOf("aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po")
             assertEquals(labels, BreedContract.CANONICAL_LABELS)
             val client = ClientPreprocessor(context)
             val preprocessor = ModelPreprocessor()

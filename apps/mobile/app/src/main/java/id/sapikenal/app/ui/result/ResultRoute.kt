@@ -99,6 +99,8 @@ private val classConfigs =
         "limusin" to
             ClassDisplayConfig("limusin", R.string.result_breed_limusin, "🟠", SapiKenalColors.Limusin, R.string.result_advice_breed),
         "madura" to ClassDisplayConfig("madura", R.string.result_breed_madura, "🟤", SapiKenalColors.Madura, R.string.result_advice_breed),
+        "non_sapi" to
+            ClassDisplayConfig("non_sapi", R.string.result_breed_non_sapi, "⚪", SapiKenalColors.TextSecondary, R.string.result_advice_non_sapi),
         "pasundan" to
             ClassDisplayConfig("pasundan", R.string.result_breed_pasundan, "🟤", SapiKenalColors.Pasundan, R.string.result_advice_breed),
         "po" to ClassDisplayConfig("po", R.string.result_breed_po, "⚪", SapiKenalColors.Po, R.string.result_advice_breed),

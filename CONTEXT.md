@@ -5,16 +5,16 @@ SapiKenal mengidentifikasi jenis sapi dari citra. Proyek ini tidak mengidentifik
 ## Language
 
 **Jenis Sapi**:
-Kategori sapi yang menjadi target klasifikasi model. Jenis sapi yang didukung adalah Aceh, Bali, Limusin, Madura, Pasundan, dan PO.
+Kategori sapi yang menjadi target klasifikasi model. Jenis sapi yang didukung adalah Aceh, Bali, Limusin, Madura, Pasundan, dan PO, serta kategori non_sapi (bukan sapi).
 _Avoid_: ras sapi, penyakit sapi, kondisi kesehatan
 
 **Citra Identifikasi**:
-Foto yang menjadi masukan proses identifikasi jenis sapi. Citra ini tidak dianggap telah tervalidasi memuat sapi.
+Foto yang menjadi masukan proses identifikasi jenis sapi.
 _Avoid_: citra sapi, rekam medis, bukti diagnosis
 
 **Hasil Identifikasi**:
-Keluaran model berupa satu jenis sapi dengan tingkat keyakinannya. Hasil selalu memilih salah satu jenis yang didukung dan tidak membuktikan bahwa objek pada citra adalah sapi.
-_Avoid_: diagnosis, validasi sapi, hasil pemeriksaan kesehatan
+Keluaran model berupa salah satu kelas yang didukung (jenis sapi atau bukan sapi) dengan tingkat keyakinannya.
+_Avoid_: diagnosis, hasil pemeriksaan kesehatan
 
 **Tingkat Keyakinan**:
 Skor numerik yang menunjukkan keyakinan relatif model terhadap hasil identifikasi.

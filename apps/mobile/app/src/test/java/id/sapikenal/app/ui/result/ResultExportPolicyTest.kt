@@ -13,8 +13,9 @@ class ResultExportPolicyTest {
             "bali" to 0.7f,
             "limusin" to 0.05f,
             "madura" to 0.05f,
+            "non_sapi" to 0.05f,
             "pasundan" to 0.05f,
-            "po" to 0.1f,
+            "po" to 0.05f,
         )
 
     private fun result(scores: Map<String, Float> = canonicalScores) =

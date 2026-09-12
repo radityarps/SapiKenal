@@ -52,6 +52,7 @@ class PredictionClass(str, Enum):
     BALI = "bali"
     LIMUSIN = "limusin"
     MADURA = "madura"
+    NON_SAPI = "non_sapi"
     PASUNDAN = "pasundan"
     PO = "po"
 

@@ -80,6 +80,7 @@ private val breedMap =
         "bali" to ("🟤" to SapiKenalColors.Bali),
         "limusin" to ("🟠" to SapiKenalColors.Limusin),
         "madura" to ("🟤" to SapiKenalColors.Madura),
+        "non_sapi" to ("⚪" to SapiKenalColors.TextSecondary),
         "pasundan" to ("🟤" to SapiKenalColors.Pasundan),
         "po" to ("⚪" to SapiKenalColors.Po),
         "brahman" to ("⚪" to SapiKenalColors.Brahman),

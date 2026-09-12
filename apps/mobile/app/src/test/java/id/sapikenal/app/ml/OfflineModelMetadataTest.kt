@@ -6,9 +6,9 @@ import org.junit.Test
 
 class OfflineModelMetadataTest {
     @Test
-    fun `offline model uses the six canonical breed classes`() {
+    fun `offline model uses the canonical breed classes`() {
         assertEquals(
-            listOf("aceh", "bali", "limusin", "madura", "pasundan", "po"),
+            listOf("aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po"),
             OfflineInferenceEngine.CANONICAL_LABELS,
         )
     }

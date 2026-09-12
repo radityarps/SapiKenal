@@ -12,6 +12,7 @@ MODEL_CONTRACT_CLASSES: tuple[str, ...] = (
     "bali",
     "limusin",
     "madura",
+    "non_sapi",
     "pasundan",
     "po",
 )

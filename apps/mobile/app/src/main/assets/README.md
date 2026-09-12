@@ -6,12 +6,12 @@ contract metadata is in `model_metadata.json`.
 | Field | Value |
 | --- | --- |
 | Version | `sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32` |
-| Architecture | MobileNetV3 six-class image classifier |
-| Class order | `aceh`, `bali`, `limusin`, `madura`, `pasundan`, `po` |
+| Architecture | MobileNetV3 seven-class image classifier |
+| Class order | `aceh`, `bali`, `limusin`, `madura`, `non_sapi`, `pasundan`, `po` |
 | Input | RGB `224 × 224`, Float32 values in `[0, 255]` |
-| Output | Six Float32 probabilities in the same class order |
-| Size | 12,382,316 bytes |
-| SHA-256 | `cc1b9a74af5ef44a7dead8848d6c41795aef9399c76e647f434277867eb113d9` |
+| Output | Seven Float32 probabilities in the same class order |
+| Size | 12,382,832 bytes |
+| SHA-256 | `e083d87486d9f23e8b9ad732aecb5beaa71043cc573f8ad1b7c0be27966fcc4f` |
 
 The model contains an internal rescaling operation
 `(input / 127.5) - 1.0`; therefore `ModelPreprocessor` must pass raw pixel

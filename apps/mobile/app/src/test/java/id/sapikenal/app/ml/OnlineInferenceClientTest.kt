@@ -39,8 +39,9 @@ class OnlineInferenceClientTest {
                                 "bali" to 0.05f,
                                 "limusin" to 0.05f,
                                 "madura" to 0.7f,
+                                "non_sapi" to 0.05f,
                                 "pasundan" to 0.05f,
-                                "po" to 0.1f,
+                                "po" to 0.05f,
                             ),
                     ),
                     onUpload = { uploaded = it },
@@ -52,7 +53,7 @@ class OnlineInferenceClientTest {
             assertEquals("Madura", result.displayLabel)
             assertEquals(0.7f, result.confidence, 0.001f)
             assertEquals(
-                listOf("aceh", "bali", "limusin", "madura", "pasundan", "po"),
+                listOf("aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po"),
                 result.allScores.keys.toList(),
             )
             assertEquals("sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32", result.modelVersion)
@@ -72,8 +73,9 @@ class OnlineInferenceClientTest {
                             mapOf(
                                 "aceh" to 0.31f,
                                 "bali" to 0.30f,
-                                "limusin" to 0.20f,
+                                "limusin" to 0.15f,
                                 "madura" to 0.10f,
+                                "non_sapi" to 0.05f,
                                 "pasundan" to 0.05f,
                                 "po" to 0.04f,
                             ),
@@ -87,7 +89,7 @@ class OnlineInferenceClientTest {
             assertEquals("sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32", result.modelVersion)
             assertEquals(0.31f, result.confidence, 0.001f)
             assertEquals(false, result.isReliable)
-            assertEquals(6, result.allScores.size)
+            assertEquals(7, result.allScores.size)
         }
 
     @Test
@@ -188,6 +190,7 @@ class OnlineInferenceClientTest {
             "bali" to 0f,
             "limusin" to 0f,
             "madura" to 0f,
+            "non_sapi" to 0f,
             "pasundan" to 0f,
             "po" to 0f,
         ).apply {

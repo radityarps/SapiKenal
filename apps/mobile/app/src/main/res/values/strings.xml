@@ -73,6 +73,7 @@
     <string name="result_breed_bali">Bali</string>
     <string name="result_breed_limusin">Limusin</string>
     <string name="result_breed_madura">Madura</string>
+    <string name="result_breed_non_sapi">Bukan Sapi</string>
     <string name="result_breed_pasundan">Pasundan</string>
     <string name="result_breed_po">PO</string>
     <string name="result_breed_brahman">Brahman</string>
@@ -89,6 +90,7 @@
     <string name="result_share_footer">Dibagikan dari aplikasi SapiKenal — Ini adalah hasil identifikasi jenis sapi dari klasifikasi citra; aplikasi tidak memvalidasi objek pada citra.</string>
     <string name="result_share_chooser">Bagikan via</string>
     <string name="result_advice_breed">Gunakan profil jenis ini sebagai informasi pendukung. Perhatikan kondisi ternak, pakan, dan lingkungan secara menyeluruh.</string>
+    <string name="result_advice_non_sapi">Objek pada citra teridentifikasi bukan sapi atau tidak sesuai dengan jenis sapi yang didukung. Pastikan citra memuat sapi secara jelas dan coba ambil foto kembali.</string>
     <string name="result_saved">Hasil disimpan</string>
     <string name="result_saved_note_title">Catatan Tersimpan</string>
     <string name="result_all_scores">Top 3 Skor Jenis Sapi</string>
@@ -149,6 +151,7 @@
     <string name="history_filter_aceh">Aceh</string>
     <string name="history_filter_bali">Bali</string>
     <string name="history_filter_madura">Madura</string>
+    <string name="history_filter_non_sapi">Bukan Sapi</string>
     <string name="history_filter_pasundan">Pasundan</string>
     <string name="history_filter_po">PO</string>
     <string name="history_filter_brahman">Brahman</string>

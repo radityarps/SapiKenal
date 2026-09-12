@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import cast
 from urllib.parse import urlparse
 
-CLASSES = ("bali", "brahman", "brangus", "limusin")
+CLASSES = ("aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po")
 
 
 def _request_json(

@@ -107,9 +107,10 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
     timestamp = round(time.time() * 1_000)
     bali_scores = {
         "aceh": 0.02,
-        "bali": 0.91,
+        "bali": 0.90,
         "limusin": 0.02,
         "madura": 0.02,
+        "non_sapi": 0.01,
         "pasundan": 0.02,
         "po": 0.01,
     }
@@ -117,7 +118,8 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
         "aceh": 0.03,
         "bali": 0.03,
         "limusin": 0.03,
-        "madura": 0.85,
+        "madura": 0.82,
+        "non_sapi": 0.03,
         "pasundan": 0.03,
         "po": 0.03,
     }
@@ -129,7 +131,7 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
                 timestamp=timestamp,
                 predicted_class="bali",
                 display_label="Bali",
-                confidence=0.91,
+                confidence=0.90,
                 scores=bali_scores,
                 inference_mode="online",
                 is_reliable=True,
@@ -147,10 +149,10 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
                 request_id="direct-request",
                 status="success",
                 predicted_class="madura",
-                confidence=0.85,
+                confidence=0.82,
                 scores=madura_scores,
                 processing_ms=90,
-                model_version="six-class-v2",
+                model_version="seven-class-v2",
             )
         )
         db.commit()
@@ -164,6 +166,7 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
         "bali": 1,
         "limusin": 0,
         "madura": 1,
+        "non_sapi": 0,
         "pasundan": 0,
         "po": 0,
     }
@@ -172,20 +175,21 @@ def test_dashboard_and_predictions_use_breed_status_and_scores(
         "bali",
         "limusin",
         "madura",
+        "non_sapi",
         "pasundan",
         "po",
     }
     assert "rejected_non_cattle" not in dashboard
     assert "low_confidence" not in dashboard
     assert "low_confidence_rate" not in dashboard
-    assert dashboard["average_confidence"] == pytest.approx(0.88)
+    assert dashboard["average_confidence"] == pytest.approx(0.86)
 
     successful = client.get(
         "/api/admin/predictions",
         params={"status": "success", "predicted_class": "madura"},
     ).json()
     assert successful["total"] == 1
-    assert successful["items"][0]["scores"]["madura"] == 0.85
+    assert successful["items"][0]["scores"]["madura"] == 0.82
     assert "outcome" not in successful["items"][0]
     assert "is_reliable" not in successful["items"][0]
 
@@ -202,9 +206,10 @@ def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
     timestamp = round(time.time() * 1_000)
     scores = {
         "aceh": 0.02,
-        "bali": 0.91,
+        "bali": 0.90,
         "limusin": 0.02,
         "madura": 0.02,
+        "non_sapi": 0.01,
         "pasundan": 0.02,
         "po": 0.01,
     }
@@ -216,12 +221,12 @@ def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
                 timestamp=timestamp,
                 predicted_class="bali",
                 display_label="Bali",
-                confidence=0.91,
+                confidence=0.90,
                 scores=scores,
                 inference_mode="online",
                 is_reliable=True,
                 processing_ms=90,
-                model_version="six-class-v2",
+                model_version="seven-class-v2",
             )
         )
         db.add(
@@ -229,10 +234,10 @@ def test_dashboard_deduplicates_online_event_mirrored_by_mobile_history(
                 request_id="mirrored-online-request",
                 status="success",
                 predicted_class="bali",
-                confidence=0.91,
+                confidence=0.90,
                 scores=scores,
                 processing_ms=90,
-                model_version="six-class-v2",
+                model_version="seven-class-v2",
                 created_at=datetime.fromtimestamp(timestamp / 1_000, timezone.utc),
             )
         )
@@ -261,12 +266,13 @@ def test_last_admin_guard_and_prediction_masking(
                 timestamp=1_725_000_000_000,
                 predicted_class="bali",
                 display_label="Bali",
-                confidence=0.91,
+                confidence=0.90,
                 scores={
                     "aceh": 0.02,
-                    "bali": 0.91,
+                    "bali": 0.90,
                     "limusin": 0.02,
                     "madura": 0.02,
+                    "non_sapi": 0.01,
                     "pasundan": 0.02,
                     "po": 0.01,
                 },
@@ -302,7 +308,7 @@ def test_model_registration_rejects_missing_allowlisted_artifact(
             "version": "candidate-1",
             "artifact_name": "candidate.keras",
             "checksum": "0" * 64,
-            "classes": ["aceh", "bali", "limusin", "madura", "pasundan", "po"],
+            "classes": ["aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po"],
         },
     )
     assert response.status_code == 422
@@ -367,7 +373,7 @@ def test_model_upload_registers_available_artifact_without_activation(
         data={
             "version": "candidate-upload-1",
             "input_size": "224",
-            "classes": "aceh,bali,limusin,madura,pasundan,po",
+            "classes": "aceh,bali,limusin,madura,non_sapi,pasundan,po",
             "notes": "Candidate upload test",
         },
         files={

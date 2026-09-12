@@ -26,8 +26,9 @@ def _item(**overrides):
             "bali": 0.05,
             "limusin": 0.05,
             "madura": 0.8,
-            "pasundan": 0.025,
-            "po": 0.025,
+            "non_sapi": 0.02,
+            "pasundan": 0.015,
+            "po": 0.015,
         },
         "inference_mode": "OFFLINE",
         "is_reliable": True,
@@ -83,7 +84,7 @@ def test_history_store_rejects_invalid_contract_before_write(tmp_path):
     try:
         store = module.HistoryStore()
         with pytest.raises(
-            ValueError, match="Scores must contain exactly 6 canonical model classes"
+            ValueError, match="Scores must contain exactly 7 canonical model classes"
         ):
             store.upsert(_item(scores={"madura": 1.0}))
     finally:

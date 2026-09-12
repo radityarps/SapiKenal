@@ -206,6 +206,7 @@ def _prediction_event_response(event: PredictionEvent) -> dict[str, Any]:
         "bali": "Bali",
         "limusin": "Limusin",
         "madura": "Madura",
+        "non_sapi": "Bukan Sapi",
         "pasundan": "Pasundan",
         "po": "PO",
     }
@@ -839,7 +840,9 @@ def reset_user_password(
 @router.get("/predictions")
 def list_predictions(
     search: str | None = Query(default=None, max_length=120),
-    predicted_class: Literal["aceh", "bali", "limusin", "madura", "pasundan", "po"]
+    predicted_class: Literal[
+        "aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po"
+    ]
     | None = None,
     status: Literal["success", "failed"] | None = None,
     min_confidence: float | None = Query(default=None, ge=0, le=1),

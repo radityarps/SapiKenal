@@ -31,6 +31,7 @@ class PdfReportContentTest {
                     "bali" to 0.02f,
                     "limusin" to 0.02f,
                     "madura" to 0.92f,
+                    "non_sapi" to 0.005f,
                     "pasundan" to 0.02f,
                     "po" to 0.01f,
                 ),
@@ -87,7 +88,7 @@ class PdfReportContentTest {
     }
 
     @Test
-    fun `report includes all six canonical class scores`() {
+    fun `report includes all seven canonical class scores`() {
         val content = buildContent()
         assertTrue(content.contains("Madura: 92%"))
         assertTrue(content.contains("Bali: 2%"))
@@ -95,6 +96,7 @@ class PdfReportContentTest {
         assertTrue(content.contains("Aceh: 1%"))
         assertTrue(content.contains("Pasundan: 2%"))
         assertTrue(content.contains("PO: 1%"))
+        assertTrue(content.contains("Non-Cattle: 0%"))
     }
 
     @Test(expected = IllegalStateException::class)
@@ -194,13 +196,14 @@ class PdfReportContentTest {
     @Test
     fun `build returns scores sorted by value descending`() {
         val report = ReportContentBuilder.build(createResult(), "1.0.0")
-        assertEquals(6, report.scoreLines.size)
+        assertEquals(7, report.scoreLines.size)
         assertTrue(report.scoreLines[0].startsWith("Madura"))
         assertTrue(report.scoreLines[1].startsWith("Bali"))
         assertTrue(report.scoreLines[2].startsWith("Limousin"))
         assertTrue(report.scoreLines[3].startsWith("Pasundan"))
         assertTrue(report.scoreLines[4].startsWith("Aceh"))
         assertTrue(report.scoreLines[5].startsWith("PO"))
+        assertTrue(report.scoreLines[6].startsWith("Non-Cattle"))
     }
 
     @Test

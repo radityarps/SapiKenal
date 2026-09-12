@@ -73,6 +73,7 @@
     <string name="result_breed_bali">Bali</string>
     <string name="result_breed_limusin">Limousin</string>
     <string name="result_breed_madura">Madura</string>
+    <string name="result_breed_non_sapi">Non-Cattle</string>
     <string name="result_breed_pasundan">Pasundan</string>
     <string name="result_breed_po">PO</string>
     <string name="result_breed_brahman">Brahman</string>
@@ -89,6 +90,7 @@
     <string name="result_share_footer">Shared from the SapiKenal app — This is a cattle breed identification result from image classification; the app does not validate the image object.</string>
     <string name="result_share_chooser">Share via</string>
     <string name="result_advice_breed">Use this breed profile as supporting information. Consider the cattle condition, feed, and environment as a whole.</string>
+    <string name="result_advice_non_sapi">The object in the image was identified as non-cattle or does not match any supported cattle breed. Please ensure the photo clearly shows a cow and try again.</string>
     <string name="result_saved">Result saved</string>
     <string name="result_saved_note_title">Saved Note</string>
     <string name="result_all_scores">Top 3 Breed Scores</string>
@@ -149,6 +151,7 @@
     <string name="history_filter_aceh">Aceh</string>
     <string name="history_filter_bali">Bali</string>
     <string name="history_filter_madura">Madura</string>
+    <string name="history_filter_non_sapi">Non-Cattle</string>
     <string name="history_filter_pasundan">Pasundan</string>
     <string name="history_filter_po">PO</string>
     <string name="history_filter_brahman">Brahman</string>

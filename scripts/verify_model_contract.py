@@ -20,7 +20,7 @@ BACKEND_CLASSES = ROOT / "apps/backend/model/class_names.json"
 MOBILE_MODEL = ROOT / "apps/mobile/app/src/main/assets/lokal_fp32.tflite"
 MOBILE_METADATA = ROOT / "apps/mobile/app/src/main/assets/model_metadata.json"
 
-CLASSES = ["aceh", "bali", "limusin", "madura", "pasundan", "po"]
+CLASSES = ["aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po"]
 MODEL_VERSION = "sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32"
 INPUT_SHAPE = [1, 224, 224, 3]
 OUTPUT_SHAPE = [1, len(CLASSES)]
@@ -553,7 +553,7 @@ def validate_source_defaults() -> None:
     checks = [
         (
             "apps/backend/config.py",
-            r'MODEL_CONTRACT_CLASSES\s*:[^=]+\s*=\s*\([\s\S]*?"aceh",\s*"bali",\s*"limusin",\s*"madura",\s*"pasundan",\s*"po",\s*\)',
+            r'MODEL_CONTRACT_CLASSES\s*:[^=]+\s*=\s*\([\s\S]*?"aceh",\s*"bali",\s*"limusin",\s*"madura",\s*"non_sapi",\s*"pasundan",\s*"po",\s*\)',
         ),
         (
             "apps/backend/config.py",

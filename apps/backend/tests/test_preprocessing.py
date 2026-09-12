@@ -16,12 +16,13 @@ def _success_response():
         "status": "success",
         "prediction": {
             "predicted_class": "bali",
-            "confidence": 0.9,
+            "confidence": 0.88,
             "scores": {
                 "aceh": 0.02,
-                "bali": 0.9,
+                "bali": 0.88,
                 "limusin": 0.02,
                 "madura": 0.02,
+                "non_sapi": 0.02,
                 "pasundan": 0.02,
                 "po": 0.02,
             },

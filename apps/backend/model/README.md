@@ -1,35 +1,35 @@
 # Model files
 
-The active SapiKenal model contract has six outputs in this exact order:
+The active SapiKenal model contract has seven outputs in this exact order:
 
 ```txt
 0 = aceh
 1 = bali
 2 = limusin
 3 = madura
-4 = pasundan
-5 = po
+4 = non_sapi
+5 = pasundan
+6 = po
 ```
 
 The canonical class order is defined by `class_names.json` and is shared by
 backend Keras inference and mobile TFLite inference. The model returns one of
-the six supported types for every image that can be decoded; it does not
-validate that the image contains a cow.
+the seven supported types (six cattle breeds or non_sapi) for every image that can be decoded.
 
 ## Production artifacts
 
 | Runtime | Artifact | SHA-256 | Size |
 | --- | --- | --- | ---: |
-| Backend | `apps/backend/model/best.keras` | `0d92bc9afec8ce8b57f3637720720fb6530664b8c38391ecf3b380df614b8f65` | 14,159,179 bytes |
-| Mobile | `apps/mobile/app/src/main/assets/lokal_fp32.tflite` | `cc1b9a74af5ef44a7dead8848d6c41795aef9399c76e647f434277867eb113d9` | 12,382,316 bytes |
+| Backend | `apps/backend/model/best.keras` | `231de918b6c4f821a76daea378eced59831666074edd71bf3c7dc8b9b8f5ba65` | 14,160,727 bytes |
+| Mobile | `apps/mobile/app/src/main/assets/lokal_fp32.tflite` | `e083d87486d9f23e8b9ad732aecb5beaa71043cc573f8ad1b7c0be27966fcc4f` | 12,382,832 bytes |
 
 Shared version: `sapikenal-jenis-sapi-mobilenetv3-contract-v2-fp32`. The
 checksums above identify the exact supplied artifacts.
 
 Both artifacts accept RGB `224 × 224` `float32` input in the raw `[0, 255]`
-range and return six `float32` probabilities in the canonical class order.
+range and return seven `float32` probabilities in the canonical class order.
 The Keras model contains `Rescaling(scale=1/127.5, offset=-1.0)` followed by a
-six-unit softmax output, so callers must not divide input values by 255.
+seven-unit softmax output, so callers must not divide input values by 255.
 Resize uses bilinear filtering. The Android client corrects EXIF orientation,
 resizes to 224 × 224, and encodes PNG losslessly; backend model preprocessing
 then converts RGB and adds the batch dimension without changing those pixels.

@@ -78,10 +78,10 @@ class AcceptanceTestSuite {
     // Local Scan History (Issue #5)
     // ══════════════════════════════════════════════════════════════════════
     @Test
-    fun `identification result retains all six breed scores`() {
+    fun `identification result retains all breed scores`() {
         val result = createResult()
-        assertEquals(6, result.allScores.size)
-        assertTrue(result.allScores.keys.containsAll(listOf("aceh", "bali", "limusin", "madura", "pasundan", "po")))
+        assertEquals(7, result.allScores.size)
+        assertTrue(result.allScores.keys.containsAll(listOf("aceh", "bali", "limusin", "madura", "non_sapi", "pasundan", "po")))
     }
 
     @Test
@@ -200,7 +200,8 @@ class AcceptanceTestSuite {
                 "aceh" to 0.01f,
                 "bali" to 0.02f,
                 "limusin" to 0.02f,
-                "madura" to 0.92f,
+                "madura" to 0.91f,
+                "non_sapi" to 0.01f,
                 "pasundan" to 0.02f,
                 "po" to 0.01f,
             ),

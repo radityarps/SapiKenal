@@ -37,6 +37,7 @@ class HistoryViewModelTest {
                 "bali" to 0.03f,
                 "limusin" to 0.03f,
                 "madura" to 0.85f,
+                "non_sapi" to 0.03f,
                 "pasundan" to 0.03f,
                 "po" to 0.03f,
             ),

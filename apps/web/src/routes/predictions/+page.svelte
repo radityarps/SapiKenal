@@ -38,6 +38,7 @@
     bali: 'Bali',
     limusin: 'Limusin',
     madura: 'Madura',
+    non_sapi: 'Bukan Sapi',
     pasundan: 'Pasundan',
     po: 'PO'
   };
@@ -48,6 +49,7 @@
     { value: 'bali', label: 'Bali' },
     { value: 'limusin', label: 'Limusin' },
     { value: 'madura', label: 'Madura' },
+    { value: 'non_sapi', label: 'Bukan Sapi' },
     { value: 'pasundan', label: 'Pasundan' },
     { value: 'po', label: 'PO' }
   ];

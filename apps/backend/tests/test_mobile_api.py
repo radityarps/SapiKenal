@@ -21,12 +21,13 @@ def test_predict_contract():
         "status": "success",
         "prediction": {
             "predicted_class": "bali",
-            "confidence": 0.9,
+            "confidence": 0.88,
             "scores": {
                 "aceh": 0.02,
-                "bali": 0.9,
+                "bali": 0.88,
                 "limusin": 0.02,
                 "madura": 0.02,
+                "non_sapi": 0.02,
                 "pasundan": 0.02,
                 "po": 0.02,
             },
@@ -60,12 +61,13 @@ def test_predict_keeps_low_confidence_as_success():
                 "aceh": 0.02,
                 "bali": 0.31,
                 "limusin": 0.30,
-                "madura": 0.20,
+                "madura": 0.15,
+                "non_sapi": 0.05,
                 "pasundan": 0.10,
                 "po": 0.07,
             },
         },
-        "model_info": {"version": "six-class-test"},
+        "model_info": {"version": "seven-class-test"},
         "processing_time_ms": 10,
         "preprocessing_time_ms": 4,
         "inference_time_ms": 6,
@@ -117,9 +119,10 @@ def test_history_sync_roundtrip(tmp_path, monkeypatch):
     client = TestClient(app)
     scores = {
         "aceh": 0.02,
-        "bali": 0.8,
+        "bali": 0.77,
         "limusin": 0.08,
         "madura": 0.04,
+        "non_sapi": 0.03,
         "pasundan": 0.03,
         "po": 0.03,
     }
@@ -129,7 +132,7 @@ def test_history_sync_roundtrip(tmp_path, monkeypatch):
         "timestamp": 1710000000000,
         "predicted_class": "bali",
         "display_label": "Bali",
-        "confidence": 0.8,
+        "confidence": 0.77,
         "scores": scores,
         "inference_mode": "ONLINE",
         "is_reliable": True,
@@ -181,12 +184,13 @@ def test_predict_does_not_persist_upload(tmp_path):
         "status": "success",
         "prediction": {
             "predicted_class": "bali",
-            "confidence": 0.9,
+            "confidence": 0.88,
             "scores": {
                 "aceh": 0.02,
-                "bali": 0.9,
+                "bali": 0.88,
                 "limusin": 0.02,
                 "madura": 0.02,
+                "non_sapi": 0.02,
                 "pasundan": 0.02,
                 "po": 0.02,
             },
@@ -212,7 +216,7 @@ def test_predict_does_not_persist_upload(tmp_path):
 def test_labels_follow_class_names_file(tmp_path, monkeypatch):
     class_names = tmp_path / "class_names.json"
     class_names.write_text(
-        '{"0":"Aceh","1":"Bali","2":"Limusin","3":"Madura","4":"Pasundan","5":"PO"}'
+        '{"0":"Aceh","1":"Bali","2":"Limusin","3":"Madura","4":"Non Sapi","5":"Pasundan","6":"PO"}'
     )
     monkeypatch.setenv("MODEL_CLASS_NAMES_PATH", str(class_names))
 
@@ -226,6 +230,7 @@ def test_labels_follow_class_names_file(tmp_path, monkeypatch):
         "bali",
         "limusin",
         "madura",
+        "non_sapi",
         "pasundan",
         "po",
     ]

@@ -763,6 +763,7 @@ def list_articles(
     | None = None,
     publication_status: Literal["draft", "active", "inactive"] | None = None,
     revision_status: Literal["draft", "active", "inactive"] | None = None,
+    search: str | None = Query(default=None, max_length=120),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=25, ge=1, le=_PAGE_SIZE_MAX),
     db: Session = Depends(get_db),
@@ -786,6 +787,15 @@ def list_articles(
         filters.append(latest.category == category)
     if revision_status:
         filters.append(latest.status == revision_status)
+    if search:
+        term = f"%{search.strip().casefold()}%"
+        filters.append(
+            or_(
+                func.lower(GuideArticle.article_key).like(term),
+                func.lower(latest.title).like(term),
+                func.lower(latest.summary).like(term),
+            )
+        )
     query = (
         select(GuideArticle, latest, active)
         .join(latest_number, latest_number.c.article_id == GuideArticle.id)

@@ -97,6 +97,7 @@ describe("Artikel Panduan page server", () => {
 						],
 					},
 					filters: {
+						search: "",
 						category: "",
 						publication_status: "",
 						revision_status: "",
@@ -109,6 +110,80 @@ describe("Artikel Panduan page server", () => {
 
 		expect(body).toContain("Revisi terbaru: v2 · Draft");
 		expect(body).toContain("Publik saat ini: v1");
+	});
+
+	it("forwards search query parameter to backend", async () => {
+		vi.mocked(backendJson).mockResolvedValueOnce({
+			page: 1,
+			page_size: 25,
+			total: 0,
+			items: [],
+		});
+
+		await load!({
+			locals: { user: { id: "admin" }, sessionToken: "test-only" },
+			url: new URL("http://localhost/articles?search=bali"),
+			fetch: vi.fn(),
+		} as never);
+
+		expect(backendJson).toHaveBeenCalledWith(
+			"/api/admin/articles?page=1&page_size=25&search=bali",
+			expect.objectContaining({ headers: {} }),
+			expect.any(Function),
+		);
+	});
+
+	it("renders search input, action button, and table action buttons", () => {
+		const { body } = render(Page, {
+			props: {
+				data: {
+					user: {
+						id: "admin",
+						email: "admin@example.com",
+						display_name: "Administrator",
+						role: "admin",
+						status: "active",
+						must_change_password: false,
+					},
+					articles: {
+						page: 1,
+						page_size: 25,
+						total: 1,
+						items: [
+							{
+								id: "article-1",
+								article_key: "bali_1",
+								publication_status: "active",
+								revision: {
+									revision: 1,
+									status: "active",
+									category: "bali",
+									title: "Panduan Sapi Bali",
+									summary: "Ringkasan panduan",
+									body: "Konten lengkap panduan",
+									sources: ["https://example.com/bali"],
+									content_reviewed: true,
+								},
+								active_revision: { revision: 1 },
+							},
+						],
+					},
+					filters: {
+						search: "",
+						category: "",
+						publication_status: "",
+						revision_status: "",
+					},
+					error: null,
+				},
+				form: null,
+			},
+		});
+
+		expect(body).toContain("Cari artikel");
+		expect(body).toContain("Tambah Artikel");
+		expect(body).toContain("Lihat detail");
+		expect(body).toContain("Panduan Sapi Bali");
 	});
 
 	it("creates a draft article with normalized source URLs", async () => {

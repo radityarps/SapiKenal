@@ -25,6 +25,7 @@ const revisionFields = (form: FormData) => ({
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	if (!locals.user) throw redirect(303, "/login");
 	const filters = {
+		search: url.searchParams.get("search") || "",
 		category: url.searchParams.get("category") || "",
 		publication_status: url.searchParams.get("publication_status") || "",
 		revision_status: url.searchParams.get("revision_status") || "",

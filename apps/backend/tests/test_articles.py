@@ -242,3 +242,40 @@ def test_article_boundary_validation_and_stable_identity(
         client.get("/api/admin/articles", params={"category": "unknown"}).status_code
         == 422
     )
+
+
+def test_article_listing_search_filter(
+    article_client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, _ = article_client
+    client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="aceh_1",
+            category="aceh",
+            title="Sapi Aceh Asli",
+            summary="Ciri fisik sapi aceh",
+        ),
+    )
+    client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="madura_1",
+            category="madura",
+            title="Sapi Madura Unggul",
+            summary="Ciri khas warna merah bata",
+        ),
+    )
+
+    search_result = client.get(
+        "/api/admin/articles", params={"search": "merah bata"}
+    ).json()
+    assert search_result["total"] == 1
+    assert search_result["items"][0]["article_key"] == "madura_1"
+
+    key_search = client.get(
+        "/api/admin/articles", params={"search": "aceh_1"}
+    ).json()
+    assert key_search["total"] == 1
+    assert key_search["items"][0]["article_key"] == "aceh_1"
+

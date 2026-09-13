@@ -3,10 +3,14 @@ package id.sapikenal.app.ui.result
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -193,6 +197,10 @@ fun ResultRoute(
     val isExportReady = selectResultForExport(fromHistory, selectedDetection, initialResult) != null
     val exportLoadingMessage = stringResource(R.string.result_export_loading)
     val savedMessage = stringResource(R.string.result_saved)
+    val observedBreedProfile by androidx.compose.runtime.remember(displayLabelKey) {
+        viewModel.breedProfile(displayLabelKey)
+    }.collectAsStateWithLifecycle(initialValue = null)
+    var isProfileExpanded by rememberSaveable { mutableStateOf(false) }
 
     fun buildExportResult(): DetectionResult? =
         selectResultForExport(
@@ -485,46 +493,202 @@ fun ResultRoute(
 
             Spacer(Modifier.height(20.dp))
 
-            Card(
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = SapiKenalColors.SecondaryContainer.copy(alpha = 0.5f),
-                    ),
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+            if (displayLabelKey.trim().lowercase(Locale.ROOT) == "non_sapi") {
+                Card(
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = SapiKenalColors.SecondaryContainer.copy(alpha = 0.5f),
+                        ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = stringResource(R.string.result_advice_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.result_advice_non_sapi),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SapiKenalColors.TextPrimary,
+                            lineHeight = 20.sp,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                TextButton(
+                    onClick = { onNavigateToGuide("app_1") },
+                ) {
                     Text(
-                        text = stringResource(R.string.result_advice_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        text = stringResource(R.string.result_learn_more),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = config.color,
                     )
-                    Spacer(Modifier.height(12.dp))
-                    stringResource(config.adviceResId).split("\n").forEach { line ->
-                        Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                            Text(
-                                "•  ",
-                                color = config.color,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Text(line, style = MaterialTheme.typography.bodyLarge)
+                }
+            } else if (observedBreedProfile != null) {
+                val profile = observedBreedProfile
+                Card(
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = SapiKenalColors.SecondaryContainer.copy(alpha = 0.45f),
+                        ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.weight(1f, fill = false),
+                            ) {
+                                Text(config.icon, fontSize = 20.sp)
+                                Text(
+                                    text = profile?.title ?: displayName,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SapiKenalColors.TextPrimary,
+                                )
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = config.color.copy(alpha = 0.15f),
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.result_advice_title),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = config.color,
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.height(10.dp))
+
+                        Text(
+                            text = profile?.summary.orEmpty(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SapiKenalColors.TextPrimary,
+                            lineHeight = 20.sp,
+                        )
+
+                        profile?.body?.takeIf { it.isNotBlank() }?.let { bodyText ->
+                            AnimatedVisibility(
+                                visible = isProfileExpanded,
+                                enter = expandVertically(),
+                                exit = shrinkVertically(),
+                            ) {
+                                Column(modifier = Modifier.padding(top = 12.dp)) {
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                        modifier = Modifier.padding(bottom = 12.dp),
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.result_breed_characteristics),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = SapiKenalColors.TextPrimary,
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        text = bodyText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = SapiKenalColors.TextSecondary,
+                                        lineHeight = 20.sp,
+                                    )
+                                }
+                            }
+
+                            Spacer(Modifier.height(8.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                TextButton(
+                                    onClick = { isProfileExpanded = !isProfileExpanded },
+                                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp),
+                                ) {
+                                    Text(
+                                        text = stringResource(
+                                            if (isProfileExpanded) R.string.result_collapse_details else R.string.result_expand_details,
+                                        ),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = config.color,
+                                    )
+                                }
+
+                                TextButton(
+                                    onClick = {
+                                        val guideArticleId = profile?.id ?: BreedContract.find(displayLabelKey.lowercase(Locale.ROOT))?.guideArticleId
+                                        guideArticleId?.let(onNavigateToGuide)
+                                    },
+                                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp),
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.result_view_full_guide),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = config.color,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-            }
+            } else {
+                Card(
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = SapiKenalColors.SecondaryContainer.copy(alpha = 0.5f),
+                        ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = stringResource(R.string.result_advice_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        stringResource(config.adviceResId).split("\n").forEach { line ->
+                            Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                                Text(
+                                    "•  ",
+                                    color = config.color,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Text(line, style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    }
+                }
 
-            // "Learn More" cross-link to Guide
-            TextButton(
-                onClick = {
-                    // Use canonical label and fall back to substring matching for robustness
-                    val canonicalLabel = (displayedResult?.label ?: label).lowercase()
-                    val guideArticleId = BreedContract.find(canonicalLabel)?.guideArticleId
-                    guideArticleId?.let(onNavigateToGuide)
-                },
-            ) {
-                Text(
-                    text = stringResource(R.string.result_learn_more),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = config.color,
-                )
+                Spacer(Modifier.height(8.dp))
+
+                TextButton(
+                    onClick = {
+                        val canonicalLabel = (displayedResult?.label ?: label).lowercase(Locale.ROOT)
+                        val guideArticleId = BreedContract.find(canonicalLabel)?.guideArticleId
+                        guideArticleId?.let(onNavigateToGuide)
+                    },
+                ) {
+                    Text(
+                        text = stringResource(R.string.result_learn_more),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = config.color,
+                    )
+                }
             }
         }
 

@@ -4,9 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.sapikenal.app.data.repository.DetectionRepository
+import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.report.PdfReportGenerator
+import id.sapikenal.app.ui.guide.GuideArticle
+import id.sapikenal.app.ui.guide.GuideRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +19,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -24,6 +29,7 @@ class ResultViewModel
     constructor(
         private val repository: DetectionRepository,
         private val pdfReportGenerator: PdfReportGenerator,
+        private val guideRepository: GuideRepository,
     ) : ViewModel() {
         private val _noteSaved = MutableStateFlow(false)
         val noteSaved: StateFlow<Boolean> = _noteSaved.asStateFlow()
@@ -44,6 +50,15 @@ class ResultViewModel
 
         fun setDetectionId(detectionId: Long?) {
             selectedDetectionId.value = detectionId?.takeIf { it > 0L }
+        }
+
+        fun breedProfile(label: String): Flow<GuideArticle?> {
+            val canonical = label.trim().lowercase(Locale.ROOT)
+            if (canonical.isBlank() || canonical == "non_sapi" || canonical == "unknown") {
+                return flowOf(null)
+            }
+            val articleKey = BreedContract.find(canonical)?.guideArticleId ?: "${canonical}_1"
+            return guideRepository.article(articleKey)
         }
 
         fun saveNote(

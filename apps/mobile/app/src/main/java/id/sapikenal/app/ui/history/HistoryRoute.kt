@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -74,22 +75,20 @@ import java.util.Locale
 
 // ── Breed display helpers ────────────────────────────────────────────────
 
-private val breedMap =
+private val breedColors =
     mapOf(
-        "aceh" to ("🟤" to SapiKenalColors.Aceh),
-        "bali" to ("🟤" to SapiKenalColors.Bali),
-        "limusin" to ("🟠" to SapiKenalColors.Limusin),
-        "madura" to ("🟤" to SapiKenalColors.Madura),
-        "non_sapi" to ("⚪" to SapiKenalColors.TextSecondary),
-        "pasundan" to ("🟤" to SapiKenalColors.Pasundan),
-        "po" to ("⚪" to SapiKenalColors.Po),
-        "brahman" to ("⚪" to SapiKenalColors.Brahman),
-        "brangus" to ("⚫" to SapiKenalColors.Brangus),
+        "aceh" to SapiKenalColors.Aceh,
+        "bali" to SapiKenalColors.Bali,
+        "limusin" to SapiKenalColors.Limusin,
+        "madura" to SapiKenalColors.Madura,
+        "non_sapi" to SapiKenalColors.TextSecondary,
+        "pasundan" to SapiKenalColors.Pasundan,
+        "po" to SapiKenalColors.Po,
+        "brahman" to SapiKenalColors.Brahman,
+        "brangus" to SapiKenalColors.Brangus,
     )
 
-private fun breedEmoji(label: String): String = breedMap[label.trim().lowercase(Locale.ROOT)]?.first ?: "📸"
-
-private fun breedColor(label: String): Color = breedMap[label.trim().lowercase(Locale.ROOT)]?.second ?: SapiKenalColors.TextSecondary
+private fun breedColor(label: String): Color = breedColors[label.trim().lowercase(Locale.ROOT)] ?: SapiKenalColors.TextSecondary
 
 @StringRes
 private fun breedDisplayNameRes(label: String): Int? = BreedContract.find(label)?.displayNameResId
@@ -387,7 +386,6 @@ private fun HistoryCard(
     onTap: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val emoji = breedEmoji(item.label)
     val color = breedColor(item.label)
     val displayNameRes = breedDisplayNameRes(item.label)
     val displayName = displayNameRes?.let { stringResource(it) } ?: item.displayLabel
@@ -451,7 +449,12 @@ private fun HistoryCard(
                         )
                     } else {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(emoji, fontSize = 24.sp)
+                            Icon(
+                                imageVector = Icons.Outlined.PhotoCamera,
+                                contentDescription = null,
+                                tint = SapiKenalColors.TextSecondary,
+                                modifier = Modifier.size(24.dp),
+                            )
                         }
                     }
                 }

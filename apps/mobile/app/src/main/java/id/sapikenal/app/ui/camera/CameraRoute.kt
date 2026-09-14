@@ -186,6 +186,20 @@ fun CameraRoute(
             onConsentDeny = { viewModel.onConsentDecision(false, showResult) },
         )
     }
+
+    if (state.showNonCattleWarning) {
+        NonCattleWarning(
+            isFromCamera = state.pendingImageIsFromCamera,
+            onRetake = {
+                viewModel.dismissNonCattleWarning()
+            },
+            onChooseAnother = {
+                viewModel.dismissNonCattleWarning()
+                galleryLauncher.launch("image/*")
+            },
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
 }
 
 // ════════════════════════════════════════════════════════════════════════════════

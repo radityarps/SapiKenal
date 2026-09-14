@@ -17,12 +17,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -76,6 +79,7 @@ import id.sapikenal.app.domain.model.BreedContract
 import id.sapikenal.app.domain.model.ConsentStatus
 import id.sapikenal.app.domain.model.DetectionResult
 import id.sapikenal.app.domain.model.InferenceMode
+import id.sapikenal.app.ui.guide.GuideDataSource
 import id.sapikenal.app.ui.theme.SapiKenalColors
 import id.sapikenal.app.ui.theme.SapiKenalTheme
 import org.json.JSONObject
@@ -91,34 +95,32 @@ import java.util.Locale
 private data class ClassDisplayConfig(
     val labelKey: String,
     @param:StringRes val displayNameResId: Int,
-    val icon: String,
     val color: Color,
     @param:StringRes val adviceResId: Int,
 )
 
 private val classConfigs =
     mapOf(
-        "aceh" to ClassDisplayConfig("aceh", R.string.result_breed_aceh, "🟤", SapiKenalColors.Aceh, R.string.result_advice_breed),
-        "bali" to ClassDisplayConfig("bali", R.string.result_breed_bali, "🟤", SapiKenalColors.Bali, R.string.result_advice_breed),
+        "aceh" to ClassDisplayConfig("aceh", R.string.result_breed_aceh, SapiKenalColors.Aceh, R.string.result_advice_breed),
+        "bali" to ClassDisplayConfig("bali", R.string.result_breed_bali, SapiKenalColors.Bali, R.string.result_advice_breed),
         "limusin" to
-            ClassDisplayConfig("limusin", R.string.result_breed_limusin, "🟠", SapiKenalColors.Limusin, R.string.result_advice_breed),
-        "madura" to ClassDisplayConfig("madura", R.string.result_breed_madura, "🟤", SapiKenalColors.Madura, R.string.result_advice_breed),
+            ClassDisplayConfig("limusin", R.string.result_breed_limusin, SapiKenalColors.Limusin, R.string.result_advice_breed),
+        "madura" to ClassDisplayConfig("madura", R.string.result_breed_madura, SapiKenalColors.Madura, R.string.result_advice_breed),
         "non_sapi" to
-            ClassDisplayConfig("non_sapi", R.string.result_breed_non_sapi, "⚪", SapiKenalColors.TextSecondary, R.string.result_advice_non_sapi),
+            ClassDisplayConfig("non_sapi", R.string.result_breed_non_sapi, SapiKenalColors.TextSecondary, R.string.result_advice_non_sapi),
         "pasundan" to
-            ClassDisplayConfig("pasundan", R.string.result_breed_pasundan, "🟤", SapiKenalColors.Pasundan, R.string.result_advice_breed),
-        "po" to ClassDisplayConfig("po", R.string.result_breed_po, "⚪", SapiKenalColors.Po, R.string.result_advice_breed),
+            ClassDisplayConfig("pasundan", R.string.result_breed_pasundan, SapiKenalColors.Pasundan, R.string.result_advice_breed),
+        "po" to ClassDisplayConfig("po", R.string.result_breed_po, SapiKenalColors.Po, R.string.result_advice_breed),
         "brahman" to
-            ClassDisplayConfig("brahman", R.string.result_breed_brahman, "⚪", SapiKenalColors.Brahman, R.string.result_advice_breed),
+            ClassDisplayConfig("brahman", R.string.result_breed_brahman, SapiKenalColors.Brahman, R.string.result_advice_breed),
         "brangus" to
-            ClassDisplayConfig("brangus", R.string.result_breed_brangus, "⚫", SapiKenalColors.Brangus, R.string.result_advice_breed),
+            ClassDisplayConfig("brangus", R.string.result_breed_brangus, SapiKenalColors.Brangus, R.string.result_advice_breed),
     )
 
 private val defaultClassConfig =
     ClassDisplayConfig(
         "unknown",
         R.string.result_unknown,
-        "●",
         SapiKenalColors.TextSecondary,
         R.string.result_advice_breed,
     )
@@ -135,6 +137,21 @@ internal fun modeColor(mode: String): Color =
         InferenceMode.OFFLINE, InferenceMode.OFFLINE_FALLBACK -> SapiKenalColors.Secondary
         InferenceMode.UNKNOWN -> SapiKenalColors.TextSecondary
     }
+
+internal fun confidenceColor(
+    score: Float,
+    isHighestScore: Boolean = true,
+    isNonCattle: Boolean = false,
+): Color {
+    if (isNonCattle) return SapiKenalColors.TextSecondary
+    val pct = score.coerceIn(0f, 1f)
+    return when {
+        pct >= 0.60f -> SapiKenalColors.Pasundan
+        pct >= 0.40f -> SapiKenalColors.Warning
+        isHighestScore -> SapiKenalColors.Error
+        else -> SapiKenalColors.TextSecondary
+    }
+}
 
 // ════════════════════════════════════════════════════════════════════════
 // Main screen
@@ -165,7 +182,10 @@ fun ResultRoute(
     val displayedResult = selectedDetection ?: initialResult
     val isHistoryRecordLoading = fromHistory && detectionId != null && selectedDetection == null
     val displayLabelKey = displayedResult?.label ?: label
-    val confidencePercent = ((displayedResult?.confidence ?: confidence).coerceIn(0f, 1f) * 100).toInt()
+    val currentConfidence = displayedResult?.confidence ?: confidence
+    val confidencePercent = (currentConfidence.coerceIn(0f, 1f) * 100).toInt()
+    val isNonCattle = displayLabelKey.trim().lowercase(Locale.ROOT) == "non_sapi"
+    val resultColor = confidenceColor(score = currentConfidence, isHighestScore = true, isNonCattle = isNonCattle)
     val config = classConfigs[displayLabelKey.trim().lowercase(Locale.ROOT)] ?: defaultClassConfig
     val scannedAt =
         Date(
@@ -197,9 +217,20 @@ fun ResultRoute(
     val isExportReady = selectResultForExport(fromHistory, selectedDetection, initialResult) != null
     val exportLoadingMessage = stringResource(R.string.result_export_loading)
     val savedMessage = stringResource(R.string.result_saved)
-    val observedBreedProfile by androidx.compose.runtime.remember(displayLabelKey) {
+    val bundledBreedProfile =
+        remember(displayLabelKey) {
+            val canonical = displayLabelKey.trim().lowercase(Locale.ROOT)
+            if (canonical.isBlank() || canonical == "non_sapi" || canonical == "unknown") {
+                null
+            } else {
+                val articleKey = BreedContract.find(canonical)?.guideArticleId ?: "${canonical}_1"
+                GuideDataSource.articles(context).find { it.id == articleKey }
+            }
+        }
+    val observedBreedProfile by remember(displayLabelKey) {
         viewModel.breedProfile(displayLabelKey)
-    }.collectAsStateWithLifecycle(initialValue = null)
+    }.collectAsStateWithLifecycle(initialValue = bundledBreedProfile)
+    val activeBreedProfile = observedBreedProfile ?: bundledBreedProfile
     var isProfileExpanded by rememberSaveable { mutableStateOf(false) }
 
     fun buildExportResult(): DetectionResult? =
@@ -358,32 +389,41 @@ fun ResultRoute(
                     )
                 } else {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(config.icon, fontSize = 48.sp)
+                        Icon(
+                            imageVector = Icons.Outlined.PhotoCamera,
+                            contentDescription = null,
+                            tint = SapiKenalColors.TextSecondary,
+                            modifier = Modifier.size(48.dp),
+                        )
                     }
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = modeBadgeColor.copy(alpha = 0.15f),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = modeLabel,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = modeBadgeColor,
+                    text = scannedAtText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = SapiKenalColors.TextSecondary,
                 )
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = modeBadgeColor.copy(alpha = 0.15f),
+                ) {
+                    Text(
+                        text = modeLabel,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = modeBadgeColor,
+                    )
+                }
             }
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = stringResource(R.string.result_scanned_at, scannedAtText),
-                style = MaterialTheme.typography.bodyMedium,
-                color = SapiKenalColors.TextSecondary,
-            )
 
             // Accessibility: full summary description for screen readers
             val accessibilitySummary =
@@ -440,7 +480,7 @@ fun ResultRoute(
                 text = displayName,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = config.color,
+                color = resultColor,
                 modifier =
                     Modifier.semantics {
                         heading()
@@ -458,7 +498,7 @@ fun ResultRoute(
             Spacer(Modifier.height(12.dp))
 
             // ── 3. Confidence bar ─────────────────────────────────────
-            ConfidenceBar(confidence = confidence, color = config.color)
+            ConfidenceBar(confidence = currentConfidence, color = resultColor)
 
             Spacer(Modifier.height(24.dp))
 
@@ -479,11 +519,17 @@ fun ResultRoute(
             sortedScores.forEach { (key, score) ->
                 val isHighlighted = isLabelMatch(key, config.labelKey)
                 val displayName = scoreDisplayNameRes(key)?.let { stringResource(it) } ?: key.replaceFirstChar { it.uppercase() }
+                val scoreColor =
+                    confidenceColor(
+                        score = score,
+                        isHighestScore = isHighlighted,
+                        isNonCattle = key.trim().lowercase(Locale.ROOT) == "non_sapi",
+                    )
                 ScoreRow(
                     label = displayName,
                     score = score,
                     isHighlighted = isHighlighted,
-                    color = config.color,
+                    color = scoreColor,
                     accessibilityDescription =
                         "$displayName, ${stringResource(R.string.result_confidence)} ${(score.coerceIn(0f, 1f) * 100).toInt()}%" +
                             if (isHighlighted) ", ${stringResource(R.string.result_identification)}" else "",
@@ -524,11 +570,11 @@ fun ResultRoute(
                     Text(
                         text = stringResource(R.string.result_learn_more),
                         style = MaterialTheme.typography.labelLarge,
-                        color = config.color,
+                        color = SapiKenalColors.Primary,
                     )
                 }
-            } else if (observedBreedProfile != null) {
-                val profile = observedBreedProfile
+            } else if (activeBreedProfile != null) {
+                val profile = activeBreedProfile
                 Card(
                     colors =
                         CardDefaults.cardColors(
@@ -537,7 +583,15 @@ fun ResultRoute(
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(
+                        modifier =
+                            Modifier.padding(
+                                start = 16.dp,
+                                top = 16.dp,
+                                end = 16.dp,
+                                bottom = if (profile.body.isNotBlank()) 4.dp else 16.dp,
+                            ),
+                    ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -545,12 +599,10 @@ fun ResultRoute(
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.weight(1f, fill = false),
                             ) {
-                                Text(config.icon, fontSize = 20.sp)
                                 Text(
-                                    text = profile?.title ?: displayName,
+                                    text = profile.title.ifBlank { displayName },
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = SapiKenalColors.TextPrimary,
@@ -558,14 +610,14 @@ fun ResultRoute(
                             }
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
-                                color = config.color.copy(alpha = 0.15f),
+                                color = SapiKenalColors.Primary.copy(alpha = 0.12f),
                             ) {
                                 Text(
                                     text = stringResource(R.string.result_advice_title),
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = config.color,
+                                    color = SapiKenalColors.Primary,
                                 )
                             }
                         }
@@ -573,13 +625,13 @@ fun ResultRoute(
                         Spacer(Modifier.height(10.dp))
 
                         Text(
-                            text = profile?.summary.orEmpty(),
+                            text = profile.summary,
                             style = MaterialTheme.typography.bodyMedium,
                             color = SapiKenalColors.TextPrimary,
                             lineHeight = 20.sp,
                         )
 
-                        profile?.body?.takeIf { it.isNotBlank() }?.let { bodyText ->
+                        if (profile.body.isNotBlank()) {
                             AnimatedVisibility(
                                 visible = isProfileExpanded,
                                 enter = expandVertically(),
@@ -598,49 +650,30 @@ fun ResultRoute(
                                     )
                                     Spacer(Modifier.height(6.dp))
                                     Text(
-                                        text = bodyText,
+                                        text = profile.body,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = SapiKenalColors.TextSecondary,
                                         lineHeight = 20.sp,
                                     )
                                 }
                             }
+                        }
 
-                            Spacer(Modifier.height(8.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
+                        if (profile.body.isNotBlank()) {
+                            Spacer(Modifier.height(4.dp))
+                            TextButton(
+                                onClick = { isProfileExpanded = !isProfileExpanded },
+                                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 2.dp),
                             ) {
-                                TextButton(
-                                    onClick = { isProfileExpanded = !isProfileExpanded },
-                                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp),
-                                ) {
-                                    Text(
-                                        text = stringResource(
+                                Text(
+                                    text =
+                                        stringResource(
                                             if (isProfileExpanded) R.string.result_collapse_details else R.string.result_expand_details,
                                         ),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = config.color,
-                                    )
-                                }
-
-                                TextButton(
-                                    onClick = {
-                                        val guideArticleId = profile?.id ?: BreedContract.find(displayLabelKey.lowercase(Locale.ROOT))?.guideArticleId
-                                        guideArticleId?.let(onNavigateToGuide)
-                                    },
-                                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp),
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.result_view_full_guide),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = config.color,
-                                    )
-                                }
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = SapiKenalColors.Primary,
+                                )
                             }
                         }
                     }
@@ -665,7 +698,7 @@ fun ResultRoute(
                             Row(modifier = Modifier.padding(vertical = 4.dp)) {
                                 Text(
                                     "•  ",
-                                    color = config.color,
+                                    color = SapiKenalColors.Primary,
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                                 Text(line, style = MaterialTheme.typography.bodyLarge)
@@ -679,14 +712,14 @@ fun ResultRoute(
                 TextButton(
                     onClick = {
                         val canonicalLabel = (displayedResult?.label ?: label).lowercase(Locale.ROOT)
-                        val guideArticleId = BreedContract.find(canonicalLabel)?.guideArticleId
-                        guideArticleId?.let(onNavigateToGuide)
+                        val guideArticleId = BreedContract.find(canonicalLabel)?.guideArticleId ?: "app_1"
+                        onNavigateToGuide(guideArticleId)
                     },
                 ) {
                     Text(
                         text = stringResource(R.string.result_learn_more),
                         style = MaterialTheme.typography.labelLarge,
-                        color = config.color,
+                        color = SapiKenalColors.Primary,
                     )
                 }
             }
@@ -875,16 +908,6 @@ private fun isLabelMatch(
     key: String,
     targetKey: String,
 ): Boolean = key.equals(targetKey, ignoreCase = true)
-
-@Composable
-private fun remember(
-    key: Any,
-    block: () -> Map<String, Float>,
-): Map<String, Float> {
-    // Simple cache helper to avoid recomputing scores on every recomposition.
-    // We inline this so we don't add an extra dependency.
-    return androidx.compose.runtime.remember(key) { block() }
-}
 
 // ════════════════════════════════════════════════════════════════════════
 // Preview

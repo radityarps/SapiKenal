@@ -32,6 +32,7 @@ data class CameraUiState(
     val flashMode: FlashMode = FlashMode.AUTO,
     val showGrid: Boolean = false,
     val showConsentPanel: Boolean = false,
+    val showNonCattleWarning: Boolean = false,
     val pendingImageUri: Uri? = null,
     val pendingImageIsFromCamera: Boolean = true,
 )
@@ -142,13 +143,25 @@ class CameraViewModel
                                 "SapiKenal",
                                 "ViewModel: classify() success — label=${result.label}, confidence=${result.confidence}, mode=${result.inferenceMode}",
                             )
-                            _uiState.value =
-                                _uiState.value.copy(
-                                    isLoading = false,
-                                    progressText = null,
-                                    pendingImageUri = null,
-                                )
-                            onResult(result)
+                            if (result.label.trim().lowercase(java.util.Locale.ROOT) == "non_sapi") {
+                                _uiState.value =
+                                    _uiState.value.copy(
+                                        isLoading = false,
+                                        progressText = null,
+                                        pendingImageUri = imageUri,
+                                        pendingImageIsFromCamera = isFromCamera,
+                                        showNonCattleWarning = true,
+                                    )
+                            } else {
+                                _uiState.value =
+                                    _uiState.value.copy(
+                                        isLoading = false,
+                                        progressText = null,
+                                        pendingImageUri = null,
+                                        showNonCattleWarning = false,
+                                    )
+                                onResult(result)
+                            }
                         }
                     }
                 }.onFailure { throwable ->
@@ -208,5 +221,9 @@ class CameraViewModel
 
         fun onCaptureError(message: String) {
             _uiState.value = _uiState.value.copy(error = message)
+        }
+
+        fun dismissNonCattleWarning() {
+            _uiState.value = _uiState.value.copy(showNonCattleWarning = false, pendingImageUri = null)
         }
     }

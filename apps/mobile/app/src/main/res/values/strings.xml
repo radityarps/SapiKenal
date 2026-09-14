@@ -341,4 +341,8 @@
     <string name="quality_error_load">Gagal memuat gambar</string>
     <string name="quality_error_check">Pengecekan kualitas gagal</string>
 
+    <!-- Non-Cattle Rejection Modal -->
+    <string name="camera_non_cattle_title">Objek Bukan Sapi</string>
+    <string name="camera_non_cattle_desc">Sistem mendeteksi bahwa citra yang diambil bukan sapi atau tidak dikenali sebagai rumpun sapi lokal. Silakan arahkan kamera ke sapi dengan posisi dan pencahayaan yang jelas.</string>
+
 </resources>

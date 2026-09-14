@@ -55,6 +55,10 @@ class ClassifyImageUseCase
                     is ClassifyResponse.ConsentRequired -> return response
                 }
 
+            if (targetResult.label.trim().lowercase(java.util.Locale.ROOT) == "non_sapi") {
+                return ClassifyResponse.Success(targetResult)
+            }
+
             val resultWithMetadata =
                 targetResult.copy(
                     appVersion = BuildConfig.VERSION_NAME,

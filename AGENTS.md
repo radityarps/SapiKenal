@@ -31,6 +31,11 @@ Jangan menambahkan kembali proposal, laporan Tugas Akhir, pedoman kampus, eviden
 - Jangan membingkai SapiKenal sebagai sistem diagnosis atau deteksi penyakit.
 - Jika domain atau implementasi berubah, perbarui dokumentasi terkait dan `CONTEXT.md` secara konsisten.
 
+## UI & Icon Guidelines
+
+- Di aplikasi mobile (`apps/mobile`), **tetap gunakan Material Icons** (`androidx.compose.material.icons`). **Jangan pernah gunakan icon emoji Android** (seperti emoji teks bulatan warna `🟤`, `⚪`, dll. sebagai representasi ikon visual UI).
+- Di aplikasi web (`apps/web`), gunakan paket `lucide-svelte`.
+
 ## Root Commands
 
 Jalankan dari root repository:

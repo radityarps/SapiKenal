@@ -52,6 +52,9 @@ object SapiKenalColors {
     // ── Utility ─────────────────────────────────────────────────────────
     val Outline = Color(0xFF737970)
     val OutlineVariant = Color(0xFFC2C8BF)
+    val Warning = Color(0xFFB45309) // Amber-700: high-contrast warning for 40%-59% confidence
+    val WarningContainer = Color(0xFFFEF3C7)
+    val OnWarningContainer = Color(0xFF78350F)
     val Error = Color(0xFFBA1A1A)
     val OnError = Color(0xFFFFFFFF)
     val ErrorContainer = Color(0xFFFFDAD6)
@@ -112,7 +115,7 @@ object TropisBersihColors {
     val TextSecondary = SapiKenalColors.TextSecondary
     val Success = SapiKenalColors.Primary
     val Danger = SapiKenalColors.Error
-    val Warning = SapiKenalColors.Secondary
+    val Warning = SapiKenalColors.Warning
     val Outline = SapiKenalColors.Outline
     val OutlineVariant = SapiKenalColors.OutlineVariant
     val Error = SapiKenalColors.Error

@@ -20,13 +20,44 @@
  */
 
 import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+
+function resolveAdb() {
+  const check = spawnSync("adb", ["version"], { encoding: "utf8" });
+  if (!check.error && check.status === 0) {
+    return "adb";
+  }
+
+  const adbExe = process.platform === "win32" ? "adb.exe" : "adb";
+  const candidates = [
+    process.env.ANDROID_HOME && resolve(process.env.ANDROID_HOME, "platform-tools", adbExe),
+    process.env.ANDROID_SDK_ROOT && resolve(process.env.ANDROID_SDK_ROOT, "platform-tools", adbExe),
+    process.env.LOCALAPPDATA && resolve(process.env.LOCALAPPDATA, "Android/Sdk/platform-tools", adbExe),
+    "C:\\Users\\Raditya\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe",
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return "adb";
+}
+
+const adbBin = resolveAdb();
 
 function adb(args) {
-  return spawnSync("adb", args, { encoding: "utf8" });
+  return spawnSync(adbBin, args, { encoding: "utf8" });
 }
 
 function listOnlineDevices() {
   const res = adb(["devices"]);
+  if (res.error) {
+    process.stderr.write(`Failed to run adb (${adbBin}): ${res.error.message}\n`);
+    process.exit(1);
+  }
   if (res.status !== 0) {
     process.stderr.write(res.stderr || "Failed to run `adb devices`\n");
     process.exit(res.status ?? 1);
@@ -102,7 +133,7 @@ const target = selectTarget();
 const passthrough = process.argv.slice(2);
 process.stderr.write(`[run-adb] target device: ${target}\n`);
 
-const result = spawnSync("adb", ["-s", target, ...passthrough], {
+const result = spawnSync(adbBin, ["-s", target, ...passthrough], {
   stdio: "inherit",
 });
 process.exit(result.status ?? 1);

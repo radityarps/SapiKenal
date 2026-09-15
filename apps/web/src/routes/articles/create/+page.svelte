@@ -3,10 +3,12 @@
 	import { ArrowLeft, BookOpen, Sparkles, AlertCircle } from "lucide-svelte";
 	import AdminShell from "$lib/components/AdminShell.svelte";
 	import BlockEditor from "$lib/components/BlockEditor.svelte";
+	import { calculateNextSortOrder } from "$lib/sortOrder";
 
 	export let data: {
 		user: App.Locals["user"];
 		existingBreedKeys: string[];
+		categorySortOrders: Record<string, number[]>;
 	};
 	export let form: {
 		error?: string;
@@ -36,12 +38,14 @@
 	];
 
 	const breeds = [
-		{ key: "pasundan", label: "Sapi Pasundan", defaultOrder: 190 },
-		{ key: "bali", label: "Sapi Bali", defaultOrder: 40 },
-		{ key: "po", label: "Sapi PO (Peranakan Ongole)", defaultOrder: 220 },
-		{ key: "madura", label: "Sapi Madura", defaultOrder: 160 },
-		{ key: "limusin", label: "Sapi Limusin", defaultOrder: 130 },
-		{ key: "aceh", label: "Sapi Aceh", defaultOrder: 70 },
+		{ key: "pasundan", label: "Sapi Pasundan" },
+		{ key: "bali", label: "Sapi Bali" },
+		{ key: "po", label: "Sapi PO (Peranakan Ongole)" },
+		{ key: "madura", label: "Sapi Madura" },
+		{ key: "limusin", label: "Sapi Limusin" },
+		{ key: "aceh", label: "Sapi Aceh" },
+		{ key: "brahman", label: "Sapi Brahman" },
+		{ key: "brangus", label: "Sapi Brangus" },
 	];
 
 	let isBreedProfile = form?.values?.is_breed_profile ?? false;
@@ -49,8 +53,14 @@
 	let titleInput = form?.values?.title ?? "";
 	let summaryInput = form?.values?.summary ?? "";
 	let categoryInput = form?.values?.category ?? "app_usage";
-	let sortOrderInput = form?.values?.sort_order ?? 0;
+	let sortOrderInput =
+		form?.values?.sort_order ??
+		calculateNextSortOrder(categoryInput, data.categorySortOrders?.[categoryInput] ?? []);
 	let blockEditorRef: any;
+
+	function updateSortOrderForCategory(cat: string) {
+		sortOrderInput = calculateNextSortOrder(cat, data.categorySortOrders?.[cat] ?? []);
+	}
 
 	function handleTypeChange(type: "standard" | "breed_profile") {
 		isBreedProfile = type === "breed_profile";
@@ -59,9 +69,13 @@
 			const firstAvailable = breeds.find((b) => !data.existingBreedKeys.includes(b.key));
 			if (firstAvailable && !selectedBreedKey) {
 				onSelectBreed(firstAvailable.key);
+			} else if (selectedBreedKey) {
+				onSelectBreed(selectedBreedKey);
 			}
 		} else {
 			selectedBreedKey = "";
+			categoryInput = "app_usage";
+			updateSortOrderForCategory("app_usage");
 		}
 	}
 
@@ -72,7 +86,7 @@
 		if (breed) {
 			titleInput = `Profil ${breed.label}`;
 			summaryInput = `Kelebihan, kekurangan, dan karakteristik visual ${breed.label} untuk informasi pendukung hasil identifikasi.`;
-			sortOrderInput = breed.defaultOrder;
+			updateSortOrderForCategory(key);
 			blockEditorRef?.loadBreedProfileTemplate();
 		}
 	}
@@ -177,7 +191,12 @@
 				{#if !isBreedProfile}
 					<label>
 						<span class="font-semibold text-slate-900">Kategori</span>
-						<select name="category" bind:value={categoryInput} required>
+						<select
+							name="category"
+							bind:value={categoryInput}
+							on:change={() => updateSortOrderForCategory(categoryInput)}
+							required
+						>
 							{#each categories as category}
 								<option value={category.value}>
 									{category.label}
@@ -197,15 +216,28 @@
 
 				<label>
 					<span class="font-semibold text-slate-900">Urutan Tampilan</span>
-					<input
-						name="sort_order"
-						type="number"
-						min="0"
-						max="100000"
-						required
-						bind:value={sortOrderInput}
-					/>
-					<small class="text-[.75rem] font-normal text-slate-600">Nomor urut tampilan artikel (angka lebih kecil muncul lebih awal).</small>
+					<div class="flex items-center gap-2">
+						<input
+							name="sort_order"
+							type="number"
+							min="0"
+							max="100000"
+							required
+							bind:value={sortOrderInput}
+							class="flex-1"
+						/>
+						<button
+							type="button"
+							class="button secondary !min-h-10 !py-2 !px-3 text-xs font-semibold shrink-0 text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900"
+							title="Hitung ulang urutan otomatis berdasarkan kategori saat ini"
+							on:click={() => updateSortOrderForCategory(categoryInput)}
+						>
+							Otomatis
+						</button>
+					</div>
+					<small class="text-[.75rem] font-normal text-slate-600">
+						Urutan otomatis terisi kelipatan 100 per rumpun (atau 10 untuk panduan umum). Anda tetap dapat mengubah angka ini manual.
+					</small>
 				</label>
 
 				<label class="sm:col-span-2">

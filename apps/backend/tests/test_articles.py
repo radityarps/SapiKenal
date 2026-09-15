@@ -349,4 +349,99 @@ def test_create_and_activate_article_with_optional_empty_sources(
     assert activated.json()["item"]["publication_status"] == "active"
 
 
+def test_article_auto_sort_order_by_category(
+    article_client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, _ = article_client
+
+    # First PO article with sort_order = 0 should get base 300
+    po_res1 = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="po-article-1",
+            category="po",
+            title="PO 1",
+            sort_order=0,
+        ),
+    )
+    assert po_res1.status_code == 201
+    assert po_res1.json()["item"]["revision"]["sort_order"] == 300
+
+    # Second PO article with sort_order = 0 should get 301
+    po_res2 = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="po-article-2",
+            category="po",
+            title="PO 2",
+            sort_order=0,
+        ),
+    )
+    assert po_res2.status_code == 201
+    assert po_res2.json()["item"]["revision"]["sort_order"] == 301
+
+    # Bali article with sort_order = 0 should get base 200
+    bali_res1 = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="bali-article-1",
+            category="bali",
+            title="Bali 1",
+            sort_order=0,
+        ),
+    )
+    assert bali_res1.status_code == 201
+    assert bali_res1.json()["item"]["revision"]["sort_order"] == 200
+
+    # Bali article with explicit sort_order = 250
+    bali_res2 = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="bali-article-2",
+            category="bali",
+            title="Bali 2",
+            sort_order=250,
+        ),
+    )
+    assert bali_res2.status_code == 201
+    assert bali_res2.json()["item"]["revision"]["sort_order"] == 250
+
+    # Next Bali article with sort_order = 0 should get 251
+    bali_res3 = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="bali-article-3",
+            category="bali",
+            title="Bali 3",
+            sort_order=0,
+        ),
+    )
+    assert bali_res3.status_code == 201
+    assert bali_res3.json()["item"]["revision"]["sort_order"] == 251
+
+    # App usage with sort_order = 0 should get base 10
+    app_res = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="app-article-1",
+            category="app_usage",
+            title="App Usage 1",
+            sort_order=0,
+        ),
+    )
+    assert app_res.status_code == 201
+    assert app_res.json()["item"]["revision"]["sort_order"] == 10
+
+    # Verify category_sort_orders in admin listing
+    listing = client.get("/api/admin/articles").json()
+    assert "category_sort_orders" in listing
+    assert 300 in listing["category_sort_orders"]["po"]
+    assert 301 in listing["category_sort_orders"]["po"]
+    assert 200 in listing["category_sort_orders"]["bali"]
+    assert 250 in listing["category_sort_orders"]["bali"]
+    assert 251 in listing["category_sort_orders"]["bali"]
+    assert 10 in listing["category_sort_orders"]["app_usage"]
+
+
+
 

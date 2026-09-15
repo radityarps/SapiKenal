@@ -35,7 +35,7 @@
   {
     "article_key": "bali_1",
     "category": "bali",
-    "sort_order": 40,
+    "sort_order": 200,
     "title": "Profil Sapi Bali",
     "summary": "Kelebihan, kekurangan, dan ciri umum Sapi Bali untuk informasi pendukung.",
     "body": "Ringkasan Profil\n\nSapi Bali umumnya dikenali melalui tubuh yang relatif kompak, warna cokelat kemerahan, bagian pantat putih, dan warna putih pada kaki bawah.\n\nKelebihan\n\n• Ciri warna khas dapat membantu perbandingan visual pada citra yang jelas\n• Bentuk tubuh kompak memberi konteks tambahan saat meninjau hasil model\n\nKekurangan\n\n• Warna dapat berubah menurut jenis kelamin, umur, pencahayaan, dan individu\n• Ciri visual dapat tertutup sudut pengambilan, kotoran, atau persilangan\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.",
@@ -46,7 +46,7 @@
   {
     "article_key": "bali_2",
     "category": "bali",
-    "sort_order": 50,
+    "sort_order": 210,
     "title": "Warna Bulu dan Bentuk Sapi Bali",
     "summary": "Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.",
     "body": "Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.",
@@ -57,7 +57,7 @@
   {
     "article_key": "bali_3",
     "category": "bali",
-    "sort_order": 60,
+    "sort_order": 220,
     "title": "Membandingkan Sapi Bali pada Citra",
     "summary": "Daftar periksa praktis untuk perbandingan berbasis citra yang konsisten.",
     "body": "Membandingkan Hasil\n\nGunakan framing dan pencahayaan yang serupa ketika membandingkan citra. Tinjau skor jenis ini bersama tiga skor kelas lainnya dan catat konteks pengambilan citra.\n\nSkor adalah keluaran relatif model. Aplikasi tidak memvalidasi objek, silsilah, atau identitas individual.",
@@ -68,7 +68,7 @@
   {
     "article_key": "bali_4",
     "category": "bali",
-    "sort_order": 70,
+    "sort_order": 230,
     "title": "Batasan Profil Sapi Bali",
     "summary": "Cara memakai kelebihan dan kekurangan tanpa menjadikannya rekomendasi mutlak.",
     "body": "Batasan Profil\n\nInformasi ini bersifat umum dan tidak mewakili setiap individu. Profil tidak menilai kondisi, kualitas, kebutuhan pemeliharaan, atau keputusan pembelian dan pembiakan.\n\nHasil model adalah klasifikasi citra dan bukan bukti silsilah atau registrasi. Gunakan catatan ternak dan tenaga profesional yang berkualifikasi untuk keputusan penting.",
@@ -79,7 +79,7 @@
   {
     "article_key": "brahman_1",
     "category": "brahman",
-    "sort_order": 80,
+    "sort_order": 700,
     "title": "Profil Sapi Brahman",
     "summary": "Kelebihan, kekurangan, dan ciri umum Sapi Brahman untuk informasi pendukung.",
     "body": "Ringkasan Profil\n\nSapi Brahman umumnya memiliki punuk di bahu, telinga panjang, dan kulit longgar; warna bulunya dapat bervariasi.\n\nKelebihan\n\n• Punuk, telinga, dan lipatan kulit memberi beberapa petunjuk visual yang berbeda\n• Siluet kepala dan bahu dapat membantu perbandingan pada citra tubuh utuh\n\nKekurangan\n\n• Variasi warna membuat warna bulu saja tidak cukup untuk identifikasi\n• Sudut depan atau citra terpotong dapat menyembunyikan punuk dan proporsi tubuh\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.",
@@ -90,7 +90,7 @@
   {
     "article_key": "brahman_2",
     "category": "brahman",
-    "sort_order": 90,
+    "sort_order": 710,
     "title": "Warna Bulu dan Bentuk Sapi Brahman",
     "summary": "Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.",
     "body": "Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.",
@@ -101,7 +101,7 @@
   {
     "article_key": "brahman_3",
     "category": "brahman",
-    "sort_order": 100,
+    "sort_order": 720,
     "title": "Membandingkan Sapi Brahman pada Citra",
     "summary": "Daftar periksa praktis untuk perbandingan berbasis citra yang konsisten.",
     "body": "Membandingkan Hasil\n\nGunakan framing dan pencahayaan yang serupa ketika membandingkan citra. Tinjau skor jenis ini bersama tiga skor kelas lainnya dan catat konteks pengambilan citra.\n\nSkor adalah keluaran relatif model. Aplikasi tidak memvalidasi objek, silsilah, atau identitas individual.",
@@ -112,7 +112,7 @@
   {
     "article_key": "brahman_4",
     "category": "brahman",
-    "sort_order": 110,
+    "sort_order": 730,
     "title": "Batasan Profil Sapi Brahman",
     "summary": "Cara memakai kelebihan dan kekurangan tanpa menjadikannya rekomendasi mutlak.",
     "body": "Batasan Profil\n\nInformasi ini bersifat umum dan tidak mewakili setiap individu. Profil tidak menilai kondisi, kualitas, kebutuhan pemeliharaan, atau keputusan pembelian dan pembiakan.\n\nHasil model adalah klasifikasi citra dan bukan bukti silsilah atau registrasi. Gunakan catatan ternak dan tenaga profesional yang berkualifikasi untuk keputusan penting.",
@@ -123,7 +123,7 @@
   {
     "article_key": "brangus_1",
     "category": "brangus",
-    "sort_order": 120,
+    "sort_order": 800,
     "title": "Profil Sapi Brangus",
     "summary": "Kelebihan, kekurangan, dan ciri umum Sapi Brangus untuk informasi pendukung.",
     "body": "Ringkasan Profil\n\nSapi Brangus merupakan jenis komposit Brahman dan Angus; umumnya bertubuh padat, berwarna hitam atau merah, dan tidak bertanduk.\n\nKelebihan\n\n• Kombinasi bentuk tubuh padat dan kepala tanpa tanduk memberi konteks visual tersendiri\n• Warna bulu yang relatif seragam dapat membantu perbandingan bila pencahayaan memadai\n\nKekurangan\n\n• Ciri komposit dapat tumpang tindih dengan Angus, Brahman, atau hasil persilangan lain\n• Warna gelap dapat menghilangkan detail tubuh pada bayangan atau citra kurang terang\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.",
@@ -134,7 +134,7 @@
   {
     "article_key": "brangus_2",
     "category": "brangus",
-    "sort_order": 130,
+    "sort_order": 810,
     "title": "Warna Bulu dan Bentuk Sapi Brangus",
     "summary": "Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.",
     "body": "Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.",
@@ -145,7 +145,7 @@
   {
     "article_key": "brangus_3",
     "category": "brangus",
-    "sort_order": 140,
+    "sort_order": 820,
     "title": "Membandingkan Profil Sapi Brangus",
     "summary": "Cara membaca ciri visual dan empat skor secara konsisten.",
     "body": "Membandingkan Hasil\n\nGunakan framing dan pencahayaan yang serupa ketika membandingkan citra. Tinjau skor jenis ini bersama tiga skor kelas lainnya dan catat konteks pengambilan citra.\n\nSkor adalah keluaran relatif model. Aplikasi tidak memvalidasi objek, silsilah, atau identitas individual.",
@@ -156,7 +156,7 @@
   {
     "article_key": "limusin_1",
     "category": "limusin",
-    "sort_order": 150,
+    "sort_order": 500,
     "title": "Profil Sapi Limusin",
     "summary": "Kelebihan, kekurangan, dan ciri umum Sapi Limusin untuk informasi pendukung.",
     "body": "Ringkasan Profil\n\nSapi Limusin umumnya memiliki tubuh berotot dengan warna merah keemasan hingga merah kecokelatan dan bagian sekitar mata atau moncong yang lebih terang.\n\nKelebihan\n\n• Otot tubuh dan proporsi bagian belakang memberi konteks visual yang khas\n• Perbedaan warna pada wajah dapat membantu perbandingan pada citra yang tajam\n\nKekurangan\n\n• Warna dan keberadaan tanduk dapat berbeda menurut garis keturunan dan individu\n• Pose atau sudut pengambilan dapat membuat bentuk otot tampak berbeda\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.",
@@ -167,7 +167,7 @@
   {
     "article_key": "limusin_2",
     "category": "limusin",
-    "sort_order": 160,
+    "sort_order": 510,
     "title": "Warna Bulu dan Bentuk Sapi Limusin",
     "summary": "Warna bulu, proporsi, dan struktur yang dapat ditinjau saat identifikasi.",
     "body": "Meninjau Citra\n\nGunakan citra sebagai konteks visual, bukan bukti jenis. Tampilkan tubuh secara utuh dari samping atau sudut tiga perempat dengan pencahayaan merata dan detail yang cukup.\n\nJangan menyimpulkan silsilah, kualitas individu, atau rekomendasi pemeliharaan dari satu ciri. Bandingkan hasil model dengan catatan ternak bila tersedia.",
@@ -178,7 +178,7 @@
   {
     "article_key": "aceh_1",
     "category": "aceh",
-    "sort_order": 10,
+    "sort_order": 600,
     "title": "Profil Sapi Aceh",
     "summary": "Kelebihan, kekurangan, dan ciri umum Sapi Aceh untuk informasi pendukung.",
     "body": "Ringkasan Profil\n\nSapi Aceh adalah rumpun sapi lokal asli Indonesia yang berasal dari provinsi Aceh. Sapi ini bertubuh relatif ramping dan padat, bertanduk kecil melengkung ke atas, serta memiliki daya adaptasi tinggi terhadap iklim tropis dan pakan hijauan berserat kasar.\n\nKelebihan\n\n• Daya tahan tubuh tinggi terhadap cekaman panas dan parasit tropis\n• Kemampuan reproduksi dan fertilitas yang baik pada kondisi pakan terbatas\n• Bentuk tubuh kompak memberikan siluet khas pada citra\n\nKekurangan\n\n• Ukuran tubuh relatif lebih kecil dibanding sapi potong impor\n• Variasi warna bulu merah bata hingga cokelat gelap dapat dipengaruhi usia dan jenis kelamin\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.",
@@ -189,7 +189,7 @@
   {
     "article_key": "aceh_2",
     "category": "aceh",
-    "sort_order": 20,
+    "sort_order": 610,
     "title": "Karakteristik Visual Sapi Aceh",
     "summary": "Warna bulu, proporsi tubuh, dan struktur visual Sapi Aceh pada citra.",
     "body": "Meninjau Citra\n\nSapi Aceh jantan umumnya berwarna merah kecokelatan hingga cokelat tua kehitaman di sekitar leher dan pundak, sedangkan betina cenderung berwarna merah bata lebih terang. Jantan memiliki punuk kecil di atas pundak dan gelambir leher tipis.\n\nTips Pengambilan Citra\n\nTampilkan sapi dari samping dengan pencahayaan cukup. Hindari pengambilan gambar saat tubuh tertutup lumpur tebal agar warna bulu dan garis punggung dapat terlihat dengan jelas.",
@@ -200,7 +200,7 @@
   {
     "article_key": "madura_1",
     "category": "madura",
-    "sort_order": 10,
+    "sort_order": 400,
     "title": "Profil Sapi Madura",
     "summary": "Kelebihan, kekurangan, dan ciri umum Sapi Madura untuk informasi pendukung.",
     "body": "Ringkasan Profil\n\nSapi Madura merupakan rumpun sapi lokal hasil persilangan antara banteng (Bos sondaicus) dengan sapi Zebu (Bos indicus). Sapi ini bertubuh kompak, berkaki kokoh, dan berwarna merah bata atau kuning kecokelatan yang khas.\n\nKelebihan\n\n• Tubuh padat dan kompak dengan konformasi otot yang baik\n• Daya tahan prima terhadap pakan berkualitas rendah dan cuaca panas\n• Warna bulu khas merah bata seragam memudahkan perbandingan visual pada citra\n\nKekurangan\n\n• Pertumbuhan bobot badan sedang dibandingkan sapi tipe eksotis\n• Kemiripan warna dengan sapi Bali pada beberapa sudut pencahayaan memerlukan pencermatan ciri kepala dan kaki\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.",
@@ -211,7 +211,7 @@
   {
     "article_key": "madura_2",
     "category": "madura",
-    "sort_order": 20,
+    "sort_order": 410,
     "title": "Karakteristik Visual Sapi Madura",
     "summary": "Bentuk tanduk, moncong, dan struktur tubuh Sapi Madura saat identifikasi.",
     "body": "Meninjau Citra\n\nSapi Madura memiliki tanduk kecil melengkung ke atas atau ke samping. Bagian moncong dan kelopak mata berwarna hitam, serta lingkar mata berwarna kemerahan. Bagian paha belakang tidak memiliki cermin pantat putih selebar sapi Bali, melainkan warna yang menyatu dengan tubuh.\n\nTips Pengambilan Citra\n\nAmbil citra dari sudut samping atau tiga perempat untuk menampilkan proporsi kepala, leher, dan punggung lurus tanpa punuk besar.",
@@ -222,7 +222,7 @@
   {
     "article_key": "pasundan_1",
     "category": "pasundan",
-    "sort_order": 10,
+    "sort_order": 100,
     "title": "Profil Sapi Pasundan",
     "summary": "Kelebihan, kekurangan, dan ciri umum Sapi Pasundan untuk informasi pendukung.",
     "body": "Ringkasan Profil\n\nSapi Pasundan adalah rumpun sapi lokal asli Jawa Barat yang telah beradaptasi berabad-abad di wilayah agroklimat tropis basah. Memiliki warna merah bata dengan ciri khas garis belut (garis hitam gelap) di sepanjang tulang punggung.\n\nKelebihan\n\n• Toleransi tinggi terhadap kelembapan tinggi dan iklim tropis basah\n• Mampu memanfaatkan hijauan hutan dan limbah pertanian secara efisien\n• Garis belut pada punggung memberi penanda visual yang khas pada citra\n\nKekurangan\n\n• Keragaman fenotip lokal cukup bervariasi di berbagai daerah penangkarannya\n• Garis belut dan warna kaki bisa kurang kontras jika citra diambil dari jarak jauh\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.",
@@ -233,7 +233,7 @@
   {
     "article_key": "pasundan_2",
     "category": "pasundan",
-    "sort_order": 20,
+    "sort_order": 110,
     "title": "Karakteristik Visual Sapi Pasundan",
     "summary": "Pengamatan garis punggung, warna bulu, dan postur Sapi Pasundan pada citra.",
     "body": "Meninjau Citra\n\nCiri diagnostik visual sapi Pasundan yang menonjol adalah garis belut hitam yang memanjang dari belakang gumba hingga pangkal ekor. Warna kaki bagian bawah memiliki gradasi keputihan namun tidak sejelas kaos kaki putih sapi Bali.\n\nTips Pengambilan Citra\n\nPosisikan kamera sejajar punggung sapi dengan sudut sedikit tinggi agar garis belut dan profil tubuh samping dapat tertangkap lensa dengan baik.",
@@ -244,7 +244,7 @@
   {
     "article_key": "po_1",
     "category": "po",
-    "sort_order": 10,
+    "sort_order": 300,
     "title": "Profil Sapi Peranakan Ongole (PO)",
     "summary": "Kelebihan, kekurangan, dan ciri umum Sapi PO untuk informasi pendukung.",
     "body": "Ringkasan Profil\n\nSapi Peranakan Ongole (PO) merupakan sapi keturunan persilangan antara sapi Ongole (Bos indicus) dari India dengan sapi lokal Jawa. Dicirikan oleh warna bulu putih keabuan, punuk menonjol di atas gumba, dan gelambir lebar di bawah leher.\n\nKelebihan\n\n• Punuk besar dan gelambir leher longgar menjadi penanda visual yang sangat jelas pada citra\n• Kerangka tubuh besar dan tinggi serta daya adaptasi tropis yang unggul\n• Toleransi panas yang tinggi dan tahan terhadap gigitan caplak\n\nKekurangan\n\n• Tingkat pertumbuhan bobot harian memerlukan manajemen pakan seimbang\n• Warna putih dapat tampak abu-abu atau kotor pada kondisi kandang basah\n\nCiri ini bersifat umum, bukan bukti silsilah atau rekomendasi mutlak.",
@@ -255,7 +255,7 @@
   {
     "article_key": "po_2",
     "category": "po",
-    "sort_order": 20,
+    "sort_order": 310,
     "title": "Karakteristik Visual Sapi PO",
     "summary": "Bentuk punuk, gelambir berlipat, dan siluet tubuh Sapi PO pada citra.",
     "body": "Meninjau Citra\n\nSapi PO jantan memiliki punuk yang besar dan tegak di atas bahu, sedangkan betina memiliki punuk lebih kecil. Gelambir (dewlap) membentang longgar dari rahang bawah hingga dada depan. Moncong, kuku, dan ujung ekor berwarna hitam pekat.\n\nTips Pengambilan Citra\n\nPastikan kepala, punuk bahu, dan gelambir tidak terpotong dari bingkai kamera untuk memaksimalkan akurasi pengenalan ciri jenis.",

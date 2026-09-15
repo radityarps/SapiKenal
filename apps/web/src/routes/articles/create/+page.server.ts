@@ -24,17 +24,23 @@ function slugify(text: string): string {
 export const load: PageServerLoad = async ({ locals, fetch }) => {
 	if (!locals.user) throw redirect(303, "/login");
 	let existingBreedKeys: string[] = [];
+	let categorySortOrders: Record<string, number[]> = {};
 	try {
-		const res = await backendJson<{ existing_breed_keys?: string[] }>(
+		const res = await backendJson<{
+			existing_breed_keys?: string[];
+			category_sort_orders?: Record<string, number[]>;
+		}>(
 			api(),
 			{ headers: bearerHeaders(locals.sessionToken) },
 			fetch,
 		);
 		existingBreedKeys = res?.existing_breed_keys || [];
+		categorySortOrders = res?.category_sort_orders || {};
 	} catch {
 		existingBreedKeys = [];
+		categorySortOrders = {};
 	}
-	return { user: locals.user, existingBreedKeys };
+	return { user: locals.user, existingBreedKeys, categorySortOrders };
 };
 
 export const actions: Actions = {

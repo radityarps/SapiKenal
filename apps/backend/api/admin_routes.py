@@ -74,6 +74,18 @@ _ALLOWED_ARTICLE_CATEGORIES = {
     "po",
 }
 
+CATEGORY_BASE_SORT_ORDER: dict[str, int] = {
+    "app_usage": 10,
+    "pasundan": 100,
+    "bali": 200,
+    "po": 300,
+    "madura": 400,
+    "limusin": 500,
+    "aceh": 600,
+    "brahman": 700,
+    "brangus": 800,
+}
+
 
 def _request_id(request: Request) -> str:
     return getattr(request.state, "request_id", "unknown")
@@ -848,6 +860,16 @@ def list_articles(
         ).all()
         if k
     ]
+    category_sort_orders: dict[str, list[int]] = {}
+    sort_order_rows = db.execute(
+        select(latest.category, latest.sort_order)
+        .join(latest_number, latest_number.c.article_id == latest.article_id)
+        .where(latest.revision == latest_number.c.revision)
+    ).all()
+    for cat, s_order in sort_order_rows:
+        if cat:
+            category_sort_orders.setdefault(cat, []).append(s_order)
+
     # SQLAlchemy statement is built only from typed, allowlisted filters above.
     # pi-lens-ignore: python-sql-injection
     rows = db.execute(
@@ -865,6 +887,7 @@ def list_articles(
         "page_size": page_size,
         "total": total,
         "existing_breed_keys": existing_breed_keys,
+        "category_sort_orders": category_sort_orders,
         "items": items,
     }
 
@@ -912,6 +935,19 @@ def create_article(
     if payload.content_blocks and not body.strip():
         body = blocks_to_markdown(payload.content_blocks)
 
+    sort_order = payload.sort_order
+    if sort_order == 0:
+        base = CATEGORY_BASE_SORT_ORDER.get(target_category, 10)
+        max_order = db.scalar(
+            select(func.max(GuideArticleRevision.sort_order)).where(
+                GuideArticleRevision.category == target_category
+            )
+        )
+        if max_order is not None and max_order >= base:
+            sort_order = max_order + 1
+        else:
+            sort_order = base
+
     article = GuideArticle(
         article_key=target_key,
         is_breed_profile=payload.is_breed_profile,
@@ -926,7 +962,7 @@ def create_article(
         article_id=article.id,
         revision=1,
         category=target_category,
-        sort_order=payload.sort_order,
+        sort_order=sort_order,
         title=payload.title,
         summary=payload.summary,
         body=body,

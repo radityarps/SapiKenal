@@ -11,6 +11,7 @@ vi.mock("$lib/server/backend", () => ({
 vi.mock("$lib/server/admin", () => ({ adminLogout: vi.fn() }));
 
 import { backendJson } from "$lib/server/backend";
+import { calculateNextSortOrder } from "$lib/sortOrder";
 import Page from "./+page.svelte";
 import { actions, load } from "./+page.server";
 
@@ -275,6 +276,51 @@ describe("Artikel Panduan create page server", () => {
 		await expect(
 			createLoad!({ locals: { user: null } } as never),
 		).rejects.toMatchObject({ status: 303, location: "/login" });
+	});
+
+	it("returns existingBreedKeys and categorySortOrders on load", async () => {
+		vi.mocked(backendJson).mockResolvedValueOnce({
+			existing_breed_keys: ["bali", "pasundan"],
+			category_sort_orders: {
+				po: [300, 310],
+				bali: [200],
+			},
+		});
+
+		const result = await createLoad!({
+			locals: { user: { id: "admin" }, sessionToken: "test-token" },
+			fetch: vi.fn(),
+		} as never);
+
+		expect(result).toEqual({
+			user: { id: "admin" },
+			existingBreedKeys: ["bali", "pasundan"],
+			categorySortOrders: {
+				po: [300, 310],
+				bali: [200],
+			},
+		});
+	});
+
+	it("calculates next sort order using category base and increments", () => {
+		// Base defaults when no articles exist in category
+		expect(calculateNextSortOrder("app_usage", [])).toBe(10);
+		expect(calculateNextSortOrder("pasundan", [])).toBe(100);
+		expect(calculateNextSortOrder("bali", [])).toBe(200);
+		expect(calculateNextSortOrder("po", [])).toBe(300);
+		expect(calculateNextSortOrder("madura", [])).toBe(400);
+		expect(calculateNextSortOrder("limusin", [])).toBe(500);
+		expect(calculateNextSortOrder("aceh", [])).toBe(600);
+		expect(calculateNextSortOrder("brahman", [])).toBe(700);
+		expect(calculateNextSortOrder("brangus", [])).toBe(800);
+
+		// Increment when base is already present
+		expect(calculateNextSortOrder("po", [300])).toBe(301);
+		expect(calculateNextSortOrder("po", [300, 301])).toBe(302);
+		expect(calculateNextSortOrder("bali", [200, 210, 220])).toBe(221);
+
+		// Ignores numbers below category base if legacy data exists
+		expect(calculateNextSortOrder("bali", [50])).toBe(200);
 	});
 
 	it("creates an article without icon and redirects to /articles", async () => {

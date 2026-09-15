@@ -197,7 +197,6 @@ describe("Artikel Panduan page server", () => {
 					...articleFields(),
 					sort_order: 10,
 					sources: ["https://example.org/guide", "https://example.org/terms"],
-					content_reviewed: false,
 				}),
 			}),
 			expect.any(Function),
@@ -217,7 +216,6 @@ describe("Artikel Panduan page server", () => {
 					...fields,
 					sort_order: 10,
 					sources: [],
-					content_reviewed: false,
 				}),
 			}),
 			expect.any(Function),
@@ -249,28 +247,6 @@ describe("Artikel Panduan page server", () => {
 		);
 		expect(request).not.toHaveProperty("article_key");
 		expect(request).not.toHaveProperty("locale");
-		expect(request).not.toHaveProperty("content_reviewed");
-	});
-
-	it("requires an explicit review confirmation", async () => {
-		const result = await actions.review!(actionEvent({ id: "article-1" }));
-
-		expect(result).toMatchObject({ status: 422 });
-		expect(backendJson).not.toHaveBeenCalled();
-	});
-
-	it("reviews saved content through the article endpoint", async () => {
-		await actions.review!(
-			actionEvent({ id: "article-1", content_reviewed: "true" }),
-		);
-
-		expect(backendJson).toHaveBeenCalledWith(
-			"/api/admin/articles/article-1/review",
-			expect.objectContaining({
-				method: "POST",
-			}),
-			expect.any(Function),
-		);
 	});
 
 	it.each(["activate", "deactivate"])(
@@ -321,7 +297,6 @@ describe("Artikel Panduan create page server", () => {
 					body: "Gunakan foto yang jelas.",
 					content_blocks: null,
 					sources: ["https://example.org/guide", "https://example.org/terms"],
-					content_reviewed: false,
 				}),
 			}),
 			expect.any(Function),
@@ -362,7 +337,6 @@ describe("Artikel Panduan create page server", () => {
 					body: "Deskripsi lengkap sapi Bali",
 					content_blocks: null,
 					sources: ["https://example.org/bali"],
-					content_reviewed: false,
 				}),
 			}),
 			expect.any(Function),
@@ -398,7 +372,6 @@ describe("Artikel Panduan create page server", () => {
 					body: "Deskripsi Pasundan",
 					content_blocks: null,
 					sources: ["https://example.org/pasundan"],
-					content_reviewed: false,
 				}),
 			}),
 			expect.any(Function),
@@ -444,7 +417,7 @@ describe("Artikel Panduan create page server", () => {
 			),
 		).rejects.toMatchObject({ status: 303, location: "/articles" });
 
-		expect(backendJson).toHaveBeenCalledTimes(3);
+		expect(backendJson).toHaveBeenCalledTimes(2);
 		expect(backendJson).toHaveBeenNthCalledWith(
 			1,
 			"/api/admin/articles",
@@ -453,12 +426,6 @@ describe("Artikel Panduan create page server", () => {
 		);
 		expect(backendJson).toHaveBeenNthCalledWith(
 			2,
-			"/api/admin/articles/article-uuid-123/review",
-			expect.any(Object),
-			expect.any(Function),
-		);
-		expect(backendJson).toHaveBeenNthCalledWith(
-			3,
 			"/api/admin/articles/article-uuid-123/activate",
 			expect.objectContaining({
 				method: "POST",

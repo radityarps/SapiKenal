@@ -78,7 +78,6 @@ def test_article_lifecycle_and_deterministic_locale_snapshot(
         ],
         "items": [],
     }
-    assert client.post(f"/api/admin/articles/{article_id}/review").status_code == 200
     assert client.post(f"/api/admin/articles/{article_id}/activate").status_code == 200
 
     first = client.get("/api/content/articles")
@@ -106,7 +105,7 @@ def test_article_lifecycle_and_deterministic_locale_snapshot(
         actions = db.scalars(
             select(AuditLog.action).order_by(AuditLog.created_at, AuditLog.id)
         ).all()
-    assert actions == ["article_created", "article_reviewed", "article_activated"]
+    assert actions == ["article_created", "article_activated"]
 
     assert (
         client.post(f"/api/admin/articles/{article_id}/deactivate").status_code == 200
@@ -120,7 +119,6 @@ def test_article_revision_preserves_public_version_until_activation(
     client, session_factory = article_client
     created = client.post("/api/admin/articles", json=_payload())
     article_id = created.json()["item"]["id"]
-    assert client.post(f"/api/admin/articles/{article_id}/review").status_code == 200
     assert client.post(f"/api/admin/articles/{article_id}/activate").status_code == 200
 
     revised = client.post(
@@ -130,7 +128,6 @@ def test_article_revision_preserves_public_version_until_activation(
     assert revised.status_code == 200
     assert revised.json()["item"]["publication_status"] == "active"
     assert revised.json()["item"]["revision"]["status"] == "draft"
-    assert revised.json()["item"]["revision"]["content_reviewed"] is False
     assert revised.json()["item"]["active_revision"]["revision"] == 1
     assert (
         client.get("/api/content/articles?locale=id-ID").json()["items"][0]["body"]
@@ -155,7 +152,6 @@ def test_article_revision_preserves_public_version_until_activation(
     assert published.json()["total"] == 1
     assert published.json()["items"][0]["article_key"] == "profil-bali"
 
-    assert client.post(f"/api/admin/articles/{article_id}/review").status_code == 200
     assert client.post(f"/api/admin/articles/{article_id}/activate").status_code == 200
     snapshot = client.get("/api/content/articles?locale=id-ID").json()["items"]
     assert snapshot[0]["body"] == "Revisi konten."
@@ -346,10 +342,6 @@ def test_create_and_activate_article_with_optional_empty_sources(
     assert item["revision"]["sources"] == []
 
     article_id = item["id"]
-
-    # Review article
-    reviewed = client.post(f"/api/admin/articles/{article_id}/review")
-    assert reviewed.status_code == 200
 
     # Activation should succeed even with empty sources
     activated = client.post(f"/api/admin/articles/{article_id}/activate")

@@ -170,7 +170,6 @@ def test_guide_article_seed_allows_empty_sources_as_unreviewed_draft(
         assert revision is not None
         assert revision.sources == []
         assert revision.status == "draft"
-        assert revision.content_reviewed is False
 
 
 def test_seed_rejects_weak_password(
@@ -263,5 +262,4 @@ def test_seed_guide_articles_activate_flag_and_activate_helper(
         ).all()
         assert len(active_articles) == 24
         assert len(active_revs) == 24
-        assert all(rev.content_reviewed for rev in active_revs)
 

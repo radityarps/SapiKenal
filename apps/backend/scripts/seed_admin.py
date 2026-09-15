@@ -175,7 +175,6 @@ def seed_guide_articles(*, activate: bool = False) -> int:
                         summary=seed.summary,
                         body=seed.body,
                         sources=seed.sources,
-                        content_reviewed=activate,
                         status=status,
                     )
                 )
@@ -200,7 +199,6 @@ def activate_guide_articles() -> int:
                 ).all()
                 for rev in revisions:
                     if rev.status != "active":
-                        rev.content_reviewed = True
                         rev.status = "active"
                         activated += 1
                 article.status = "active"

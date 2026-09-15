@@ -932,7 +932,6 @@ def create_article(
         body=body,
         content_blocks=payload.content_blocks,
         sources=payload.sources,
-        content_reviewed=False,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
@@ -995,12 +994,6 @@ def revise_article(
             "ARTICLE_IDENTITY_IMMUTABLE",
             "Article key cannot be changed",
         )
-    if "content_reviewed" in changes:
-        raise AdminAPIError(
-            422,
-            "ARTICLE_REVIEW_INVALID",
-            "Review saved article content separately from content changes",
-        )
     if "is_breed_profile" in changes:
         article.is_breed_profile = changes.pop("is_breed_profile")
     if "breed_key" in changes:
@@ -1035,7 +1028,6 @@ def revise_article(
     revision = GuideArticleRevision(
         article_id=article.id,
         revision=current.revision + 1,
-        content_reviewed=False,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
@@ -1079,46 +1071,7 @@ def patch_article(
             "ARTICLE_IDENTITY_IMMUTABLE",
             "Article key cannot be changed",
         )
-    if changes == {"content_reviewed": True}:
-        return review_article(article_id, request, db, admin)
     return revise_article(article_id, payload, request, db, admin)
-
-
-@router.post("/articles/{article_id}/review")
-def review_article(
-    article_id: str,
-    request: Request,
-    db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
-):
-    article = db.get(GuideArticle, article_id)
-    revision = _latest_article_revision(db, article_id) if article else None
-    if article is None or revision is None:
-        raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
-    if revision.content_reviewed:
-        raise AdminAPIError(
-            409, "ARTICLE_ALREADY_REVIEWED", "Article is already reviewed"
-        )
-    revision.content_reviewed = True
-    revision.updated_by = admin.id
-    article.updated_by = admin.id
-    record_audit(
-        db,
-        action="article_reviewed",
-        actor_user_id=admin.id,
-        resource_type="guide_article",
-        resource_id=article.id,
-        request_id=_request_id(request),
-        ip_hash=_ip_hash(request),
-        changed_fields={"content_reviewed": True, "revision": revision.revision},
-    )
-    db.commit()
-    return {
-        "status": "success",
-        "item": _article_response(
-            article, revision, _active_article_revision(db, article.id)
-        ),
-    }
 
 
 @router.post("/articles/{article_id}/activate")
@@ -1132,12 +1085,6 @@ def activate_article(
     revision = _latest_article_revision(db, article_id) if article else None
     if article is None or revision is None:
         raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
-    if not revision.content_reviewed:
-        raise AdminAPIError(
-            422,
-            "ARTICLE_REVIEW_REQUIRED",
-            "Article content must be reviewed before activation",
-        )
     for previous in db.scalars(
         select(GuideArticleRevision).where(
             GuideArticleRevision.article_id == article.id,

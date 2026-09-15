@@ -115,7 +115,6 @@ class GuideArticleRequest(BaseModel):
     is_breed_profile: bool = False
     breed_key: str | None = Field(default=None, max_length=32)
     sources: list[str] = Field(default_factory=list, max_length=20)
-    content_reviewed: Literal[False] = False
 
     @field_validator("article_key", "title", "summary", "body")
     @classmethod
@@ -171,7 +170,6 @@ class GuideArticlePatchRequest(BaseModel):
     is_breed_profile: bool | None = None
     breed_key: str | None = Field(default=None, max_length=32)
     sources: list[str] | None = Field(default=None, max_length=20)
-    content_reviewed: bool | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -219,7 +217,6 @@ class GuideArticleRevisionResponse(BaseModel):
     body: str
     content_blocks: list[dict[str, Any]] | None = None
     sources: list[str]
-    content_reviewed: bool
     status: str
     created_at: datetime
     updated_at: datetime

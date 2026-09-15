@@ -267,9 +267,6 @@ class GuideArticleRevision(Base):
         JSON, nullable=True, default=None
     )
     sources: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    content_reviewed: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_by: Mapped[str | None] = mapped_column(
         ForeignKey("users.id"), nullable=True

@@ -43,7 +43,7 @@
 		</div>
 		<p class="muted mt-3">
 			Mengedit artikel <strong>{a.revision.title}</strong> (<code>{a.article_key}</code>).
-			Menyimpan perubahan akan membuat revisi draft baru yang memerlukan review dan aktivasi ulang.
+			Menyimpan perubahan akan membuat revisi draft baru yang dapat langsung dipublikasikan dari halaman daftar artikel.
 		</p>
 	</section>
 
@@ -109,7 +109,7 @@
 			</div>
 
 			<div class="rounded-xl border border-slate-200 bg-slate-50/90 p-4 text-xs font-medium text-slate-800 shadow-2xs leading-relaxed">
-				Menyimpan akan membuat <strong>revisi draft baru (v{a.revision.revision + 1})</strong>. Kembali ke halaman artikel untuk me-review dan mengaktifkannya.
+				Menyimpan akan membuat <strong>revisi draft baru (v{a.revision.revision + 1})</strong>. Kembali ke halaman artikel untuk mengaktifkan/mempublikasikannya.
 			</div>
 
 			<div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">

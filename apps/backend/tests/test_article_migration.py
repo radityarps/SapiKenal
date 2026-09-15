@@ -269,4 +269,22 @@ def test_migration_0014_removes_model_versioning_tables(
     assert "model_activations" not in table_names
 
 
+def test_migration_0016_removes_content_reviewed_column(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "test_migration_0016.db"
+    config = _config(db_path, monkeypatch)
+    command.upgrade(config, "head")
+
+    engine = sa.create_engine(f"sqlite:///{db_path}")
+    inspector = sa.inspect(engine)
+    columns = {col["name"] for col in inspector.get_columns("guide_article_revisions")}
+    assert "content_reviewed" not in columns
+    assert "category" in columns
+    assert "title" in columns
+    assert "body" in columns
+    assert "content_blocks" in columns
+
+
+
 

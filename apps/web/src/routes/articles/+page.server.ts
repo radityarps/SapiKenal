@@ -60,7 +60,6 @@ export const actions: Actions = {
 		const payload = {
 			article_key: String(form.get("article_key") || "").trim(),
 			...revisionFields(form),
-			content_reviewed: false,
 		};
 		try {
 			await backendJson(
@@ -107,61 +106,10 @@ export const actions: Actions = {
 			});
 		}
 	},
-	review: async ({ request, locals, fetch }) => {
-		const form = await request.formData();
-		const id = String(form.get("id") || "");
-		if (!id || form.get("content_reviewed") !== "true") {
-			return fail(422, {
-				error: "Konfirmasi peninjauan isi dan sumber diperlukan.",
-			});
-		}
-		try {
-			await backendJson(
-				`${api(id)}/review`,
-				{
-					method: "POST",
-					headers: bearerHeaders(locals.sessionToken),
-				},
-				fetch,
-			);
-			return { success: true };
-		} catch (error) {
-			return fail(error instanceof BackendRequestError ? error.status : 400, {
-				error:
-					error instanceof Error ? error.message : "Review artikel gagal disimpan",
-			});
-		}
-	},
 	activate: async ({ request, locals, fetch }) =>
 		mutate(request, locals.sessionToken, fetch, "activate"),
 	deactivate: async ({ request, locals, fetch }) =>
 		mutate(request, locals.sessionToken, fetch, "deactivate"),
-	review_and_activate: async ({ request, locals, fetch }) => {
-		const form = await request.formData();
-		const id = String(form.get("id") || "");
-		if (!id) return fail(400, { error: "ID artikel tidak ditemukan." });
-		try {
-			await backendJson(
-				`${api(id)}/review`,
-				{ method: "POST", headers: bearerHeaders(locals.sessionToken) },
-				fetch,
-			);
-			await backendJson(
-				`${api(id)}/activate`,
-				{
-					method: "POST",
-					headers: { ...bearerHeaders(locals.sessionToken), "content-type": "application/json" },
-					body: JSON.stringify({ reason: "Tinjau dan publikasikan sekaligus" }),
-				},
-				fetch,
-			);
-			return { success: true };
-		} catch (error) {
-			return fail(error instanceof BackendRequestError ? error.status : 400, {
-				error: error instanceof Error ? error.message : "Gagal meninjau dan mempublikasikan artikel",
-			});
-		}
-	},
 	logout: async ({ locals, cookies, fetch }) =>
 		adminLogout(locals, cookies, fetch),
 };

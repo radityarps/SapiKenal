@@ -48,8 +48,8 @@ di [`../model/parity.md`](../model/parity.md).
 
 ## Artikel Panduan
 
-Dashboard mengelola Artikel Panduan melalui `/api/admin/articles`; perubahan isi
-membuat revisi draft yang harus ditinjau sebelum diaktifkan. Response admin
+Dashboard mengelola Artikel Panduan melalui `/api/admin/articles`; administrator
+dapat langsung mempublikasikan atau menyimpan artikel sebagai draft. Response admin
 memisahkan `publication_status` (status publikasi artikel), `revision.status`
 (status editorial revisi terbaru), dan `active_revision` (revisi publik saat ini
 atau `null`). Karena itu artikel dengan publikasi aktif tetap dapat mempunyai
@@ -69,10 +69,10 @@ ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD='password-kuat' \
   python -m scripts.seed_admin
 ```
 
-Seeder membuat Artikel Panduan sebagai draft yang belum ditinjau dan tidak
-mengaktifkan konten. Administrator harus melengkapi sumber, meninjau isi serta
-sumber, lalu mengaktifkan revisi melalui dashboard. Menjalankan command kembali
-bersifat idempoten dan tidak menimpa artikel atau revisi yang telah diedit admin.
+Seeder membuat Artikel Panduan sebagai draft awal dan tidak mengaktifkan konten
+secara otomatis. Administrator dapat mengaktifkan artikel langsung melalui dashboard
+atau menggunakan bantuan aktivasi seeder. Menjalankan command kembali bersifat
+idempoten dan tidak menimpa artikel atau revisi yang telah diedit admin.
 Alur development `backend:dev` tetap menjalankan seeder ini; deployment
 non-development harus menjalankannya sebagai langkah eksplisit setelah migration,
 bukan sebagai auto-seed tersembunyi saat backend dimulai.

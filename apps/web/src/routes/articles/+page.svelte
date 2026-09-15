@@ -66,22 +66,7 @@
     categories.find((item) => item.value === category)?.label ?? category;
   const statusLabel = (status: string) =>
     ({ draft: "Draft", active: "Aktif", inactive: "Nonaktif" })[status] ?? status;
-  const reviewed = (article: any) => Boolean(article?.revision?.content_reviewed);
   const isActive = (article: any) => article?.publication_status === "active";
-  const publishAction = (article: any) =>
-    !reviewed(article) && article?.revision?.sources?.length > 0
-      ? "?/review_and_activate"
-      : "?/activate";
-  const publishTooltip = (article: any) => {
-    if (isActive(article)) return "";
-    if (!reviewed(article) && article?.revision?.sources?.length > 0)
-      return "Tinjau dan publikasikan artikel";
-    if (reviewed(article)) return "Publikasikan artikel";
-    return "Perlu peninjauan sebelum publikasi";
-  };
-  const canPublishAction = (article: any) =>
-    !isActive(article) &&
-    article?.revision?.status !== "active";
 
   async function openDetail(article: any) {
     selectedArticle = article;
@@ -200,10 +185,9 @@
       <table class="table-fixed">
         <thead>
           <tr>
-            <th class="w-[35%]">Artikel</th>
-            <th class="w-[15%]">Kategori</th>
-            <th class="w-[20%]">Status</th>
-            <th class="w-[15%]">Review</th>
+            <th class="w-[40%]">Artikel</th>
+            <th class="w-[20%]">Kategori</th>
+            <th class="w-[25%]">Status</th>
             <th class="w-32 text-center"><span class="sr-only">Aksi</span></th>
           </tr>
         </thead>
@@ -249,15 +233,6 @@
                 {/if}
               </td>
 
-              <!-- Review -->
-              <td class="whitespace-normal">
-                {#if reviewed(article)}
-                  <span class="badge !bg-emerald-100 !text-emerald-950 font-bold border border-emerald-200">Sudah ditinjau</span>
-                {:else}
-                  <span class="badge !bg-amber-100 !text-amber-950 font-bold border border-amber-200">Perlu ditinjau</span>
-                {/if}
-              </td>
-
               <!-- Aksi -->
               <td class="text-center">
                 <div class="inline-flex items-center justify-center gap-1">
@@ -296,27 +271,19 @@
                         <EyeOff size={16} strokeWidth={1.8} aria-hidden="true" />
                       </button>
                     </form>
-                  {:else if canPublishAction(article)}
-                    <form method="POST" action={publishAction(article)} use:enhance class="inline">
+                  {:else}
+                    <form method="POST" action="?/activate" use:enhance class="inline">
                       <input type="hidden" name="id" value={article.id} />
-                      <input type="hidden" name="reason" value="Publikasi Artikel Panduan yang telah ditinjau" />
+                      <input type="hidden" name="reason" value="Publikasi Artikel Panduan" />
                       <button
                         type="submit"
-                        title={publishTooltip(article)}
-                        aria-label={publishTooltip(article)}
+                        title="Publikasikan artikel"
+                        aria-label="Publikasikan artikel"
                         class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-emerald-700 transition-all hover:bg-[#155e3d] hover:text-white hover:border-[#155e3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#155e3d] focus-visible:bg-[#155e3d] focus-visible:text-white"
                       >
                         <Globe size={16} strokeWidth={1.8} aria-hidden="true" />
                       </button>
                     </form>
-                  {:else}
-                    <span
-                      title="Perlu ditinjau sebelum publikasi"
-                      aria-label="Publikasi tidak tersedia"
-                      class="grid size-9 min-h-0 cursor-not-allowed place-items-center rounded-lg bg-transparent p-0 text-slate-300"
-                    >
-                      <Globe size={16} strokeWidth={1.8} aria-hidden="true" />
-                    </span>
                   {/if}
 
                   <!-- Arsip Button -->
@@ -382,7 +349,7 @@
         </span>
         <span class="text-xs text-[#52655c]">·</span>
         <span class="text-xs text-[#52655c]">
-          Revisi terbaru: v{selectedArticle.revision?.revision} ({selectedArticle.revision?.content_reviewed ? 'Sudah ditinjau' : 'Perlu ditinjau'})
+          Revisi terbaru: v{selectedArticle.revision?.revision} · {statusLabel(selectedArticle.revision?.status)}
         </span>
       </div>
 
@@ -406,7 +373,6 @@
         <div><dt class="text-xs font-bold text-[#718078]">Article key</dt><dd class="m-0 mt-1 font-mono text-xs text-[#243d30]">{selectedArticle.article_key}</dd></div>
         <div><dt class="text-xs font-bold text-[#718078]">Kategori</dt><dd class="m-0 mt-1">{categoryLabel(selectedArticle.revision?.category)}</dd></div>
         <div><dt class="text-xs font-bold text-[#718078]">Urutan tampil</dt><dd class="m-0 mt-1">{selectedArticle.revision?.sort_order ?? 0}</dd></div>
-        <div><dt class="text-xs font-bold text-[#718078]">Status review</dt><dd class="m-0 mt-1">{selectedArticle.revision?.content_reviewed ? 'Sudah ditinjau' : 'Perlu ditinjau'}</dd></div>
         {#if selectedArticle.revision?.sources?.length}
           <div class="sm:col-span-2">
             <dt class="text-xs font-bold text-[#718078]">Sumber rujukan</dt>

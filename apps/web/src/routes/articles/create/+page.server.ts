@@ -110,7 +110,6 @@ export const actions: Actions = {
 			body,
 			content_blocks,
 			sources,
-			content_reviewed: false,
 		};
 
 		try {
@@ -148,14 +147,6 @@ async function activateCreatedArticle(
 	token: string | null,
 	fetchFn: typeof globalThis.fetch,
 ) {
-	await backendJson(
-		`${api()}/${encodeURIComponent(articleId)}/review`,
-		{
-			method: "POST",
-			headers: bearerHeaders(token),
-		},
-		fetchFn,
-	);
 	await backendJson(
 		`${api()}/${encodeURIComponent(articleId)}/activate`,
 		{

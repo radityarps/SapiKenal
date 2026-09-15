@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Image, UploadCloud, Trash2, Loader2, AlertCircle } from "lucide-svelte";
+	import { Image, UploadCloud, Trash2, Loader2, AlertCircle, Crop } from "lucide-svelte";
+	import ImageCropModal from "./ImageCropModal.svelte";
 
 	export let bannerImageUrl: string | null = null;
 	export let disabled: boolean = false;
@@ -9,7 +10,11 @@
 	let errorMessage = "";
 	let isDragOver = false;
 
-	async function handleFileSelected(file: File) {
+	let showCropModal = false;
+	let pendingImageSrc: string | null = null;
+	let pendingFileName = "banner.jpg";
+
+	function handleFileSelected(file: File) {
 		errorMessage = "";
 		const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 		if (!allowedTypes.includes(file.type)) {
@@ -17,15 +22,40 @@
 			return;
 		}
 
-		const maxSize = 5 * 1024 * 1024; // 5 MB
-		if (file.size > maxSize) {
-			errorMessage = "Ukuran berkas melebihi batas maksimal 5 MB.";
+		const maxSourceSize = 15 * 1024 * 1024; // 15 MB
+		if (file.size > maxSourceSize) {
+			errorMessage = "Ukuran berkas asli melebihi batas maksimal 15 MB.";
 			return;
 		}
 
+		if (typeof window !== "undefined" && pendingImageSrc && pendingImageSrc.startsWith("blob:")) {
+			URL.revokeObjectURL(pendingImageSrc);
+		}
+
+		pendingFileName = file.name;
+		if (typeof window !== "undefined") {
+			pendingImageSrc = URL.createObjectURL(file);
+		}
+		showCropModal = true;
+	}
+
+	function recropCurrentBanner() {
+		if (!bannerImageUrl) return;
+		errorMessage = "";
+		pendingFileName = "banner_crop.jpg";
+		pendingImageSrc = bannerImageUrl;
+		showCropModal = true;
+	}
+
+	async function onCropConfirm(blob: Blob) {
 		isUploading = true;
+		errorMessage = "";
+
+		const safeName = pendingFileName.replace(/\.[^/.]+$/, "") + ".jpg";
+		const croppedFile = new File([blob], safeName, { type: "image/jpeg" });
+
 		const formData = new FormData();
-		formData.append("file", file);
+		formData.append("file", croppedFile);
 
 		try {
 			const res = await fetch("/api/articles/upload-banner", {
@@ -37,6 +67,7 @@
 				errorMessage = data.error || "Gagal mengunggah banner gambar.";
 			} else if (data.banner_image_url) {
 				bannerImageUrl = data.banner_image_url;
+				closeCropModal();
 			}
 		} catch (err) {
 			errorMessage = err instanceof Error ? err.message : "Terjadi kesalahan saat mengunggah berkas.";
@@ -44,6 +75,15 @@
 			isUploading = false;
 			if (fileInput) fileInput.value = "";
 		}
+	}
+
+	function closeCropModal() {
+		showCropModal = false;
+		if (typeof window !== "undefined" && pendingImageSrc && pendingImageSrc.startsWith("blob:")) {
+			URL.revokeObjectURL(pendingImageSrc);
+		}
+		pendingImageSrc = null;
+		if (fileInput) fileInput.value = "";
 	}
 
 	function onInputChange(e: Event) {
@@ -115,6 +155,16 @@
 				<div class="flex items-center gap-2 shrink-0">
 					<button
 						type="button"
+						class="button secondary !min-h-8 !py-1 !px-2.5 text-xs font-semibold text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900"
+						on:click={recropCurrentBanner}
+						disabled={disabled || isUploading}
+						title="Sesuaikan ulang area potongan banner"
+					>
+						<Crop size={14} class="shrink-0" />
+						<span class="hidden sm:inline ml-1">Crop Ulang</span>
+					</button>
+					<button
+						type="button"
 						class="button secondary !min-h-8 !py-1 !px-3 text-xs font-semibold text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900"
 						on:click={() => fileInput.click()}
 						disabled={disabled || isUploading}
@@ -160,7 +210,7 @@
 						Klik untuk memilih gambar atau seret berkas ke sini
 					</p>
 					<p class="text-[.75rem] text-slate-500 max-w-sm">
-						Format JPG, PNG, atau WebP (maks. 5 MB). Banner akan muncul pada card dan halaman detail artikel di aplikasi mobile.
+						Format JPG, PNG, atau WebP (maks. 15 MB). Anda dapat memotong dan mengatur fokus banner (16:9) sebelum diunggah.
 					</p>
 				</div>
 			{/if}
@@ -173,4 +223,13 @@
 			<span>{errorMessage}</span>
 		</div>
 	{/if}
+
+	<!-- Interactive 16:9 Image Crop Modal -->
+	<ImageCropModal
+		open={showCropModal}
+		imageSrc={pendingImageSrc}
+		{isUploading}
+		onConfirm={onCropConfirm}
+		onCancel={closeCropModal}
+	/>
 </div>

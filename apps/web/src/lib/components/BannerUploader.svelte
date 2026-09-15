@@ -136,12 +136,12 @@
 	</div>
 
 	{#if bannerImageUrl}
-		<!-- Banner Preview Card -->
+		<!-- Banner Preview Card (16:9) -->
 		<div class="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-2xs group">
-			<div class="w-full aspect-[21/9] sm:aspect-[24/9] max-h-56 overflow-hidden bg-slate-900 flex items-center justify-center">
+			<div class="w-full aspect-video overflow-hidden bg-slate-950 flex items-center justify-center">
 				<img
 					src={bannerImageUrl}
-					alt="Pratinjau Banner"
+					alt="Pratinjau Banner (16:9)"
 					class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
 				/>
 			</div>

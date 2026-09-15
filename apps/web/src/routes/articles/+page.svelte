@@ -362,11 +362,11 @@
       </div>
 
       {#if selectedArticle.revision?.banner_image_url}
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-900 max-h-48 flex items-center justify-center">
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-2xs aspect-video flex items-center justify-center">
           <img
             src={selectedArticle.revision.banner_image_url}
             alt="Banner {selectedArticle.revision.title}"
-            class="w-full h-full max-h-48 object-cover"
+            class="w-full h-full object-cover"
           />
         </div>
       {/if}

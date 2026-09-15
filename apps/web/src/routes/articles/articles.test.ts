@@ -204,6 +204,26 @@ describe("Artikel Panduan page server", () => {
 		);
 	});
 
+	it("creates a draft article without sources when omitted", async () => {
+		const fields = articleFields();
+		delete (fields as any).sources;
+		await actions.create!(actionEvent(fields));
+
+		expect(backendJson).toHaveBeenCalledWith(
+			"/api/admin/articles",
+			expect.objectContaining({
+				method: "POST",
+				body: JSON.stringify({
+					...fields,
+					sort_order: 10,
+					sources: [],
+					content_reviewed: false,
+				}),
+			}),
+			expect.any(Function),
+		);
+	});
+
 	it("sends only revision fields when saving content", async () => {
 		await actions.revise!(
 			actionEvent({ id: "article/1", ...articleFields(), title: "Updated title" }),
@@ -291,8 +311,15 @@ describe("Artikel Panduan create page server", () => {
 			expect.objectContaining({
 				method: "POST",
 				body: JSON.stringify({
-					...articleFields(),
+					article_key: "panduan-identifikasi",
+					is_breed_profile: false,
+					breed_key: null,
+					category: "app_usage",
 					sort_order: 10,
+					title: "Panduan identifikasi",
+					summary: "Ringkasan panduan.",
+					body: "Gunakan foto yang jelas.",
+					content_blocks: null,
 					sources: ["https://example.org/guide", "https://example.org/terms"],
 					content_reviewed: false,
 				}),
@@ -326,12 +353,51 @@ describe("Artikel Panduan create page server", () => {
 				method: "POST",
 				body: JSON.stringify({
 					article_key: "sapi-bali-unggulan",
+					is_breed_profile: false,
+					breed_key: null,
 					category: "bali",
 					sort_order: 5,
 					title: "Sapi Bali Unggulan",
 					summary: "Ringkasan sapi Bali",
 					body: "Deskripsi lengkap sapi Bali",
+					content_blocks: null,
 					sources: ["https://example.org/bali"],
+					content_reviewed: false,
+				}),
+			}),
+			expect.any(Function),
+		);
+	});
+
+	it("creates breed profile article with canonical key and breed_key", async () => {
+		await expect(
+			createActions.create!(
+				actionEvent({
+					is_breed_profile: "true",
+					breed_key: "pasundan",
+					title: "Profil Sapi Pasundan",
+					summary: "Ringkasan Pasundan",
+					body: "Deskripsi Pasundan",
+					sources: "https://example.org/pasundan",
+				}) as never,
+			),
+		).rejects.toMatchObject({ status: 303, location: "/articles" });
+
+		expect(backendJson).toHaveBeenCalledWith(
+			"/api/admin/articles",
+			expect.objectContaining({
+				method: "POST",
+				body: JSON.stringify({
+					article_key: "pasundan_1",
+					is_breed_profile: true,
+					breed_key: "pasundan",
+					category: "pasundan",
+					sort_order: 0,
+					title: "Profil Sapi Pasundan",
+					summary: "Ringkasan Pasundan",
+					body: "Deskripsi Pasundan",
+					content_blocks: null,
+					sources: ["https://example.org/pasundan"],
 					content_reviewed: false,
 				}),
 			}),

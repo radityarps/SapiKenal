@@ -53,59 +53,71 @@
   }
 
   label {
-    @apply grid gap-1.5 text-xs font-bold text-[#52635b];
+    @apply grid gap-1.5 text-xs font-semibold text-[#1e293b];
   }
 
   input,
   select,
   textarea {
-    @apply min-h-10 rounded-lg border border-[#cfdad4] bg-white px-3 py-2 font-sans text-sm text-[#17241f] transition;
+    @apply min-h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 py-2 font-sans text-sm text-[#0f172a] shadow-2xs transition placeholder:text-[#94a3b8];
   }
 
   input:hover,
   select:hover,
   textarea:hover {
-    @apply border-[#aebfb6];
+    @apply border-[#94a3b8];
   }
 
   input:focus,
   select:focus,
   textarea:focus {
-    @apply border-[#4d8a6c] outline-none ring-4 ring-[#18794e]/10;
+    @apply border-[#155e3d] outline-none ring-3 ring-[#155e3d]/15;
   }
 
   textarea {
     @apply min-h-24 resize-y;
   }
 
-  button,
-  .button {
-    @apply min-h-10 cursor-pointer rounded-lg border-0 bg-[#176b49] px-3 py-2 font-sans text-sm font-bold text-white transition;
+  .button,
+  button.button,
+  button[type="submit"]:not([class*="bg-"]):not([class*="text-"]):not(.secondary):not(.danger) {
+    @apply min-h-10 cursor-pointer rounded-lg border-0 bg-[#155e3d] px-3.5 py-2 font-sans text-sm font-semibold text-white shadow-2xs transition hover:bg-[#0f462d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#155e3d] focus-visible:ring-offset-2;
   }
 
-  button:hover,
-  .button:hover {
-    @apply bg-[#125a3d];
+  .button:hover,
+  button.button:hover,
+  button[type="submit"]:not([class*="bg-"]):not([class*="text-"]):not(.secondary):not(.danger):hover {
+    @apply bg-[#0f462d] text-white;
   }
 
-  button:active,
-  .button:active {
+  .button:active,
+  button.button:active {
     @apply translate-y-px;
   }
 
   button.secondary,
   .button.secondary {
-    @apply bg-[#e8f2ed] text-[#145c3e];
+    @apply border border-[#cbd5e1] bg-white text-[#0f172a] shadow-2xs transition hover:bg-[#0f172a] hover:text-white hover:border-[#0f172a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f172a] focus-visible:ring-offset-2;
+  }
+
+  button.secondary:hover,
+  .button.secondary:hover {
+    @apply bg-[#0f172a] text-white border-[#0f172a];
   }
 
   button.danger,
   .button.danger {
-    @apply bg-[#f9e9ec] text-[#8b2635];
+    @apply border border-[#fecdd3] bg-[#fff1f2] text-[#be123c] shadow-2xs transition hover:bg-[#be123c] hover:text-white hover:border-[#be123c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#be123c] focus-visible:ring-offset-2;
+  }
+
+  button.danger:hover,
+  .button.danger:hover {
+    @apply bg-[#be123c] text-white border-[#be123c];
   }
 
   button:disabled,
   .button:disabled {
-    @apply cursor-not-allowed opacity-60;
+    @apply cursor-not-allowed opacity-40;
   }
 
   .password-toggle {

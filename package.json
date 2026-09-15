@@ -17,7 +17,7 @@
     "backend:down": "cd apps/backend && docker compose down",
     "backend:logs": "cd apps/backend && docker compose logs -f",
     "backend:migrate": "cd apps/backend && docker compose run --rm backend alembic upgrade head",
-    "backend:seed-admin": "cd apps/backend && docker compose run --rm backend python -m scripts.seed_admin",
+    "backend:seed-admin": "cd apps/backend && docker compose run --rm backend python -m scripts.seed_admin --activate-articles",
     "web:setup": "pnpm --filter @sapikenal/web install",
     "web:dev": "pnpm --filter @sapikenal/web dev",
     "web:build": "pnpm --filter @sapikenal/web build",

@@ -112,7 +112,7 @@ runCompose([
 	"backend",
 	"sh",
 	"-c",
-	'if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ] && [ -n "$ADMIN_NAME" ]; then python -m scripts.seed_admin --allow-weak-password; else echo "ADMIN_* not set; skipping admin seeder"; fi',
+	'if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ] && [ -n "$ADMIN_NAME" ]; then python -m scripts.seed_admin --allow-weak-password --activate-articles; else echo "ADMIN_* not set; skipping admin seeder"; fi',
 ]);
 runCompose(["up", "--force-recreate", "-d"]);
 console.log(

@@ -12,7 +12,7 @@ import id.sapikenal.app.data.local.entity.GuideSyncMetadataEntity
 
 @Database(
     entities = [DetectionEntity::class, GuideArticleEntity::class, GuideSyncMetadataEntity::class],
-    version = 15,
+    version = 16,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,6 +21,15 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun guideArticleDao(): GuideArticleDao
 
     companion object {
+        val MIGRATION_15_16 =
+            object : Migration(15, 16) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE guide_articles ADD COLUMN isBreedProfile INTEGER NOT NULL DEFAULT 0")
+                    db.execSQL("ALTER TABLE guide_articles ADD COLUMN breedKey TEXT DEFAULT NULL")
+                    db.execSQL("ALTER TABLE guide_articles ADD COLUMN contentBlocksJson TEXT DEFAULT NULL")
+                }
+            }
+
         val MIGRATION_14_15 =
             object : Migration(14, 15) {
                 override fun migrate(db: SupportSQLiteDatabase) {

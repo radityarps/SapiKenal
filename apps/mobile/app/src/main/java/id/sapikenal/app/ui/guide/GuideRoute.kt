@@ -18,17 +18,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -38,11 +42,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +88,16 @@ fun GuideRoute(
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
     val articles by viewModel.filteredArticles.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val syncStatus by viewModel.syncStatus.collectAsStateWithLifecycle()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val syncFailedMessage = stringResource(R.string.guide_sync_failed)
+
+    LaunchedEffect(syncStatus) {
+        if (syncStatus == SyncStatus.FAILURE) {
+            snackbarHostState.showSnackbar(syncFailedMessage)
+        }
+    }
 
     var searchVisible by remember { mutableStateOf(false) }
     var filterVisible by remember { mutableStateOf(false) }
@@ -98,6 +115,7 @@ fun GuideRoute(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Column(
                 modifier =
@@ -114,23 +132,40 @@ fun GuideRoute(
                         )
                     },
                     actions = {
-                        // Sync / Refresh button
+                        // Sync button with status feedback
                         IconButton(
                             onClick = viewModel::refreshArticles,
-                            enabled = !isRefreshing,
+                            enabled = syncStatus != SyncStatus.SYNCING,
                         ) {
-                            if (isRefreshing) {
-                                androidx.compose.material3.CircularProgressIndicator(
-                                    modifier = Modifier.padding(10.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            } else {
-                                Icon(
-                                    Icons.Filled.Refresh,
-                                    contentDescription = stringResource(R.string.guide_action_refresh),
-                                    tint = SapiKenalColors.TextSecondary,
-                                )
+                            when (syncStatus) {
+                                SyncStatus.SYNCING -> {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                                SyncStatus.SUCCESS -> {
+                                    Icon(
+                                        Icons.Filled.Check,
+                                        contentDescription = stringResource(R.string.guide_sync_success),
+                                        tint = SapiKenalColors.Pasundan,
+                                    )
+                                }
+                                SyncStatus.FAILURE -> {
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = stringResource(R.string.guide_sync_failed),
+                                        tint = MaterialTheme.colorScheme.error,
+                                    )
+                                }
+                                SyncStatus.IDLE -> {
+                                    Icon(
+                                        Icons.Filled.Sync,
+                                        contentDescription = stringResource(R.string.guide_action_refresh),
+                                        tint = SapiKenalColors.TextSecondary,
+                                    )
+                                }
                             }
                         }
                         // Search button — highlighted if active

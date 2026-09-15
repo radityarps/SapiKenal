@@ -49,6 +49,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_12_13,
                     AppDatabase.MIGRATION_13_14,
                     AppDatabase.MIGRATION_14_15,
+                    AppDatabase.MIGRATION_15_16,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -93,6 +94,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_12_13,
                     AppDatabase.MIGRATION_13_14,
                     AppDatabase.MIGRATION_14_15,
+                    AppDatabase.MIGRATION_15_16,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -118,6 +120,38 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
+    fun `migration 15 to 16 adds isBreedProfile, breedKey, and contentBlocksJson to guide_articles`() {
+        clearLegacyRows()
+        val database =
+            Room
+                .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
+                .addMigrations(
+                    AppDatabase.MIGRATION_8_9,
+                    AppDatabase.MIGRATION_9_10,
+                    AppDatabase.MIGRATION_10_11,
+                    AppDatabase.MIGRATION_11_12,
+                    AppDatabase.MIGRATION_12_13,
+                    AppDatabase.MIGRATION_13_14,
+                    AppDatabase.MIGRATION_14_15,
+                    AppDatabase.MIGRATION_15_16,
+                ).build()
+
+        val migratedDatabase = database.openHelper.writableDatabase
+        migratedDatabase
+            .query("PRAGMA table_info(guide_articles)")
+            .use { cursor ->
+                val columns =
+                    buildList {
+                        while (cursor.moveToNext()) add(cursor.getString(1))
+                    }
+                assertTrue(columns.contains("isBreedProfile"))
+                assertTrue(columns.contains("breedKey"))
+                assertTrue(columns.contains("contentBlocksJson"))
+            }
+        database.close()
+    }
+
+    @Test
     fun `migration 13 to 14 drops location columns from detection_records`() {
         clearLegacyRows()
         val database =
@@ -131,6 +165,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_12_13,
                     AppDatabase.MIGRATION_13_14,
                     AppDatabase.MIGRATION_14_15,
+                    AppDatabase.MIGRATION_15_16,
                 ).build()
 
         val migratedDatabase = database.openHelper.writableDatabase
@@ -164,6 +199,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_12_13,
                     AppDatabase.MIGRATION_13_14,
                     AppDatabase.MIGRATION_14_15,
+                    AppDatabase.MIGRATION_15_16,
                 ).build()
 
         try {

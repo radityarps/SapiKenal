@@ -21,15 +21,28 @@ function slugify(text: string): string {
 	return cleaned || `artikel-${Date.now().toString(36)}`;
 }
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, fetch }) => {
 	if (!locals.user) throw redirect(303, "/login");
-	return { user: locals.user };
+	let existingBreedKeys: string[] = [];
+	try {
+		const res = await backendJson<{ existing_breed_keys?: string[] }>(
+			api(),
+			{ headers: bearerHeaders(locals.sessionToken) },
+			fetch,
+		);
+		existingBreedKeys = res?.existing_breed_keys || [];
+	} catch {
+		existingBreedKeys = [];
+	}
+	return { user: locals.user, existingBreedKeys };
 };
 
 export const actions: Actions = {
 	create: async ({ request, locals, fetch }) => {
 		const form = await request.formData();
-		const category = String(form.get("category") || "app_usage").trim();
+		const is_breed_profile = form.get("is_breed_profile") === "true";
+		const breed_key = String(form.get("breed_key") || "").trim();
+		let category = String(form.get("category") || "app_usage").trim();
 		const sort_order = Number(form.get("sort_order") || 0);
 		const sources = String(form.get("sources") || "")
 			.split("\n")
@@ -37,18 +50,40 @@ export const actions: Actions = {
 			.filter(Boolean);
 
 		const actionType = String(form.get("action_type") || "");
-		const publishImmediately =
-			actionType === "publish" ||
-			(actionType !== "draft" && form.get("publish_immediately") === "true");
+		const publishImmediately = actionType === "publish";
 
 		const title = String(form.get("title") || "").trim();
 		const summary = String(form.get("summary") || "").trim();
 		const body = String(form.get("body") || "").trim();
-		const article_key =
-			String(form.get("article_key") || "").trim() || slugify(title);
+		const content_blocks_raw = String(form.get("content_blocks") || "").trim();
+
+		let content_blocks: any = null;
+		if (content_blocks_raw) {
+			try {
+				content_blocks = JSON.parse(content_blocks_raw);
+			} catch {
+				content_blocks = null;
+			}
+		}
+
+		let article_key = String(form.get("article_key") || "").trim();
+		if (is_breed_profile) {
+			if (!breed_key) {
+				return fail(400, {
+					error: "Jenis sapi wajib dipilih untuk artikel profil jenis sapi.",
+					values: { title, summary, body, category, sort_order, sources: String(form.get("sources") || "") },
+				});
+			}
+			article_key = `${breed_key}_1`;
+			category = breed_key;
+		} else if (!article_key) {
+			article_key = slugify(title);
+		}
 
 		const formValues = {
 			article_key,
+			is_breed_profile,
+			breed_key,
 			category,
 			sort_order,
 			sources: String(form.get("sources") || ""),
@@ -64,20 +99,16 @@ export const actions: Actions = {
 			});
 		}
 
-		if (sources.length === 0) {
-			return fail(400, {
-				error: "Minimal satu tautan sumber rujukan valid (HTTP/HTTPS) wajib diisi.",
-				values: formValues,
-			});
-		}
-
 		const payload = {
 			article_key,
+			is_breed_profile,
+			breed_key: is_breed_profile ? breed_key : null,
 			category,
 			sort_order,
 			title,
 			summary,
 			body,
+			content_blocks,
 			sources,
 			content_reviewed: false,
 		};

@@ -43,6 +43,7 @@ class GuideRepositoryTest {
                 api,
                 com.squareup.moshi.Moshi
                     .Builder()
+                    .add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
                     .build(),
             )
     }
@@ -114,6 +115,25 @@ class GuideRepositoryTest {
 
             assertTrue(repository.refresh().isFailure)
             assertEquals(listOf("cached"), repository.articles().first().map { it.title })
+        }
+
+    @Test
+    fun `breedProfile resolves dedicated breed profile after sync`() =
+        runTest {
+            val breedProfileArticle =
+                article("custom_bali_profile", "Profil Resmi Sapi Bali").copy(
+                    isBreedProfile = true,
+                    breedKey = "bali",
+                )
+            api.snapshot = snapshot(breedProfileArticle)
+            assertTrue(repository.refresh().isSuccess)
+
+            val resolved = repository.breedProfile("bali").first()
+            assertNotNull(resolved)
+            assertEquals("custom_bali_profile", resolved?.id)
+            assertEquals("Profil Resmi Sapi Bali", resolved?.title)
+            assertEquals(true, resolved?.isBreedProfile)
+            assertEquals("bali", resolved?.breedKey)
         }
 
     private fun article(

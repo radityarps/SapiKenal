@@ -78,7 +78,7 @@ class DashboardPeriod(BaseModel):
 
 
 def _article_sources(value: list[str]) -> list[str]:
-    sources = [source.strip() for source in value]
+    sources = [source.strip() for source in value if source.strip()]
     if any(
         not source
         or any(character.isspace() for character in source)
@@ -111,7 +111,10 @@ class GuideArticleRequest(BaseModel):
     title: str = Field(min_length=1, max_length=120)
     summary: str = Field(min_length=1, max_length=500)
     body: str = Field(min_length=1, max_length=50_000)
-    sources: list[str] = Field(min_length=1, max_length=20)
+    content_blocks: list[dict[str, Any]] | None = None
+    is_breed_profile: bool = False
+    breed_key: str | None = Field(default=None, max_length=32)
+    sources: list[str] = Field(default_factory=list, max_length=20)
     content_reviewed: Literal[False] = False
 
     @field_validator("article_key", "title", "summary", "body")
@@ -120,6 +123,17 @@ class GuideArticleRequest(BaseModel):
         value = value.strip()
         if not value:
             raise ValueError("Article text must not be blank")
+        return value
+
+    @field_validator("breed_key")
+    @classmethod
+    def valid_breed_key(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip().lower()
+        allowed = {"aceh", "bali", "brahman", "brangus", "limusin", "madura", "pasundan", "po"}
+        if value not in allowed:
+            raise ValueError(f"breed_key must be one of: {sorted(allowed)}")
         return value
 
     @field_validator("sources")
@@ -153,7 +167,10 @@ class GuideArticlePatchRequest(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=120)
     summary: str | None = Field(default=None, min_length=1, max_length=500)
     body: str | None = Field(default=None, min_length=1, max_length=50_000)
-    sources: list[str] | None = Field(default=None, min_length=1, max_length=20)
+    content_blocks: list[dict[str, Any]] | None = None
+    is_breed_profile: bool | None = None
+    breed_key: str | None = Field(default=None, max_length=32)
+    sources: list[str] | None = Field(default=None, max_length=20)
     content_reviewed: bool | None = None
 
     @model_validator(mode="before")
@@ -173,6 +190,17 @@ class GuideArticlePatchRequest(BaseModel):
             raise ValueError("Article text must not be blank")
         return value
 
+    @field_validator("breed_key")
+    @classmethod
+    def valid_breed_key(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip().lower()
+        allowed = {"aceh", "bali", "brahman", "brangus", "limusin", "madura", "pasundan", "po"}
+        if value not in allowed:
+            raise ValueError(f"breed_key must be one of: {sorted(allowed)}")
+        return value
+
     @field_validator("sources")
     @classmethod
     def valid_sources(cls, value: list[str] | None) -> list[str] | None:
@@ -189,6 +217,7 @@ class GuideArticleRevisionResponse(BaseModel):
     title: str
     summary: str
     body: str
+    content_blocks: list[dict[str, Any]] | None = None
     sources: list[str]
     content_reviewed: bool
     status: str
@@ -199,6 +228,8 @@ class GuideArticleRevisionResponse(BaseModel):
 class GuideArticleResponse(BaseModel):
     id: str
     article_key: str
+    is_breed_profile: bool = False
+    breed_key: str | None = None
     publication_status: Literal["draft", "active", "inactive"]
     revision: GuideArticleRevisionResponse
     active_revision: GuideArticleRevisionResponse | None

@@ -197,10 +197,19 @@ class GuideArticle(Base):
             name="ck_guide_articles_status",
         ),
         Index("ix_guide_articles_status", "status"),
+        Index(
+            "uq_guide_articles_breed_key",
+            "breed_key",
+            unique=True,
+            sqlite_where=sa.text("breed_key IS NOT NULL"),
+            postgresql_where=sa.text("breed_key IS NOT NULL"),
+        ),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
     article_key: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    is_breed_profile: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    breed_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_by: Mapped[str | None] = mapped_column(
         ForeignKey("users.id"), nullable=True
@@ -254,6 +263,9 @@ class GuideArticleRevision(Base):
     title: Mapped[str] = mapped_column(String(120), nullable=False)
     summary: Mapped[str] = mapped_column(String(500), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
+    content_blocks: Mapped[list[dict[str, Any]] | None] = mapped_column(
+        JSON, nullable=True, default=None
+    )
     sources: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     content_reviewed: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False

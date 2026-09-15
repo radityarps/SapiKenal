@@ -3,13 +3,23 @@ package id.sapikenal.app.ui.guide
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+enum class SyncStatus {
+    IDLE,
+    SYNCING,
+    SUCCESS,
+    FAILURE,
+}
 
 @HiltViewModel
 class GuideViewModel
@@ -20,6 +30,11 @@ class GuideViewModel
         val searchQuery = MutableStateFlow("")
         val selectedCategory = MutableStateFlow<GuideCategory?>(null)
         val isRefreshing = MutableStateFlow(false)
+
+        private val _syncStatus = MutableStateFlow(SyncStatus.IDLE)
+        val syncStatus: StateFlow<SyncStatus> = _syncStatus.asStateFlow()
+
+        private var syncFeedbackJob: Job? = null
 
         private val articles = repository.articles()
 
@@ -45,12 +60,23 @@ class GuideViewModel
 
         fun refreshArticles() {
             viewModelScope.launch {
+                syncFeedbackJob?.cancel()
                 isRefreshing.value = true
-                try {
-                    repository.refresh()
-                } finally {
-                    isRefreshing.value = false
+                _syncStatus.value = SyncStatus.SYNCING
+                val result = repository.refresh()
+                isRefreshing.value = false
+
+                if (result.isSuccess) {
+                    _syncStatus.value = SyncStatus.SUCCESS
+                } else {
+                    _syncStatus.value = SyncStatus.FAILURE
                 }
+
+                syncFeedbackJob =
+                    launch {
+                        delay(3_000)
+                        _syncStatus.value = SyncStatus.IDLE
+                    }
             }
         }
 

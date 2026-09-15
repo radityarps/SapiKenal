@@ -94,6 +94,9 @@ def test_article_lifecycle_and_deterministic_locale_snapshot(
             "title": "Profil Sapi Bali",
             "summary": "Ringkasan profil sapi Bali.",
             "body": "Informasi tentang karakteristik sapi Bali.",
+            "content_blocks": None,
+            "is_breed_profile": False,
+            "breed_key": None,
             "sources": ["https://example.com/bali"],
             "revision": 1,
         }
@@ -278,4 +281,80 @@ def test_article_listing_search_filter(
     ).json()
     assert key_search["total"] == 1
     assert key_search["items"][0]["article_key"] == "aceh_1"
+
+
+def test_create_breed_profile_article_and_prevent_duplicates(
+    article_client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, _ = article_client
+    blocks = [
+        {"type": "paragraph", "content": "Sapi Pasundan rumpun Jawa Barat."},
+        {"type": "bullet_list", "items": ["Tahan cuaca", "Garis belut jelas"]},
+        {"type": "disclaimer", "content": "Bukan bukti silsilah."},
+    ]
+    created = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="ignored-will-be-overridden",
+            is_breed_profile=True,
+            breed_key="pasundan",
+            content_blocks=blocks,
+            title="Profil Sapi Pasundan",
+            summary="Ringkasan profil Pasundan",
+        ),
+    )
+    assert created.status_code == 201
+    item = created.json()["item"]
+    assert item["article_key"] == "pasundan_1"
+    assert item["is_breed_profile"] is True
+    assert item["breed_key"] == "pasundan"
+    assert item["revision"]["content_blocks"] == blocks
+
+    # Listing should report pasundan in existing_breed_keys
+    listing = client.get("/api/admin/articles").json()
+    assert "pasundan" in listing["existing_breed_keys"]
+
+    # Attempting to create duplicate breed profile for pasundan must fail with 409
+    dup = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="another-pasundan",
+            is_breed_profile=True,
+            breed_key="pasundan",
+            title="Profil Sapi Pasundan Duplikat",
+        ),
+    )
+    assert dup.status_code == 409
+    assert dup.json()["code"] == "BREED_PROFILE_EXISTS"
+
+
+def test_create_and_activate_article_with_optional_empty_sources(
+    article_client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, session_factory = article_client
+    # Create article with empty sources list
+    created = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="panduan-tanpa-sumber",
+            sources=[],
+            title="Panduan Tanpa Sumber",
+        ),
+    )
+    assert created.status_code == 201
+    item = created.json()["item"]
+    assert item["revision"]["sources"] == []
+
+    article_id = item["id"]
+
+    # Review article
+    reviewed = client.post(f"/api/admin/articles/{article_id}/review")
+    assert reviewed.status_code == 200
+
+    # Activation should succeed even with empty sources
+    activated = client.post(f"/api/admin/articles/{article_id}/activate")
+    assert activated.status_code == 200
+    assert activated.json()["item"]["publication_status"] == "active"
+
+
 

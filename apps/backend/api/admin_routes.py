@@ -347,6 +347,31 @@ def _active_article_revision(
     )
 
 
+def blocks_to_markdown(blocks: list[dict[str, Any]]) -> str:
+    parts: list[str] = []
+    for block in blocks:
+        b_type = block.get("type", "paragraph")
+        content = str(block.get("content") or "").strip()
+        items = block.get("items") or []
+        if b_type == "heading":
+            if content:
+                parts.append(f"## {content}")
+        elif b_type == "bullet_list":
+            bullet_lines = [f"• {str(item).strip()}" for item in items if str(item).strip()]
+            if bullet_lines:
+                parts.append("\n".join(bullet_lines))
+        elif b_type == "callout":
+            if content:
+                parts.append(f"> {content}")
+        elif b_type == "disclaimer":
+            if content:
+                parts.append(content)
+        else:  # paragraph
+            if content:
+                parts.append(content)
+    return "\n\n".join(parts).strip()
+
+
 def _article_response(
     article: GuideArticle,
     revision: GuideArticleRevision,
@@ -355,6 +380,8 @@ def _article_response(
     return GuideArticleResponse(
         id=article.id,
         article_key=article.article_key,
+        is_breed_profile=article.is_breed_profile,
+        breed_key=article.breed_key,
         publication_status=cast(Literal["draft", "active", "inactive"], article.status),
         revision=GuideArticleRevisionResponse.model_validate(revision),
         active_revision=(
@@ -761,6 +788,7 @@ def list_articles(
         "po",
     ]
     | None = None,
+    is_breed_profile: bool | None = None,
     publication_status: Literal["draft", "active", "inactive"] | None = None,
     revision_status: Literal["draft", "active", "inactive"] | None = None,
     search: str | None = Query(default=None, max_length=120),
@@ -783,6 +811,8 @@ def list_articles(
     filters = []
     if publication_status:
         filters.append(GuideArticle.status == publication_status)
+    if is_breed_profile is not None:
+        filters.append(GuideArticle.is_breed_profile == is_breed_profile)
     if category:
         filters.append(latest.category == category)
     if revision_status:
@@ -811,6 +841,13 @@ def list_articles(
         .where(*filters)
     )
     total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    existing_breed_keys = [
+        k
+        for k in db.scalars(
+            select(GuideArticle.breed_key).where(GuideArticle.breed_key.is_not(None))
+        ).all()
+        if k
+    ]
     # SQLAlchemy statement is built only from typed, allowlisted filters above.
     # pi-lens-ignore: python-sql-injection
     rows = db.execute(
@@ -827,6 +864,7 @@ def list_articles(
         "page": page,
         "page_size": page_size,
         "total": total,
+        "existing_breed_keys": existing_breed_keys,
         "items": items,
     }
 
@@ -838,15 +876,46 @@ def create_article(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
+    target_key = payload.article_key
+    target_category = payload.category
+
+    if payload.is_breed_profile:
+        if not payload.breed_key:
+            raise AdminAPIError(
+                422,
+                "MISSING_BREED_KEY",
+                "breed_key wajib diisi untuk artikel profil jenis sapi",
+            )
+        existing_breed = db.scalar(
+            select(GuideArticle).where(
+                GuideArticle.breed_key == payload.breed_key,
+            )
+        )
+        if existing_breed is not None:
+            raise AdminAPIError(
+                409,
+                "BREED_PROFILE_EXISTS",
+                f"Profil jenis sapi '{payload.breed_key}' sudah terdaftar.",
+            )
+        target_key = f"{payload.breed_key}_1"
+        target_category = payload.breed_key
+
     existing = db.scalar(
         select(GuideArticle).where(
-            GuideArticle.article_key == payload.article_key,
+            GuideArticle.article_key == target_key,
         )
     )
     if existing is not None:
-        raise AdminAPIError(409, "ARTICLE_EXISTS", "Guide article already exists")
+        raise AdminAPIError(409, "ARTICLE_EXISTS", f"Artikel dengan kunci '{target_key}' sudah ada.")
+
+    body = payload.body
+    if payload.content_blocks and not body.strip():
+        body = blocks_to_markdown(payload.content_blocks)
+
     article = GuideArticle(
-        article_key=payload.article_key,
+        article_key=target_key,
+        is_breed_profile=payload.is_breed_profile,
+        breed_key=payload.breed_key if payload.is_breed_profile else None,
         status="draft",
         created_by=admin.id,
         updated_by=admin.id,
@@ -856,11 +925,12 @@ def create_article(
     revision = GuideArticleRevision(
         article_id=article.id,
         revision=1,
-        category=payload.category,
+        category=target_category,
         sort_order=payload.sort_order,
         title=payload.title,
         summary=payload.summary,
-        body=payload.body,
+        body=body,
+        content_blocks=payload.content_blocks,
         sources=payload.sources,
         content_reviewed=False,
         status="draft",
@@ -876,7 +946,11 @@ def create_article(
         resource_id=article.id,
         request_id=_request_id(request),
         ip_hash=_ip_hash(request),
-        changed_fields={"article_key": "set", "revision": 1},
+        changed_fields={
+            "article_key": "set",
+            "revision": 1,
+            "is_breed_profile": payload.is_breed_profile,
+        },
     )
     db.commit()
     return {"status": "success", "item": _article_response(article, revision)}
@@ -927,15 +1001,37 @@ def revise_article(
             "ARTICLE_REVIEW_INVALID",
             "Review saved article content separately from content changes",
         )
+    if "is_breed_profile" in changes:
+        article.is_breed_profile = changes.pop("is_breed_profile")
+    if "breed_key" in changes:
+        new_breed = changes.pop("breed_key")
+        if new_breed and new_breed != article.breed_key:
+            existing = db.scalar(
+                select(GuideArticle).where(
+                    GuideArticle.breed_key == new_breed,
+                    GuideArticle.id != article.id,
+                )
+            )
+            if existing is not None:
+                raise AdminAPIError(
+                    409,
+                    "BREED_PROFILE_EXISTS",
+                    f"Profil jenis sapi '{new_breed}' sudah terdaftar.",
+                )
+        article.breed_key = new_breed
+
     values = {
         "category": current.category,
         "sort_order": current.sort_order,
         "title": current.title,
         "summary": current.summary,
         "body": current.body,
+        "content_blocks": current.content_blocks,
         "sources": current.sources,
     }
     values.update(changes)
+    if "content_blocks" in changes and changes["content_blocks"] and not changes.get("body"):
+        values["body"] = blocks_to_markdown(changes["content_blocks"])
     revision = GuideArticleRevision(
         article_id=article.id,
         revision=current.revision + 1,
@@ -1036,11 +1132,11 @@ def activate_article(
     revision = _latest_article_revision(db, article_id) if article else None
     if article is None or revision is None:
         raise AdminAPIError(404, "ARTICLE_NOT_FOUND", "Guide article not found")
-    if not revision.content_reviewed or not revision.sources:
+    if not revision.content_reviewed:
         raise AdminAPIError(
             422,
             "ARTICLE_REVIEW_REQUIRED",
-            "Article content and sources must be reviewed before activation",
+            "Article content must be reviewed before activation",
         )
     for previous in db.scalars(
         select(GuideArticleRevision).where(
@@ -1137,6 +1233,9 @@ def public_articles(
             "title": revision.title,
             "summary": revision.summary,
             "body": revision.body,
+            "content_blocks": revision.content_blocks,
+            "is_breed_profile": article.is_breed_profile,
+            "breed_key": article.breed_key,
             "sources": revision.sources,
             "revision": revision.revision,
         }

@@ -224,7 +224,7 @@ fun ResultRoute(
                 null
             } else {
                 val articleKey = BreedContract.find(canonical)?.guideArticleId ?: "${canonical}_1"
-                GuideDataSource.articles(context).find { it.id == articleKey }
+                GuideDataSource.articles(context).find { it.breedKey == canonical || it.id == articleKey }
             }
         }
     val observedBreedProfile by remember(displayLabelKey) {
@@ -575,6 +575,20 @@ fun ResultRoute(
                 }
             } else if (activeBreedProfile != null) {
                 val profile = activeBreedProfile
+                val parsedProfile =
+                    remember(profile) {
+                        BreedProfileParser.parse(
+                            body = profile.body,
+                            fallbackSummary = profile.summary,
+                            contentBlocksJson = profile.contentBlocksJson,
+                        )
+                    }
+                val hasExpandableContent =
+                    parsedProfile.strengths.isNotEmpty() ||
+                        parsedProfile.limitations.isNotEmpty() ||
+                        parsedProfile.rawRemainingBody != null ||
+                        parsedProfile.disclaimer != null
+
                 Card(
                     colors =
                         CardDefaults.cardColors(
@@ -589,7 +603,7 @@ fun ResultRoute(
                                 start = 16.dp,
                                 top = 16.dp,
                                 end = 16.dp,
-                                bottom = if (profile.body.isNotBlank()) 4.dp else 16.dp,
+                                bottom = if (hasExpandableContent) 4.dp else 16.dp,
                             ),
                     ) {
                         Row(
@@ -625,13 +639,13 @@ fun ResultRoute(
                         Spacer(Modifier.height(10.dp))
 
                         Text(
-                            text = profile.summary,
+                            text = parsedProfile.summaryText,
                             style = MaterialTheme.typography.bodyMedium,
                             color = SapiKenalColors.TextPrimary,
                             lineHeight = 20.sp,
                         )
 
-                        if (profile.body.isNotBlank()) {
+                        if (hasExpandableContent) {
                             AnimatedVisibility(
                                 visible = isProfileExpanded,
                                 enter = expandVertically(),
@@ -642,24 +656,88 @@ fun ResultRoute(
                                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                                         modifier = Modifier.padding(bottom = 12.dp),
                                     )
-                                    Text(
-                                        text = stringResource(R.string.result_breed_characteristics),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = SapiKenalColors.TextPrimary,
-                                    )
-                                    Spacer(Modifier.height(6.dp))
-                                    Text(
-                                        text = profile.body,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = SapiKenalColors.TextSecondary,
-                                        lineHeight = 20.sp,
-                                    )
+
+                                    if (parsedProfile.strengths.isNotEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.result_breed_strengths),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = SapiKenalColors.Primary,
+                                        )
+                                        Spacer(Modifier.height(6.dp))
+                                        parsedProfile.strengths.forEach { item ->
+                                            Row(
+                                                modifier = Modifier.padding(vertical = 3.dp),
+                                                verticalAlignment = Alignment.Top,
+                                            ) {
+                                                Text(
+                                                    text = "•  ",
+                                                    color = SapiKenalColors.Primary,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                )
+                                                Text(
+                                                    text = item,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = SapiKenalColors.TextPrimary,
+                                                    lineHeight = 20.sp,
+                                                )
+                                            }
+                                        }
+                                        Spacer(Modifier.height(10.dp))
+                                    }
+
+                                    if (parsedProfile.limitations.isNotEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.result_breed_limitations),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = SapiKenalColors.TextPrimary,
+                                        )
+                                        Spacer(Modifier.height(6.dp))
+                                        parsedProfile.limitations.forEach { item ->
+                                            Row(
+                                                modifier = Modifier.padding(vertical = 3.dp),
+                                                verticalAlignment = Alignment.Top,
+                                            ) {
+                                                Text(
+                                                    text = "•  ",
+                                                    color = SapiKenalColors.TextSecondary,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                )
+                                                Text(
+                                                    text = item,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = SapiKenalColors.TextSecondary,
+                                                    lineHeight = 20.sp,
+                                                )
+                                            }
+                                        }
+                                        Spacer(Modifier.height(10.dp))
+                                    }
+
+                                    if (parsedProfile.rawRemainingBody != null) {
+                                        Text(
+                                            text = parsedProfile.rawRemainingBody,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = SapiKenalColors.TextSecondary,
+                                            lineHeight = 20.sp,
+                                        )
+                                        Spacer(Modifier.height(8.dp))
+                                    }
+
+                                    if (parsedProfile.disclaimer != null) {
+                                        Text(
+                                            text = parsedProfile.disclaimer,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = SapiKenalColors.TextSecondary,
+                                            lineHeight = 16.sp,
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        if (profile.body.isNotBlank()) {
                             Spacer(Modifier.height(4.dp))
                             TextButton(
                                 onClick = { isProfileExpanded = !isProfileExpanded },

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
-	import { ArrowLeft } from "lucide-svelte";
+	import { ArrowLeft, Sparkles } from "lucide-svelte";
 	import AdminShell from "$lib/components/AdminShell.svelte";
+	import BlockEditor from "$lib/components/BlockEditor.svelte";
 
 	export let data: {
 		user: App.Locals["user"];
@@ -32,7 +33,10 @@
 >
 	<section class="page-intro">
 		<div class="flex items-center gap-3">
-			<a class="button secondary flex items-center gap-1.5 !min-h-9 !py-1.5 !px-3 text-xs" href="/articles">
+			<a
+				class="button secondary flex items-center gap-1.5 !min-h-9 !py-1.5 !px-3 text-xs font-bold text-slate-800 border-slate-300 hover:bg-slate-900 hover:text-white hover:border-slate-900 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:outline-none transition-all"
+				href="/articles"
+			>
 				<ArrowLeft size={15} aria-hidden="true" />
 				Kembali ke daftar artikel
 			</a>
@@ -47,16 +51,23 @@
 		<p class="error" role="alert">{form.error}</p>
 	{/if}
 
-	<section class="panel mt-4 max-w-4xl p-6">
+	<section class="panel mt-4 max-w-4xl p-6 border border-slate-200 shadow-2xs rounded-xl bg-white">
 		<form class="space-y-5" method="POST" action="?/revise" use:enhance>
-			<div class="grid gap-4 sm:grid-cols-2 pb-4 border-b border-[#e0e7e3]">
+			{#if a.is_breed_profile}
+				<div class="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-950 font-bold shadow-2xs">
+					<Sparkles size={16} class="text-emerald-800" />
+					<span>Artikel ini adalah Profil Resmi Jenis Sapi ({a.breed_key?.toUpperCase()}).</span>
+				</div>
+			{/if}
+
+			<div class="grid gap-4 sm:grid-cols-2 pb-4 border-b border-slate-200">
 				<label class="sm:col-span-2">
-					<span>Kunci artikel</span>
-					<input value={a.article_key} readonly aria-readonly="true" class="opacity-60" />
-					<small class="text-[.72rem] font-normal text-[#66766f]">Kunci tidak dapat diubah setelah artikel dibuat.</small>
+					<span class="font-semibold text-slate-900">Kunci artikel</span>
+					<input value={a.article_key} readonly aria-readonly="true" class="bg-slate-50 border border-slate-200 text-slate-700 font-mono text-xs font-semibold" />
+					<small class="text-[.75rem] font-normal text-slate-600">Kunci tidak dapat diubah setelah artikel dibuat.</small>
 				</label>
 				<label>
-					<span>Kategori</span>
+					<span class="font-semibold text-slate-900">Kategori</span>
 					<select name="category" required>
 						{#each categories as category}
 							<option value={category.value} selected={a.revision.category === category.value}>{category.label}</option>
@@ -64,37 +75,56 @@
 					</select>
 				</label>
 				<label>
-					<span>Urutan</span>
+					<span class="font-semibold text-slate-900">Urutan</span>
 					<input name="sort_order" type="number" min="0" max="100000" value={a.revision.sort_order} required />
-					<small class="text-[.72rem] font-normal text-[#66766f]">Angka lebih kecil muncul lebih awal.</small>
+					<small class="text-[.75rem] font-normal text-slate-600">Angka lebih kecil muncul lebih awal.</small>
 				</label>
 				<label class="sm:col-span-2">
-					<span>Sumber Rujukan (satu URL per baris)</span>
-					<textarea name="sources" placeholder="https://sumber-tepercaya.example/artikel">{a.revision.sources.join("\n")}</textarea>
-					<small class="text-[.72rem] font-normal text-[#66766f]">Minimal satu tautan referensi valid.</small>
+					<span class="font-semibold text-slate-900">
+						Sumber Rujukan (satu URL per baris)
+						<span class="text-xs font-normal text-slate-500">(Opsional)</span>
+					</span>
+					<textarea name="sources" placeholder="https://sumber-tepercaya.example/artikel (kosongkan jika tidak ada)">{a.revision.sources.join("\n")}</textarea>
+					<small class="text-[.75rem] font-normal text-slate-600">Opsional. Masukkan tautan referensi berawalan http:// atau https:// jika ada.</small>
 				</label>
 			</div>
 
 			<label>
-				<span>Judul</span>
+				<span class="font-semibold text-slate-900">Judul</span>
 				<input name="title" value={a.revision.title} maxlength="120" required />
 			</label>
 			<label>
-				<span>Ringkasan</span>
+				<span class="font-semibold text-slate-900">Ringkasan</span>
 				<textarea name="summary" maxlength="500" required>{a.revision.summary}</textarea>
 			</label>
-			<label>
-				<span>Isi Artikel</span>
-				<textarea name="body" maxlength="50000" class="min-h-64" required>{a.revision.body}</textarea>
-			</label>
 
-			<div class="notice !py-2 !px-3 text-xs">
+			<!-- Notion-like Block Editor -->
+			<div>
+				<span class="block text-xs font-bold text-slate-900 mb-2">Isi Konten Artikel</span>
+				<BlockEditor
+					initialBlocks={a.revision.content_blocks || []}
+					initialBody={a.revision.body || ""}
+					isBreedProfile={a.is_breed_profile}
+				/>
+			</div>
+
+			<div class="rounded-xl border border-slate-200 bg-slate-50/90 p-4 text-xs font-medium text-slate-800 shadow-2xs leading-relaxed">
 				Menyimpan akan membuat <strong>revisi draft baru (v{a.revision.revision + 1})</strong>. Kembali ke halaman artikel untuk me-review dan mengaktifkannya.
 			</div>
 
-			<div class="flex flex-wrap items-center justify-between gap-3 border-t border-[#e5ebe8] pt-4">
-				<a href="/articles" class="button secondary">Batal</a>
-				<button type="submit">Simpan Revisi</button>
+			<div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+				<a
+					href="/articles"
+					class="button secondary !min-h-10 font-bold text-slate-800 border-slate-300 hover:bg-slate-900 hover:text-white hover:border-slate-900 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:outline-none transition-all"
+				>
+					Batal
+				</a>
+				<button
+					type="submit"
+					class="button !min-h-10 font-bold bg-[#155e3d] hover:bg-[#0f462d] text-white shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#155e3d] focus-visible:ring-offset-2 transition-all"
+				>
+					Simpan Revisi
+				</button>
 			</div>
 		</form>
 	</section>

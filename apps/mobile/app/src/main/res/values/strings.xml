@@ -97,6 +97,8 @@
     <string name="result_advice_title">Profil Jenis</string>
     <string name="result_learn_more">Pelajari Selengkapnya</string>
     <string name="result_breed_characteristics">Karakteristik &amp; Keunggulan</string>
+    <string name="result_breed_strengths">Kelebihan</string>
+    <string name="result_breed_limitations">Kekurangan &amp; Batasan</string>
     <string name="result_view_full_guide">Buka Panduan Lengkap</string>
     <string name="result_expand_details">Lihat selengkapnya</string>
     <string name="result_collapse_details">Sembunyikan</string>
@@ -179,6 +181,8 @@
     <string name="guide_action_filter">Filter</string>
     <string name="guide_action_clear">Hapus</string>
     <string name="guide_action_refresh">Sinkronkan panduan</string>
+    <string name="guide_sync_success">Sinkronisasi berhasil</string>
+    <string name="guide_sync_failed">Gagal sinkronisasi</string>
     <string name="guide_tab_app">Penggunaan</string>
     <string name="guide_tab_aceh">Aceh</string>
     <string name="guide_tab_bali">Bali</string>

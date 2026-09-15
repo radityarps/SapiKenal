@@ -12,6 +12,9 @@ data class GuideArticleEntity(
     val body: String,
     val sourcesJson: String,
     val revision: Int,
+    val isBreedProfile: Boolean = false,
+    val breedKey: String? = null,
+    val contentBlocksJson: String? = null,
 )
 
 @Entity(tableName = "guide_sync_metadata")

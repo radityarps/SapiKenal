@@ -35,6 +35,8 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_aceh_title_1),
                 summary = context.getString(R.string.guide_aceh_summary_1),
                 body = context.getString(R.string.guide_aceh_body_1),
+                isBreedProfile = true,
+                breedKey = "aceh",
             ),
             GuideArticle(
                 id = "aceh_2",
@@ -50,6 +52,8 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_bali_title_1),
                 summary = context.getString(R.string.guide_bali_summary_1),
                 body = context.getString(R.string.guide_bali_body_1),
+                isBreedProfile = true,
+                breedKey = "bali",
             ),
             GuideArticle(
                 id = "bali_2",
@@ -79,6 +83,8 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_madura_title_1),
                 summary = context.getString(R.string.guide_madura_summary_1),
                 body = context.getString(R.string.guide_madura_body_1),
+                isBreedProfile = true,
+                breedKey = "madura",
             ),
             GuideArticle(
                 id = "madura_2",
@@ -94,6 +100,8 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_pasundan_title_1),
                 summary = context.getString(R.string.guide_pasundan_summary_1),
                 body = context.getString(R.string.guide_pasundan_body_1),
+                isBreedProfile = true,
+                breedKey = "pasundan",
             ),
             GuideArticle(
                 id = "pasundan_2",
@@ -109,6 +117,8 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_po_title_1),
                 summary = context.getString(R.string.guide_po_summary_1),
                 body = context.getString(R.string.guide_po_body_1),
+                isBreedProfile = true,
+                breedKey = "po",
             ),
             GuideArticle(
                 id = "po_2",
@@ -124,6 +134,8 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_brahman_title_1),
                 summary = context.getString(R.string.guide_brahman_summary_1),
                 body = context.getString(R.string.guide_brahman_body_1),
+                isBreedProfile = true,
+                breedKey = "brahman",
             ),
             GuideArticle(
                 id = "brahman_2",
@@ -153,6 +165,8 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_brangus_title_1),
                 summary = context.getString(R.string.guide_brangus_summary_1),
                 body = context.getString(R.string.guide_brangus_body_1),
+                isBreedProfile = true,
+                breedKey = "brangus",
             ),
             GuideArticle(
                 id = "brangus_2",
@@ -175,6 +189,8 @@ object GuideDataSource {
                 title = context.getString(R.string.guide_limusin_title_1),
                 summary = context.getString(R.string.guide_limusin_summary_1),
                 body = context.getString(R.string.guide_limusin_body_1),
+                isBreedProfile = true,
+                breedKey = "limusin",
             ),
             GuideArticle(
                 id = "limusin_2",

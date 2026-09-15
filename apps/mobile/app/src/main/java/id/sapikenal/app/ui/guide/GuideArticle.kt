@@ -11,6 +11,9 @@ data class GuideArticle(
     val title: String,
     val summary: String,
     val body: String,
+    val isBreedProfile: Boolean = false,
+    val breedKey: String? = null,
+    val contentBlocksJson: String? = null,
 )
 
 enum class GuideCategory(

@@ -10,6 +10,7 @@
     Pencil,
     Plus,
     Search,
+    Sparkles,
     X,
   } from "lucide-svelte";
   import AdminFilterSelect from "$lib/components/AdminFilterSelect.svelte";
@@ -80,7 +81,6 @@
   };
   const canPublishAction = (article: any) =>
     !isActive(article) &&
-    article?.revision?.sources?.length > 0 &&
     article?.revision?.status !== "active";
 
   async function openDetail(article: any) {
@@ -167,7 +167,7 @@
     </div>
     <div class="flex items-end">
       <a
-        class="button inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-[#176b49] px-3.5 py-2 text-sm font-semibold text-white shadow-2xs transition hover:bg-[#125a3d]"
+        class="button inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-[#155e3d] px-3.5 py-2 text-sm font-semibold text-white shadow-2xs transition hover:bg-[#0f462d]"
         href="/articles/create"
       >
         <Plus size={16} strokeWidth={2.2} aria-hidden="true" />
@@ -176,7 +176,26 @@
     </div>
   </div>
 
-  <section class="panel mt-3 p-0">
+  <!-- Breed Profiles Completeness Banner -->
+  <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+    <div class="flex items-center gap-2.5">
+      <Sparkles size={16} class="text-emerald-700" />
+      <span class="text-xs font-bold text-slate-900">Kelengkapan Profil Resmi Sapi:</span>
+      <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+        {(data.articles.existing_breed_keys || []).length}/6 Rumpun
+      </span>
+    </div>
+    <div class="flex flex-wrap items-center gap-1.5 text-xs">
+      {#each ["pasundan", "bali", "po", "madura", "limusin", "aceh"] as breed}
+        {@const registered = (data.articles.existing_breed_keys || []).includes(breed)}
+        <span class="rounded-md px-2 py-0.5 text-[10px] font-bold border transition-colors {registered ? 'bg-emerald-50 text-emerald-900 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}">
+          {breed.toUpperCase()} {registered ? "✓" : "–"}
+        </span>
+      {/each}
+    </div>
+  </div>
+
+  <section class="panel mt-3 p-0 border border-slate-200 rounded-xl shadow-2xs overflow-hidden bg-white">
     {#if data.articles.items.length}
       <table class="table-fixed">
         <thead>
@@ -193,44 +212,49 @@
             <tr>
               <!-- Artikel (Judul, key, summary) -->
               <td class="whitespace-normal">
-                <strong class="block text-sm font-semibold text-[#17241f]">{article.revision.title}</strong>
+                <div class="flex items-center gap-1.5">
+                  <strong class="block text-sm font-semibold text-slate-900">{article.revision.title}</strong>
+                  {#if article.is_breed_profile}
+                    <span class="rounded-md bg-emerald-800 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs">Profil Sapi</span>
+                  {/if}
+                </div>
                 <div class="mt-1 flex flex-wrap items-center gap-1.5">
-                  <code class="rounded-md bg-[#f1f5f3] px-2 py-0.5 font-mono text-[.72rem] text-[#40554a]">{article.article_key}</code>
-                  <span class="text-xs text-[#52655c]">· v{article.revision.revision}</span>
+                  <code class="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[.72rem] text-slate-700 font-semibold border border-slate-200">{article.article_key}</code>
+                  <span class="text-xs font-medium text-slate-500">· v{article.revision.revision}</span>
                 </div>
                 {#if article.revision.summary}
-                  <p class="m-0 mt-1 line-clamp-2 text-xs leading-relaxed text-[#53645b]">{article.revision.summary}</p>
+                  <p class="m-0 mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600">{article.revision.summary}</p>
                 {/if}
               </td>
 
               <!-- Kategori -->
-              <td class="whitespace-normal text-xs font-semibold text-[#40554a]">
+              <td class="whitespace-normal text-xs font-semibold text-slate-700">
                 {categoryLabel(article.revision.category)}
               </td>
 
               <!-- Status Publikasi & Revisi -->
               <td class="whitespace-normal">
                 {#if article.publication_status === 'active'}
-                  <span class="badge !bg-[#eaf6f0] !text-[#0f5436]">Publik: Aktif</span>
+                  <span class="badge !bg-emerald-100 !text-emerald-950 font-bold border border-emerald-200">Publik: Aktif</span>
                 {:else if article.publication_status === 'inactive'}
-                  <span class="badge !bg-[#fdf2f4] !text-[#861f2f]">Publik: Nonaktif</span>
+                  <span class="badge !bg-rose-100 !text-rose-950 font-bold border border-rose-200">Publik: Nonaktif</span>
                 {:else}
-                  <span class="badge !bg-[#fffaf0] !text-[#764b07]">Publik: Draft</span>
+                  <span class="badge !bg-amber-100 !text-amber-950 font-bold border border-amber-200">Publik: Draft</span>
                 {/if}
-                <span class="mt-1.5 block text-xs text-[#52655c]">
+                <span class="mt-1.5 block text-xs font-medium text-slate-600">
                   Revisi terbaru: v{article.revision.revision} · {statusLabel(article.revision.status)}
                 </span>
                 {#if article.active_revision}
-                  <span class="mt-0.5 block text-xs text-[#52655c]">Publik saat ini: v{article.active_revision.revision}</span>
+                  <span class="mt-0.5 block text-xs font-medium text-slate-500">Publik saat ini: v{article.active_revision.revision}</span>
                 {/if}
               </td>
 
               <!-- Review -->
               <td class="whitespace-normal">
                 {#if reviewed(article)}
-                  <span class="badge !bg-[#eaf6f0] !text-[#0f5436]">Sudah ditinjau</span>
+                  <span class="badge !bg-emerald-100 !text-emerald-950 font-bold border border-emerald-200">Sudah ditinjau</span>
                 {:else}
-                  <span class="badge !bg-[#fffaf0] !text-[#764b07]">Perlu ditinjau</span>
+                  <span class="badge !bg-amber-100 !text-amber-950 font-bold border border-amber-200">Perlu ditinjau</span>
                 {/if}
               </td>
 
@@ -239,7 +263,7 @@
                 <div class="inline-flex items-center justify-center gap-1">
                   <!-- Lihat Detail Modal Button -->
                   <button
-                    class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#426353] hover:bg-[#edf5f1] hover:text-[#176b49]"
+                    class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-slate-600 transition-all hover:bg-slate-900 hover:text-white hover:border-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:bg-slate-900 focus-visible:text-white"
                     type="button"
                     aria-label={`Lihat detail artikel ${article.revision?.title || article.article_key}`}
                     title="Lihat detail"
@@ -251,7 +275,7 @@
                   <!-- Edit Button -->
                   <a
                     href={`/articles/${article.id}/edit`}
-                    class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#426353] hover:bg-[#edf5f1] hover:text-[#176b49]"
+                    class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-slate-600 transition-all hover:bg-slate-900 hover:text-white hover:border-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:bg-slate-900 focus-visible:text-white"
                     title="Edit artikel"
                     aria-label={`Edit artikel ${article.revision?.title || article.article_key}`}
                   >
@@ -267,7 +291,7 @@
                         type="submit"
                         title="Tarik dari publikasi"
                         aria-label="Tarik artikel dari publikasi"
-                        class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#8b2635] hover:bg-[#f9e9ec] hover:text-[#8b2635]"
+                        class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-rose-600 transition-all hover:bg-rose-700 hover:text-white hover:border-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:bg-rose-700 focus-visible:text-white"
                       >
                         <EyeOff size={16} strokeWidth={1.8} aria-hidden="true" />
                       </button>
@@ -280,16 +304,16 @@
                         type="submit"
                         title={publishTooltip(article)}
                         aria-label={publishTooltip(article)}
-                        class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#176b49] hover:bg-[#edf5f1] hover:text-[#125a3d]"
+                        class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-emerald-700 transition-all hover:bg-[#155e3d] hover:text-white hover:border-[#155e3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#155e3d] focus-visible:bg-[#155e3d] focus-visible:text-white"
                       >
                         <Globe size={16} strokeWidth={1.8} aria-hidden="true" />
                       </button>
                     </form>
                   {:else}
                     <span
-                      title={!article.revision?.sources?.length ? "Perlu sumber rujukan sebelum publikasi" : "Perlu ditinjau sebelum publikasi"}
+                      title="Perlu ditinjau sebelum publikasi"
                       aria-label="Publikasi tidak tersedia"
-                      class="grid size-9 min-h-0 cursor-not-allowed place-items-center rounded-lg bg-transparent p-0 text-[#a3b3aa]"
+                      class="grid size-9 min-h-0 cursor-not-allowed place-items-center rounded-lg bg-transparent p-0 text-slate-300"
                     >
                       <Globe size={16} strokeWidth={1.8} aria-hidden="true" />
                     </span>
@@ -304,7 +328,7 @@
                         type="submit"
                         title="Arsipkan artikel"
                         aria-label="Arsipkan artikel"
-                        class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef] hover:text-[#263a30]"
+                        class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-slate-600 transition-all hover:bg-slate-900 hover:text-white hover:border-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:bg-slate-900 focus-visible:text-white"
                       >
                         <Archive size={16} strokeWidth={1.8} aria-hidden="true" />
                       </button>
@@ -336,7 +360,7 @@
         <h2 id="article-detail-title" class="m-0 text-lg font-bold">{selectedArticle.revision?.title}</h2>
       </div>
       <button
-        class="grid size-9 min-h-0 place-items-center rounded-lg bg-transparent p-0 text-[#64736c] hover:bg-[#edf2ef] hover:text-[#263a30]"
+        class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-slate-600 transition-all hover:bg-slate-900 hover:text-white hover:border-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:bg-slate-900 focus-visible:text-white"
         type="button"
         aria-label="Tutup detail"
         onclick={closeDetail}

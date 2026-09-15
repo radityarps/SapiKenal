@@ -9,6 +9,13 @@ data class GuideSnapshotDto(
     val items: List<GuideArticleDto>,
 )
 
+data class ContentBlockDto(
+    val id: String? = null,
+    val type: String = "paragraph",
+    val content: String = "",
+    val items: List<String>? = null,
+)
+
 data class GuideArticleDto(
     @Json(name = "article_key") val articleKey: String,
     val category: String,
@@ -18,4 +25,7 @@ data class GuideArticleDto(
     val body: String,
     val sources: List<String>,
     val revision: Int,
+    @Json(name = "is_breed_profile") val isBreedProfile: Boolean = false,
+    @Json(name = "breed_key") val breedKey: String? = null,
+    @Json(name = "content_blocks") val contentBlocks: List<ContentBlockDto>? = null,
 )

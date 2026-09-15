@@ -7,6 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import id.sapikenal.app.data.local.dao.GuideArticleDao
 import id.sapikenal.app.data.local.entity.GuideArticleEntity
 import id.sapikenal.app.data.remote.api.GuideContentApiService
+import id.sapikenal.app.data.remote.dto.ContentBlockDto
 import id.sapikenal.app.data.remote.dto.GuideArticleDto
 import id.sapikenal.app.data.remote.dto.GuideSnapshotDto
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,10 @@ class GuideRepository
             moshi.adapter<List<String>>(
                 Types.newParameterizedType(List::class.java, String::class.java),
             )
+        private val blocksAdapter =
+            moshi.adapter<List<ContentBlockDto>>(
+                Types.newParameterizedType(List::class.java, ContentBlockDto::class.java),
+            )
 
         fun articles(): Flow<List<GuideArticle>> =
             dao.observeArticles().map { cached ->
@@ -41,6 +46,14 @@ class GuideRepository
         fun article(key: String): Flow<GuideArticle?> =
             articles().map { items -> items.find { it.id == key } }
 
+        fun breedProfile(breedKey: String): Flow<GuideArticle?> =
+            articles().map { items ->
+                val canonical = breedKey.trim().lowercase()
+                items.find { it.isBreedProfile && it.breedKey.equals(canonical, ignoreCase = true) }
+                    ?: items.find { it.id == "${canonical}_1" }
+                    ?: items.find { it.category.name.equals(canonical, ignoreCase = true) }
+            }
+
         suspend fun refresh(): Result<Unit> =
             runCatching {
                 val snapshot = api.articles()
@@ -48,7 +61,12 @@ class GuideRepository
                 dao.replaceSnapshot(
                     snapshotVersion = snapshot.snapshotVersion,
                     syncedAt = System.currentTimeMillis(),
-                    items = snapshot.items.map { it.toEntity(sourcesAdapter.toJson(it.sources)) },
+                    items =
+                        snapshot.items.map { dto ->
+                            val sourcesJson = sourcesAdapter.toJson(dto.sources)
+                            val blocksJson = dto.contentBlocks?.let { blocks -> blocksAdapter.toJson(blocks) }
+                            dto.toEntity(sourcesJson, blocksJson)
+                        },
                 )
             }
 
@@ -71,6 +89,9 @@ class GuideRepository
                 require(item.body.isNotBlank() && item.body.length <= 50_000)
                 require(item.sources.size <= 20)
                 require(item.sources.all(::validSource))
+                if (item.isBreedProfile && !item.breedKey.isNullOrBlank()) {
+                    require(item.breedKey.lowercase() in CATEGORIES)
+                }
             }
         }
 
@@ -83,23 +104,31 @@ class GuideRepository
         private fun toArticle(entity: GuideArticleEntity) =
             GuideArticle(
                 id = entity.articleKey,
-                category = GuideCategory.valueOf(entity.category.uppercase()),
+                category = runCatching { GuideCategory.valueOf(entity.category.uppercase()) }.getOrDefault(GuideCategory.APP_USAGE),
                 title = entity.title,
                 summary = entity.summary,
                 body = entity.body,
+                isBreedProfile = entity.isBreedProfile,
+                breedKey = entity.breedKey,
+                contentBlocksJson = entity.contentBlocksJson,
             )
 
-        private fun GuideArticleDto.toEntity(sourcesJson: String) =
-            GuideArticleEntity(
-                articleKey = articleKey,
-                category = category,
-                sortOrder = sortOrder,
-                title = title,
-                summary = summary,
-                body = body,
-                sourcesJson = sourcesJson,
-                revision = revision,
-            )
+        private fun GuideArticleDto.toEntity(
+            sourcesJson: String,
+            blocksJson: String?,
+        ) = GuideArticleEntity(
+            articleKey = articleKey,
+            category = category,
+            sortOrder = sortOrder,
+            title = title,
+            summary = summary,
+            body = body,
+            sourcesJson = sourcesJson,
+            revision = revision,
+            isBreedProfile = isBreedProfile,
+            breedKey = breedKey,
+            contentBlocksJson = blocksJson,
+        )
 
         companion object {
             private val CATEGORIES =

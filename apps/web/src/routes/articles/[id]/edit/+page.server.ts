@@ -38,6 +38,16 @@ export const actions: Actions = {
 			.map((s) => s.trim())
 			.filter(Boolean);
 
+		const content_blocks_raw = String(form.get("content_blocks") || "").trim();
+		let content_blocks: any = null;
+		if (content_blocks_raw) {
+			try {
+				content_blocks = JSON.parse(content_blocks_raw);
+			} catch {
+				content_blocks = null;
+			}
+		}
+
 		if (!title || !summary || !body) {
 			return fail(400, { error: "Judul, ringkasan, dan isi artikel wajib diisi." });
 		}
@@ -51,7 +61,7 @@ export const actions: Actions = {
 						...bearerHeaders(locals.sessionToken),
 						"content-type": "application/json",
 					},
-					body: JSON.stringify({ category, sort_order, title, summary, body, sources }),
+					body: JSON.stringify({ category, sort_order, title, summary, body, content_blocks, sources }),
 				},
 				fetch,
 			);

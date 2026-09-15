@@ -143,16 +143,24 @@ def seed_guide_articles(*, activate: bool = False) -> int:
     try:
         with SessionLocal() as db:
             for seed in seeds:
+                is_breed = seed.article_key == f"{seed.category}_1" and seed.category in {
+                    "aceh", "bali", "limusin", "madura", "pasundan", "po", "brahman", "brangus"
+                }
                 existing = db.scalar(
                     select(GuideArticle).where(
                         GuideArticle.article_key == seed.article_key,
                     )
                 )
                 if existing is not None:
+                    if is_breed and not existing.is_breed_profile:
+                        existing.is_breed_profile = True
+                        existing.breed_key = seed.category
                     continue
                 status = "active" if activate else "draft"
                 article = GuideArticle(
                     article_key=seed.article_key,
+                    is_breed_profile=is_breed,
+                    breed_key=seed.category if is_breed else None,
                     status=status,
                 )
                 db.add(article)

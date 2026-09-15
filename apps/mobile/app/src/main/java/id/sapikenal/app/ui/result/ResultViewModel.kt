@@ -57,8 +57,7 @@ class ResultViewModel
             if (canonical.isBlank() || canonical == "non_sapi" || canonical == "unknown") {
                 return flowOf(null)
             }
-            val articleKey = BreedContract.find(canonical)?.guideArticleId ?: "${canonical}_1"
-            return guideRepository.article(articleKey)
+            return guideRepository.breedProfile(canonical)
         }
 
         fun saveNote(

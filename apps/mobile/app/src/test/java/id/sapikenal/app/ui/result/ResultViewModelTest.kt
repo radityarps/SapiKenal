@@ -90,24 +90,24 @@ class ResultViewModelTest {
     @Test
     fun `breedProfile returns guide article for valid canonical breed`() =
         runTest(testDispatcher) {
-            whenever(guideRepository.article("bali_1")).thenReturn(flowOf(sampleBaliArticle))
+            whenever(guideRepository.breedProfile("bali")).thenReturn(flowOf(sampleBaliArticle))
 
             val profile = viewModel.breedProfile("bali").first()
 
             assertEquals(sampleBaliArticle, profile)
             assertEquals("bali_1", profile?.id)
-            verify(guideRepository).article("bali_1")
+            verify(guideRepository).breedProfile("bali")
         }
 
     @Test
     fun `breedProfile is case insensitive and trims whitespace`() =
         runTest(testDispatcher) {
-            whenever(guideRepository.article("bali_1")).thenReturn(flowOf(sampleBaliArticle))
+            whenever(guideRepository.breedProfile("bali")).thenReturn(flowOf(sampleBaliArticle))
 
             val profile = viewModel.breedProfile("  BALI  ").first()
 
             assertEquals(sampleBaliArticle, profile)
-            verify(guideRepository).article("bali_1")
+            verify(guideRepository).breedProfile("bali")
         }
 
     @Test

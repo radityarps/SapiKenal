@@ -111,6 +111,9 @@ describe("Artikel Panduan page server", () => {
 
 		expect(body).toContain("Revisi terbaru: v2 · Draft");
 		expect(body).toContain("Publik saat ini: v1");
+		expect(body).toContain("Draf v2 belum terbit");
+		expect(body).toContain("Publikasikan revisi terbaru (v2)");
+		expect(body).toContain("Tarik dari publikasi");
 	});
 
 	it("forwards search query parameter to backend", async () => {
@@ -521,3 +524,83 @@ describe("Artikel Panduan create page server", () => {
 		);
 	});
 });
+
+import { actions as editActions, load as editLoad } from "./[id]/edit/+page.server";
+
+function editActionEvent(id: string, fields: Record<string, string>) {
+	return {
+		request: new Request(`http://localhost/articles/${id}/edit`, {
+			method: "POST",
+			body: new URLSearchParams(fields),
+		}),
+		locals: { sessionToken: "test-only" },
+		params: { id },
+		fetch: vi.fn(),
+	} as unknown as Parameters<NonNullable<typeof editActions.revise>>[0];
+}
+
+describe("Artikel Panduan edit page server", () => {
+	it("saves draft revision when action_type is draft", async () => {
+		vi.mocked(backendJson).mockResolvedValue({ status: "success" });
+
+		await expect(
+			editActions.revise!(
+				editActionEvent("article-123", {
+					action_type: "draft",
+					category: "aceh",
+					sort_order: "600",
+					title: "Profil Sapi Aceh",
+					summary: "Ringkasan",
+					body: "Konten Aceh",
+					banner_image_url: "/media/banners/banner_aceh.jpg",
+				}) as never,
+			),
+		).rejects.toMatchObject({ status: 303, location: "/articles" });
+
+		expect(backendJson).toHaveBeenCalledTimes(1);
+		expect(backendJson).toHaveBeenCalledWith(
+			"/api/admin/articles/article-123/revise",
+			expect.objectContaining({
+				method: "POST",
+				body: expect.stringContaining("/media/banners/banner_aceh.jpg"),
+			}),
+			expect.any(Function),
+		);
+	});
+
+	it("publishes immediately when action_type is publish", async () => {
+		vi.mocked(backendJson).mockResolvedValue({ status: "success" });
+
+		await expect(
+			editActions.revise!(
+				editActionEvent("article-123", {
+					action_type: "publish",
+					category: "aceh",
+					sort_order: "600",
+					title: "Profil Sapi Aceh",
+					summary: "Ringkasan",
+					body: "Konten Aceh",
+					banner_image_url: "/media/banners/banner_aceh.jpg",
+				}) as never,
+			),
+		).rejects.toMatchObject({ status: 303, location: "/articles" });
+
+		expect(backendJson).toHaveBeenCalledTimes(2);
+		expect(backendJson).toHaveBeenNthCalledWith(
+			1,
+			"/api/admin/articles/article-123/revise",
+			expect.any(Object),
+			expect.any(Function),
+		);
+		expect(backendJson).toHaveBeenNthCalledWith(
+			2,
+			"/api/admin/articles/article-123/activate",
+			expect.objectContaining({
+				method: "POST",
+				body: JSON.stringify({ reason: "Publikasi revisi langsung dari editor" }),
+			}),
+			expect.any(Function),
+		);
+	});
+});
+

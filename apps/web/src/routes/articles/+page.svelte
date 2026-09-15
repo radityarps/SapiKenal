@@ -225,6 +225,11 @@
                 {:else}
                   <span class="badge !bg-amber-100 !text-amber-950 font-bold border border-amber-200">Publik: Draft</span>
                 {/if}
+                {#if article.revision?.status === 'draft' && article.publication_status === 'active'}
+                  <span class="mt-1 inline-block rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-300">
+                    Draf v{article.revision.revision} belum terbit
+                  </span>
+                {/if}
                 <span class="mt-1.5 block text-xs font-medium text-slate-600">
                   Revisi terbaru: v{article.revision.revision} · {statusLabel(article.revision.status)}
                 </span>
@@ -257,7 +262,23 @@
                     <Pencil size={16} strokeWidth={1.8} aria-hidden="true" />
                   </a>
 
-                  <!-- Publikasi / Tarik Button -->
+                  <!-- Publikasi Revisi / Artikel -->
+                  {#if article.revision?.status === 'draft' || article.publication_status !== 'active'}
+                    <form method="POST" action="?/activate" use:enhance class="inline">
+                      <input type="hidden" name="id" value={article.id} />
+                      <input type="hidden" name="reason" value="Publikasi Artikel Panduan" />
+                      <button
+                        type="submit"
+                        title={article.publication_status === 'active' ? `Publikasikan revisi terbaru (v${article.revision?.revision})` : 'Publikasikan artikel'}
+                        aria-label={article.publication_status === 'active' ? `Publikasikan revisi terbaru (v${article.revision?.revision})` : 'Publikasikan artikel'}
+                        class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-emerald-700 transition-all hover:bg-[#155e3d] hover:text-white hover:border-[#155e3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#155e3d] focus-visible:bg-[#155e3d] focus-visible:text-white"
+                      >
+                        <Globe size={16} strokeWidth={1.8} aria-hidden="true" />
+                      </button>
+                    </form>
+                  {/if}
+
+                  <!-- Tarik dari publikasi -->
                   {#if isActive(article)}
                     <form method="POST" action="?/deactivate" use:enhance class="inline">
                       <input type="hidden" name="id" value={article.id} />
@@ -269,19 +290,6 @@
                         class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-rose-600 transition-all hover:bg-rose-700 hover:text-white hover:border-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:bg-rose-700 focus-visible:text-white"
                       >
                         <EyeOff size={16} strokeWidth={1.8} aria-hidden="true" />
-                      </button>
-                    </form>
-                  {:else}
-                    <form method="POST" action="?/activate" use:enhance class="inline">
-                      <input type="hidden" name="id" value={article.id} />
-                      <input type="hidden" name="reason" value="Publikasi Artikel Panduan" />
-                      <button
-                        type="submit"
-                        title="Publikasikan artikel"
-                        aria-label="Publikasikan artikel"
-                        class="grid size-9 min-h-0 place-items-center rounded-lg border border-transparent bg-transparent p-0 text-emerald-700 transition-all hover:bg-[#155e3d] hover:text-white hover:border-[#155e3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#155e3d] focus-visible:bg-[#155e3d] focus-visible:text-white"
-                      >
-                        <Globe size={16} strokeWidth={1.8} aria-hidden="true" />
                       </button>
                     </form>
                   {/if}
@@ -398,9 +406,22 @@
       </dl>
 
       <div class="flex items-center justify-end gap-2 border-t border-[#e5ebe8] pt-4">
+        {#if selectedArticle.revision?.status === 'draft' || selectedArticle.publication_status !== 'active'}
+          <form method="POST" action="?/activate" use:enhance class="inline">
+            <input type="hidden" name="id" value={selectedArticle.id} />
+            <input type="hidden" name="reason" value="Publikasi Artikel Panduan" />
+            <button
+              type="submit"
+              class="button inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#155e3d] px-3.5 text-xs font-semibold text-white shadow-2xs transition hover:bg-[#0f462d]"
+            >
+              <Globe size={14} strokeWidth={2} aria-hidden="true" />
+              <span>{selectedArticle.publication_status === 'active' ? `Publikasikan Revisi (v${selectedArticle.revision?.revision})` : 'Publikasikan Artikel'}</span>
+            </button>
+          </form>
+        {/if}
         <a
           href={`/articles/${selectedArticle.id}/edit`}
-          class="button inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#176b49] px-3.5 text-xs font-semibold text-white transition hover:bg-[#125a3d]"
+          class="button secondary inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 text-xs font-semibold text-slate-800 transition hover:bg-slate-900 hover:text-white"
         >
           <Pencil size={14} strokeWidth={2} aria-hidden="true" />
           <span>Edit Artikel</span>

@@ -116,7 +116,7 @@
 			</div>
 
 			<div class="rounded-xl border border-slate-200 bg-slate-50/90 p-4 text-xs font-medium text-slate-800 shadow-2xs leading-relaxed">
-				Menyimpan akan membuat <strong>revisi draft baru (v{a.revision.revision + 1})</strong>. Kembali ke halaman artikel untuk mengaktifkan/mempublikasikannya.
+				Pilih <strong>Simpan & Publikasikan</strong> untuk langsung menerapkan perubahan ke aplikasi mobile, atau <strong>Simpan Draf Revisi</strong> jika masih ingin meninjau sebelum diterbitkan.
 			</div>
 
 			<div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
@@ -126,12 +126,24 @@
 				>
 					Batal
 				</a>
-				<button
-					type="submit"
-					class="button !min-h-10 font-bold bg-[#155e3d] hover:bg-[#0f462d] text-white shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#155e3d] focus-visible:ring-offset-2 transition-all"
-				>
-					Simpan Revisi
-				</button>
+				<div class="flex items-center gap-2.5">
+					<button
+						type="submit"
+						name="action_type"
+						value="draft"
+						class="button secondary !min-h-10 font-bold text-slate-800 border-slate-300 hover:bg-slate-900 hover:text-white hover:border-slate-900 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:outline-none transition-all"
+					>
+						Simpan Draf Revisi
+					</button>
+					<button
+						type="submit"
+						name="action_type"
+						value="publish"
+						class="button !min-h-10 font-bold bg-[#155e3d] hover:bg-[#0f462d] text-white shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#155e3d] focus-visible:ring-offset-2 transition-all"
+					>
+						Simpan & Publikasikan
+					</button>
+				</div>
 			</div>
 		</form>
 	</section>

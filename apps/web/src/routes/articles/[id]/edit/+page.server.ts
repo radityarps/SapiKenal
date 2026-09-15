@@ -54,6 +54,9 @@ export const actions: Actions = {
 			return fail(400, { error: "Judul, ringkasan, dan isi artikel wajib diisi." });
 		}
 
+		const actionType = String(form.get("action_type") || "");
+		const publishImmediately = actionType === "publish";
+
 		try {
 			await backendJson(
 				`${api(params.id)}/revise`,
@@ -67,6 +70,21 @@ export const actions: Actions = {
 				},
 				fetch,
 			);
+
+			if (publishImmediately) {
+				await backendJson(
+					`${api(params.id)}/activate`,
+					{
+						method: "POST",
+						headers: {
+							...bearerHeaders(locals.sessionToken),
+							"content-type": "application/json",
+						},
+						body: JSON.stringify({ reason: "Publikasi revisi langsung dari editor" }),
+					},
+					fetch,
+				);
+			}
 		} catch (error) {
 			return fail(error instanceof BackendRequestError ? error.status : 400, {
 				error: error instanceof Error ? error.message : "Revisi artikel gagal disimpan",

@@ -86,6 +86,8 @@ export const actions: Actions = {
 			article_key = slugify(title);
 		}
 
+		const banner_image_url = String(form.get("banner_image_url") || "").trim() || null;
+
 		const formValues = {
 			article_key,
 			is_breed_profile,
@@ -96,6 +98,7 @@ export const actions: Actions = {
 			title,
 			summary,
 			body,
+			banner_image_url,
 		};
 
 		if (!title || !summary || !body) {
@@ -114,6 +117,7 @@ export const actions: Actions = {
 			title,
 			summary,
 			body,
+			banner_image_url,
 			content_blocks,
 			sources,
 		};

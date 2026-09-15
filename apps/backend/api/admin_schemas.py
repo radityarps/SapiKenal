@@ -112,9 +112,24 @@ class GuideArticleRequest(BaseModel):
     summary: str = Field(min_length=1, max_length=500)
     body: str = Field(min_length=1, max_length=50_000)
     content_blocks: list[dict[str, Any]] | None = None
+    banner_image_url: str | None = Field(default=None, max_length=512)
     is_breed_profile: bool = False
     breed_key: str | None = Field(default=None, max_length=32)
     sources: list[str] = Field(default_factory=list, max_length=20)
+
+    @field_validator("banner_image_url")
+    @classmethod
+    def valid_banner_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            return None
+        if len(value) > 512:
+            raise ValueError("banner_image_url must not exceed 512 characters")
+        if not (value.startswith("http://") or value.startswith("https://") or value.startswith("/media/")):
+            raise ValueError("banner_image_url must be an HTTP(S) URL or start with /media/")
+        return value
 
     @field_validator("article_key", "title", "summary", "body")
     @classmethod
@@ -167,6 +182,7 @@ class GuideArticlePatchRequest(BaseModel):
     summary: str | None = Field(default=None, min_length=1, max_length=500)
     body: str | None = Field(default=None, min_length=1, max_length=50_000)
     content_blocks: list[dict[str, Any]] | None = None
+    banner_image_url: str | None = Field(default=None, max_length=512)
     is_breed_profile: bool | None = None
     breed_key: str | None = Field(default=None, max_length=32)
     sources: list[str] | None = Field(default=None, max_length=20)
@@ -174,8 +190,24 @@ class GuideArticlePatchRequest(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def reject_null_fields(cls, value: Any) -> Any:
-        if isinstance(value, dict) and any(item is None for item in value.values()):
-            raise ValueError("Article patch fields must not be null")
+        if isinstance(value, dict):
+            for k, v in value.items():
+                if v is None and k not in {"banner_image_url", "content_blocks", "breed_key"}:
+                    raise ValueError("Article patch fields must not be null")
+        return value
+
+    @field_validator("banner_image_url")
+    @classmethod
+    def valid_banner_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            return None
+        if len(value) > 512:
+            raise ValueError("banner_image_url must not exceed 512 characters")
+        if not (value.startswith("http://") or value.startswith("https://") or value.startswith("/media/")):
+            raise ValueError("banner_image_url must be an HTTP(S) URL or start with /media/")
         return value
 
     @field_validator("article_key", "title", "summary", "body")
@@ -216,6 +248,7 @@ class GuideArticleRevisionResponse(BaseModel):
     summary: str
     body: str
     content_blocks: list[dict[str, Any]] | None = None
+    banner_image_url: str | None = None
     sources: list[str]
     status: str
     created_at: datetime

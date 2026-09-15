@@ -94,6 +94,7 @@ def test_article_lifecycle_and_deterministic_locale_snapshot(
             "summary": "Ringkasan profil sapi Bali.",
             "body": "Informasi tentang karakteristik sapi Bali.",
             "content_blocks": None,
+            "banner_image_url": None,
             "is_breed_profile": False,
             "breed_key": None,
             "sources": ["https://example.com/bali"],
@@ -441,6 +442,101 @@ def test_article_auto_sort_order_by_category(
     assert 250 in listing["category_sort_orders"]["bali"]
     assert 251 in listing["category_sort_orders"]["bali"]
     assert 10 in listing["category_sort_orders"]["app_usage"]
+
+
+def test_article_banner_upload_validation(
+    article_client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, _ = article_client
+    import io
+    from PIL import Image
+
+    # 1. Reject invalid file extension
+    res_bad_ext = client.post(
+        "/api/admin/articles/upload-banner",
+        files={"file": ("test.txt", b"not an image", "text/plain")},
+    )
+    assert res_bad_ext.status_code == 422
+    assert res_bad_ext.json()["code"] == "INVALID_FILE_TYPE"
+
+    # 2. Reject corrupted image data
+    res_corrupted = client.post(
+        "/api/admin/articles/upload-banner",
+        files={"file": ("test.jpg", b"corrupted bytes", "image/jpeg")},
+    )
+    assert res_corrupted.status_code == 422
+    assert res_corrupted.json()["code"] == "INVALID_IMAGE_DATA"
+
+    # 3. Successful image upload
+    buf = io.BytesIO()
+    img = Image.new("RGB", (200, 100), color=(100, 150, 200))
+    img.save(buf, format="PNG")
+    png_bytes = buf.getvalue()
+
+    res_ok = client.post(
+        "/api/admin/articles/upload-banner",
+        files={"file": ("banner.png", png_bytes, "image/png")},
+    )
+    assert res_ok.status_code == 200
+    data = res_ok.json()
+    assert data["status"] == "success"
+    assert data["banner_image_url"].startswith("/media/banners/banner_")
+    assert data["banner_image_url"].endswith(".png")
+
+
+def test_article_banner_lifecycle_and_content_snapshot(
+    article_client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, _ = article_client
+
+    # Create article with banner_image_url
+    banner_url = "/media/banners/banner_test123.jpg"
+    created = client.post(
+        "/api/admin/articles",
+        json=_payload(
+            article_key="po-banner-test",
+            category="po",
+            title="Sapi PO dengan Banner",
+            banner_image_url=banner_url,
+        ),
+    )
+    assert created.status_code == 201
+    item = created.json()["item"]
+    article_id = item["id"]
+    assert item["revision"]["banner_image_url"] == banner_url
+
+    # Activate article so it appears in /api/content/articles
+    activate_res = client.post(
+        f"/api/admin/articles/{article_id}/activate",
+        json={"reason": "Publishing banner article"},
+    )
+    assert activate_res.status_code == 200
+
+    # Verify /api/content/articles snapshot includes banner_image_url
+    content_res = client.get("/api/content/articles")
+    assert content_res.status_code == 200
+    snapshot_items = content_res.json()["items"]
+    matched = next((it for it in snapshot_items if it["article_key"] == "po-banner-test"), None)
+    assert matched is not None
+    assert matched["banner_image_url"] == banner_url
+
+    # Revise article: update banner
+    new_banner = "/media/banners/banner_updated.jpg"
+    revised = client.post(
+        f"/api/admin/articles/{article_id}/revise",
+        json={"banner_image_url": new_banner},
+    )
+    assert revised.status_code == 200
+    assert revised.json()["item"]["revision"]["banner_image_url"] == new_banner
+
+    # Revise article: clear banner (set to None or empty string)
+    cleared = client.post(
+        f"/api/admin/articles/{article_id}/revise",
+        json={"banner_image_url": None},
+    )
+    assert cleared.status_code == 200
+    assert cleared.json()["item"]["revision"]["banner_image_url"] is None
+
 
 
 

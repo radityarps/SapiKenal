@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import id.sapikenal.app.R
 import id.sapikenal.app.ui.theme.SapiKenalColors
 
@@ -120,35 +122,59 @@ fun GuideDetailRoute(
                     .verticalScroll(rememberScrollState())
                     .padding(innerPadding),
         ) {
-            // Hero banner
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(140.dp)
-                        .background(article.category.color),
-                contentAlignment = Alignment.Center,
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color.Black.copy(alpha = 0.20f),
+            // Hero banner — only shown if image banner is present
+            val bannerUrl = resolveBannerUrl(article.bannerImageUrl)
+            if (!bannerUrl.isNullOrBlank()) {
+                Box(
                     modifier =
                         Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(12.dp),
+                            .fillMaxWidth()
+                            .height(180.dp),
                 ) {
-                    Text(
-                        text = stringResource(article.category.titleRes),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    AsyncImage(
+                        model = bannerUrl,
+                        contentDescription = article.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
                     )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color.Black.copy(alpha = 0.50f),
+                        modifier =
+                            Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(12.dp),
+                    ) {
+                        Text(
+                            text = stringResource(article.category.titleRes),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        )
+                    }
                 }
             }
 
             // Content
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                 Spacer(Modifier.height(20.dp))
+
+                // If no hero banner, show category badge inline above title
+                if (bannerUrl.isNullOrBlank()) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = article.category.color.copy(alpha = 0.15f),
+                        modifier = Modifier.padding(bottom = 10.dp),
+                    ) {
+                        Text(
+                            text = stringResource(article.category.titleRes),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = article.category.color,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        )
+                    }
+                }
 
                 // Title
                 Text(

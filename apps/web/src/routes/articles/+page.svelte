@@ -353,6 +353,16 @@
         </span>
       </div>
 
+      {#if selectedArticle.revision?.banner_image_url}
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-900 max-h-48 flex items-center justify-center">
+          <img
+            src={selectedArticle.revision.banner_image_url}
+            alt="Banner {selectedArticle.revision.title}"
+            class="w-full h-full max-h-48 object-cover"
+          />
+        </div>
+      {/if}
+
       {#if selectedArticle.revision?.summary}
         <div class="rounded-lg border border-[#e4ebe7] bg-white p-3.5">
           <h3 class="m-0 mb-1.5 text-xs font-bold text-[#55675f]">Ringkasan</h3>

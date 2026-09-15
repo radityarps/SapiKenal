@@ -341,6 +341,7 @@ describe("Artikel Panduan create page server", () => {
 					title: "Panduan identifikasi",
 					summary: "Ringkasan panduan.",
 					body: "Gunakan foto yang jelas.",
+					banner_image_url: null,
 					content_blocks: null,
 					sources: ["https://example.org/guide", "https://example.org/terms"],
 				}),
@@ -381,6 +382,7 @@ describe("Artikel Panduan create page server", () => {
 					title: "Sapi Bali Unggulan",
 					summary: "Ringkasan sapi Bali",
 					body: "Deskripsi lengkap sapi Bali",
+					banner_image_url: null,
 					content_blocks: null,
 					sources: ["https://example.org/bali"],
 				}),
@@ -416,8 +418,46 @@ describe("Artikel Panduan create page server", () => {
 					title: "Profil Sapi Pasundan",
 					summary: "Ringkasan Pasundan",
 					body: "Deskripsi Pasundan",
+					banner_image_url: null,
 					content_blocks: null,
 					sources: ["https://example.org/pasundan"],
+				}),
+			}),
+			expect.any(Function),
+		);
+	});
+
+	it("creates article with uploaded banner image url", async () => {
+		await expect(
+			createActions.create!(
+				actionEvent({
+					category: "bali",
+					sort_order: "5",
+					sources: "https://example.org/bali",
+					title: "Sapi Bali dengan Banner",
+					summary: "Ringkasan sapi Bali",
+					body: "Deskripsi lengkap sapi Bali",
+					banner_image_url: "/media/banners/banner_test.jpg",
+				}) as never,
+			),
+		).rejects.toMatchObject({ status: 303, location: "/articles" });
+
+		expect(backendJson).toHaveBeenCalledWith(
+			"/api/admin/articles",
+			expect.objectContaining({
+				method: "POST",
+				body: JSON.stringify({
+					article_key: "sapi-bali-dengan-banner",
+					is_breed_profile: false,
+					breed_key: null,
+					category: "bali",
+					sort_order: 5,
+					title: "Sapi Bali dengan Banner",
+					summary: "Ringkasan sapi Bali",
+					body: "Deskripsi lengkap sapi Bali",
+					banner_image_url: "/media/banners/banner_test.jpg",
+					content_blocks: null,
+					sources: ["https://example.org/bali"],
 				}),
 			}),
 			expect.any(Function),

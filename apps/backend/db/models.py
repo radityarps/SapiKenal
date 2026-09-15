@@ -266,6 +266,9 @@ class GuideArticleRevision(Base):
     content_blocks: Mapped[list[dict[str, Any]] | None] = mapped_column(
         JSON, nullable=True, default=None
     )
+    banner_image_url: Mapped[str | None] = mapped_column(
+        String(512), nullable=True, default=None
+    )
     sources: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_by: Mapped[str | None] = mapped_column(

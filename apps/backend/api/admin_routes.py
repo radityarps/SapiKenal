@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import math
 import os
@@ -16,9 +17,12 @@ from typing import Any, Literal, cast
 from fastapi import (  # pyright: ignore[reportMissingImports]
     APIRouter,
     Depends,
+    File,
     Query,
     Request,
+    UploadFile,
 )
+from PIL import Image
 from sqlalchemy import (  # pyright: ignore[reportMissingImports]
     asc,
     desc,
@@ -892,6 +896,86 @@ def list_articles(
     }
 
 
+MAX_BANNER_SIZE = 5 * 1024 * 1024  # 5 MB
+ALLOWED_BANNER_MIME = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_BANNER_EXT = {".jpg", ".jpeg", ".png", ".webp"}
+
+
+@router.post("/articles/upload-banner")
+async def upload_article_banner(
+    file: UploadFile = File(...),
+    request: Request = ...,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    if not file.filename:
+        raise AdminAPIError(422, "INVALID_FILE", "Nama berkas tidak boleh kosong")
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in ALLOWED_BANNER_EXT:
+        raise AdminAPIError(
+            422,
+            "INVALID_FILE_TYPE",
+            f"Ekstensi berkas '{ext}' tidak didukung. Gunakan format JPG, PNG, atau WebP.",
+        )
+
+    content_type = file.content_type or ""
+    if content_type.lower() not in ALLOWED_BANNER_MIME:
+        raise AdminAPIError(
+            422,
+            "INVALID_MIME_TYPE",
+            f"Tipe konten '{content_type}' tidak valid. Gunakan format gambar.",
+        )
+
+    contents = await file.read()
+    if len(contents) > MAX_BANNER_SIZE:
+        raise AdminAPIError(
+            422,
+            "FILE_TOO_LARGE",
+            f"Ukuran berkas melebihi batas maksimal 5 MB ({len(contents) // 1024} KB)",
+        )
+
+    try:
+        image = Image.open(io.BytesIO(contents))
+        image.verify()
+    except Exception:
+        raise AdminAPIError(
+            422,
+            "INVALID_IMAGE_DATA",
+            "Berkas yang diunggah bukan gambar valid atau telah rusak",
+        )
+
+    save_dir = Path("data/uploads/banners").resolve()
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    normalized_ext = ".jpg" if ext == ".jpeg" else ext
+    filename = f"banner_{secrets.token_hex(12)}{normalized_ext}"
+    target_path = save_dir / filename
+
+    with open(target_path, "wb") as f:
+        f.write(contents)
+
+    banner_url = f"/media/banners/{filename}"
+
+    record_audit(
+        db,
+        action="article_banner_uploaded",
+        actor_user_id=admin.id,
+        resource_type="media",
+        resource_id=filename,
+        request_id=_request_id(request),
+        ip_hash=_ip_hash(request),
+        changed_fields={
+            "filename": filename,
+            "size": len(contents),
+            "url": banner_url,
+        },
+    )
+    db.commit()
+
+    return {"status": "success", "banner_image_url": banner_url}
+
+
 @router.post("/articles", status_code=201)
 def create_article(
     payload: GuideArticleRequest,
@@ -967,6 +1051,7 @@ def create_article(
         summary=payload.summary,
         body=body,
         content_blocks=payload.content_blocks,
+        banner_image_url=payload.banner_image_url,
         sources=payload.sources,
         status="draft",
         created_by=admin.id,
@@ -1056,6 +1141,7 @@ def revise_article(
         "summary": current.summary,
         "body": current.body,
         "content_blocks": current.content_blocks,
+        "banner_image_url": current.banner_image_url,
         "sources": current.sources,
     }
     values.update(changes)
@@ -1217,6 +1303,7 @@ def public_articles(
             "summary": revision.summary,
             "body": revision.body,
             "content_blocks": revision.content_blocks,
+            "banner_image_url": revision.banner_image_url,
             "is_breed_profile": article.is_breed_profile,
             "breed_key": article.breed_key,
             "sources": revision.sources,

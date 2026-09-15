@@ -28,4 +28,5 @@ data class GuideArticleDto(
     @Json(name = "is_breed_profile") val isBreedProfile: Boolean = false,
     @Json(name = "breed_key") val breedKey: String? = null,
     @Json(name = "content_blocks") val contentBlocks: List<ContentBlockDto>? = null,
+    @Json(name = "banner_image_url") val bannerImageUrl: String? = null,
 )

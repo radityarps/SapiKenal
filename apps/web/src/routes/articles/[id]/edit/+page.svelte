@@ -3,6 +3,7 @@
 	import { ArrowLeft, Sparkles } from "lucide-svelte";
 	import AdminShell from "$lib/components/AdminShell.svelte";
 	import BlockEditor from "$lib/components/BlockEditor.svelte";
+	import BannerUploader from "$lib/components/BannerUploader.svelte";
 
 	export let data: {
 		user: App.Locals["user"];
@@ -22,6 +23,7 @@
 		{ value: "po", label: "PO" },
 	];
 	const a = data.article;
+	let bannerImageUrl = a.revision.banner_image_url || "";
 </script>
 
 <svelte:head><title>Edit Artikel — {a.revision.title} — SapiKenal Admin</title></svelte:head>
@@ -87,6 +89,11 @@
 					<textarea name="sources" placeholder="https://sumber-tepercaya.example/artikel (kosongkan jika tidak ada)">{a.revision.sources.join("\n")}</textarea>
 					<small class="text-[.75rem] font-normal text-slate-600">Opsional. Masukkan tautan referensi berawalan http:// atau https:// jika ada.</small>
 				</label>
+			</div>
+
+			<!-- Banner Gambar Artikel -->
+			<div class="pb-4 border-b border-slate-200">
+				<BannerUploader bind:bannerImageUrl />
 			</div>
 
 			<label>

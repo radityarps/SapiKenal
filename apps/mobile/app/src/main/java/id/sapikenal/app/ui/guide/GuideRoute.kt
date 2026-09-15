@@ -61,6 +61,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -71,6 +72,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import id.sapikenal.app.R
 import id.sapikenal.app.ui.theme.SapiKenalColors
 
@@ -343,14 +345,19 @@ private fun GuideArticleCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        // Colored top banner
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .background(article.category.color),
-        )
+        // Banner image — only shown if present
+        val bannerUrl = resolveBannerUrl(article.bannerImageUrl)
+        if (!bannerUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = bannerUrl,
+                contentDescription = article.title,
+                contentScale = ContentScale.Crop,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(130.dp),
+            )
+        }
 
         // Article body
         Column(modifier = Modifier.padding(16.dp)) {

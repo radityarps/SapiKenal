@@ -15,6 +15,7 @@ data class GuideArticleEntity(
     val isBreedProfile: Boolean = false,
     val breedKey: String? = null,
     val contentBlocksJson: String? = null,
+    val bannerImageUrl: String? = null,
 )
 
 @Entity(tableName = "guide_sync_metadata")

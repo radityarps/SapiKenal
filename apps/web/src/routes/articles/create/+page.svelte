@@ -3,6 +3,7 @@
 	import { ArrowLeft, BookOpen, Sparkles, AlertCircle } from "lucide-svelte";
 	import AdminShell from "$lib/components/AdminShell.svelte";
 	import BlockEditor from "$lib/components/BlockEditor.svelte";
+	import BannerUploader from "$lib/components/BannerUploader.svelte";
 	import { calculateNextSortOrder } from "$lib/sortOrder";
 
 	export let data: {
@@ -22,6 +23,7 @@
 			article_key?: string;
 			is_breed_profile?: boolean;
 			breed_key?: string;
+			banner_image_url?: string | null;
 		};
 	} | null;
 
@@ -52,6 +54,7 @@
 	let selectedBreedKey = form?.values?.breed_key ?? "";
 	let titleInput = form?.values?.title ?? "";
 	let summaryInput = form?.values?.summary ?? "";
+	let bannerImageUrl = form?.values?.banner_image_url ?? "";
 	let categoryInput = form?.values?.category ?? "app_usage";
 	let sortOrderInput =
 		form?.values?.sort_order ??
@@ -251,6 +254,11 @@
 					>{form?.values?.sources ?? ""}</textarea>
 					<small class="text-[.75rem] font-normal text-slate-600">Opsional. Masukkan tautan referensi berawalan http:// atau https:// jika ada.</small>
 				</label>
+			</div>
+
+			<!-- Banner Gambar Artikel -->
+			<div class="pb-4 border-b border-slate-200">
+				<BannerUploader bind:bannerImageUrl />
 			</div>
 
 			<!-- Judul & Ringkasan -->

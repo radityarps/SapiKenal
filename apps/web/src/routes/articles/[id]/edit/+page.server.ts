@@ -48,6 +48,8 @@ export const actions: Actions = {
 			}
 		}
 
+		const banner_image_url = String(form.get("banner_image_url") || "").trim() || null;
+
 		if (!title || !summary || !body) {
 			return fail(400, { error: "Judul, ringkasan, dan isi artikel wajib diisi." });
 		}
@@ -61,7 +63,7 @@ export const actions: Actions = {
 						...bearerHeaders(locals.sessionToken),
 						"content-type": "application/json",
 					},
-					body: JSON.stringify({ category, sort_order, title, summary, body, content_blocks, sources }),
+					body: JSON.stringify({ category, sort_order, title, summary, body, content_blocks, banner_image_url, sources }),
 				},
 				fetch,
 			);

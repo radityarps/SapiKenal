@@ -15,6 +15,7 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -134,6 +135,34 @@ class GuideRepositoryTest {
             assertEquals("Profil Resmi Sapi Bali", resolved?.title)
             assertEquals(true, resolved?.isBreedProfile)
             assertEquals("bali", resolved?.breedKey)
+        }
+
+    @Test
+    fun `sync preserves bannerImageUrl and resolveBannerUrl formats correctly`() =
+        runTest {
+            val articleWithBanner =
+                article("banner_article", "Artikel Banner").copy(
+                    bannerImageUrl = "/media/banners/banner_po.jpg",
+                )
+            api.snapshot = snapshot(articleWithBanner)
+            assertTrue(repository.refresh().isSuccess)
+
+            val resolved = repository.article("banner_article").first()
+            assertNotNull(resolved)
+            assertEquals("/media/banners/banner_po.jpg", resolved?.bannerImageUrl)
+
+            // Test resolveBannerUrl helper
+            val absoluteUrl = resolveBannerUrl("/media/banners/banner_po.jpg", "http://10.0.2.2:8000/")
+            assertEquals("http://10.0.2.2:8000/media/banners/banner_po.jpg", absoluteUrl)
+
+            val externalUrl = resolveBannerUrl("https://images.example.com/banner.jpg", "http://10.0.2.2:8000/")
+            assertEquals("https://images.example.com/banner.jpg", externalUrl)
+
+            val nullUrl = resolveBannerUrl(null, "http://10.0.2.2:8000/")
+            assertNull(nullUrl)
+
+            val emptyUrl = resolveBannerUrl("   ", "http://10.0.2.2:8000/")
+            assertNull(emptyUrl)
         }
 
     private fun article(

@@ -14,7 +14,20 @@ data class GuideArticle(
     val isBreedProfile: Boolean = false,
     val breedKey: String? = null,
     val contentBlocksJson: String? = null,
+    val bannerImageUrl: String? = null,
 )
+
+fun resolveBannerUrl(bannerImageUrl: String?, baseUrl: String = id.sapikenal.app.BuildConfig.API_BASE_URL): String? {
+    if (bannerImageUrl.isNullOrBlank()) return null
+    val trimmed = bannerImageUrl.trim()
+    return if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
+        trimmed
+    } else {
+        val cleanBase = baseUrl.trimEnd('/')
+        val cleanPath = trimmed.trimStart('/')
+        "$cleanBase/$cleanPath"
+    }
+}
 
 enum class GuideCategory(
     @StringRes val titleRes: Int,

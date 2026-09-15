@@ -105,11 +105,19 @@ app.add_middleware(
     window_seconds=settings.rate_limit_window_seconds,
 )
 
+from starlette.staticfiles import StaticFiles
+
 # Include routes
 app.include_router(router)
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(content_router)
+
+# Mount static media uploads
+media_dir = Path("data/uploads").resolve()
+media_dir.mkdir(parents=True, exist_ok=True)
+(media_dir / "banners").mkdir(parents=True, exist_ok=True)
+app.mount("/media", StaticFiles(directory=str(media_dir)), name="media")
 
 
 @app.middleware("http")

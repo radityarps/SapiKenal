@@ -111,6 +111,7 @@ class GuideRepository
                 isBreedProfile = entity.isBreedProfile,
                 breedKey = entity.breedKey,
                 contentBlocksJson = entity.contentBlocksJson,
+                bannerImageUrl = entity.bannerImageUrl,
             )
 
         private fun GuideArticleDto.toEntity(
@@ -128,6 +129,7 @@ class GuideRepository
             isBreedProfile = isBreedProfile,
             breedKey = breedKey,
             contentBlocksJson = blocksJson,
+            bannerImageUrl = bannerImageUrl,
         )
 
         companion object {

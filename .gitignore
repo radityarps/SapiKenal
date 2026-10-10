@@ -41,6 +41,7 @@ tmp/
 .env.*.local
 secrets.json
 local.properties
+docs/Panduan Penelitian/
 
 # =============================================================================
 # apps/backend (Python / FastAPI)

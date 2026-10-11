@@ -1,0 +1,136 @@
+<mxfile host="Electron" agent="Mozilla/5.0">
+  <diagram id="diagram_crisp_dm" name="Metodologi CRISP-DM">
+    <mxGraphModel dx="1640" dy="1036" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sec1" parent="1" style="swimlane;startSize=30;fontStyle=1;align=left;spacingLeft=10;fontSize=13;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;rounded=1;arcSize=6;collapsible=0;html=1;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 13px;&quot;&gt;1. Data Understanding &amp;amp; Acquisition&lt;/b&gt;" vertex="1">
+          <mxGeometry height="110" width="840" x="40" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeA" parent="sec1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Pengumpulan Dataset Citra Sapi&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#475569;&quot;&gt;N = 143 Citra, 4 Ras Pembeda di Boyolali&lt;/span&gt;" vertex="1">
+          <mxGeometry height="52" width="330" x="40" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeB" parent="sec1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Verifikasi Anotasi Morfologis&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#475569;&quot;&gt;Label Fenotipik: Bali, Brahman, Brangus, Limusin&lt;/span&gt;" vertex="1">
+          <mxGeometry height="52" width="330" x="470" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeAB" edge="1" parent="sec1" source="nodeA" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=classic;" target="nodeB">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec2" parent="1" style="swimlane;startSize=30;fontStyle=1;align=left;spacingLeft=10;fontSize=13;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;rounded=1;arcSize=6;collapsible=0;html=1;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 13px;&quot;&gt;2. Data Preparation &amp;amp; Augmentation&lt;/b&gt;" vertex="1">
+          <mxGeometry height="110" width="840" x="40" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeC" parent="sec2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Stratified 5-Fold CV Splitting&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Partisi 80% Latih / 20% Validasi per Fold&lt;/span&gt;" vertex="1">
+          <mxGeometry height="52" width="230" x="30" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeD" parent="sec2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Standardisasi &amp;amp; Preprocessing&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;224 &amp;times; 224 &amp;times; 3 + Format Normalisasi Khusus&lt;/span&gt;" vertex="1">
+          <mxGeometry height="52" width="230" x="305" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeE" parent="sec2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Augmentasi Data On-The-Fly&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Rotasi &amp;plusmn;25&amp;deg;, Zoom, Shift, Brightness, Flip&lt;/span&gt;" vertex="1">
+          <mxGeometry height="52" width="230" x="580" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeCD" edge="1" parent="sec2" source="nodeC" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=classic;" target="nodeD">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeDE" edge="1" parent="sec2" source="nodeD" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=classic;" target="nodeE">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec3" parent="1" style="swimlane;startSize=30;fontStyle=1;align=left;spacingLeft=10;fontSize=13;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;rounded=1;arcSize=6;collapsible=0;html=1;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 13px;&quot;&gt;3. Modeling (Transfer Learning 6 Arsitektur CNN)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="110" width="840" x="40" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeF" parent="sec3" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;6 Arsitektur Pretrained ImageNet&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;MobileNetV3L, V2, EffNetB0, V2S, ConvNeXt, ResNet50&lt;/span&gt;" vertex="1">
+          <mxGeometry height="52" width="230" x="30" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeG" parent="sec3" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Fase 1: Feature Extraction&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Backbone Frozen, lr = 10&lt;sup&gt;-3&lt;/sup&gt;, Epoch &amp;le; 30&lt;/span&gt;" vertex="1">
+          <mxGeometry height="52" width="230" x="305" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeH" parent="sec3" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Fase 2: Fine-Tuning Terkalibrasi&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Top 30% Layers Unfrozen, lr = 10&lt;sup&gt;-5&lt;/sup&gt;, Epoch &amp;le; 20&lt;/span&gt;" vertex="1">
+          <mxGeometry height="52" width="230" x="580" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeFG" edge="1" parent="sec3" source="nodeF" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=classic;" target="nodeG">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeGH" edge="1" parent="sec3" source="nodeG" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=classic;" target="nodeH">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec4" parent="1" style="swimlane;startSize=30;fontStyle=1;align=left;spacingLeft=10;fontSize=13;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;rounded=1;arcSize=6;collapsible=0;html=1;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 13px;&quot;&gt;4. Evaluation &amp;amp; Statistical Testing&lt;/b&gt;" vertex="1">
+          <mxGeometry height="190" width="405" x="40" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeI" parent="sec4" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Metrik Klasifikasi 5-Fold (Mean &amp;plusmn; Std)&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Accuracy, Macro F1, Macro Precision, Recall, Per-Class&lt;/span&gt;" vertex="1">
+          <mxGeometry height="45" width="355" x="25" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeJ" parent="sec4" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=10;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Uji Signifikansi McNemar&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Tabel 2&amp;times;2, &amp;alpha; = 0.05, p-value&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="170" x="25" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeK" parent="sec4" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=10;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Explainable AI (Grad-CAM)&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Visualisasi Atensi Fitur Morfologis&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="170" x="210" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeIJ" edge="1" parent="sec4" source="nodeI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" target="nodeJ">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="202.5" y="100" />
+              <mxPoint x="110" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edgeIK" edge="1" parent="sec4" source="nodeI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" target="nodeK">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="202.5" y="100" />
+              <mxPoint x="295" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sec5" parent="1" style="swimlane;startSize=30;fontStyle=1;align=left;spacingLeft=10;fontSize=13;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;rounded=1;arcSize=6;collapsible=0;html=1;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 13px;&quot;&gt;5. Deployment Profiling (TKT 5 / Sistem Informasi)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="190" width="405" x="532.5" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeL" parent="sec5" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Konversi Format TFLite (FP32)&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Serialisasi FlatBuffers Model Terlatih&lt;/span&gt;" vertex="1">
+          <mxGeometry height="45" width="355" x="25" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeM" parent="sec5" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=10;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Benchmarking Edge CPU&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Latensi (ms) &amp;amp; Ukuran File (MB)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="170" x="25" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="nodeN" parent="sec5" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=10;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="&lt;b&gt;Integrasi Sistem Terpadu&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#475569;&quot;&gt;Mobile Offline-First &amp;amp; Web Backend&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="170" x="210" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeLM" edge="1" parent="sec5" source="nodeL" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" target="nodeM">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="202.5" y="100" />
+              <mxPoint x="110" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edgeMN" edge="1" parent="sec5" source="nodeM" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" target="nodeN">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeB_C" edge="1" parent="1" source="nodeB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=classic;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="sec2">
+          <mxGeometry relative="1" x="-0.2337" as="geometry">
+            <Array as="points">
+              <mxPoint x="675" y="155" />
+              <mxPoint x="460" y="155" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edgeE_F" edge="1" parent="1" source="nodeE" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;endArrow=classic;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="sec3">
+          <mxGeometry relative="1" x="-0.2675" as="geometry">
+            <Array as="points">
+              <mxPoint x="735" y="295" />
+              <mxPoint x="460" y="295" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edgeH_I" edge="1" parent="1" source="nodeH" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=classic;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="sec4">
+          <mxGeometry relative="1" x="0.0808" as="geometry">
+            <Array as="points">
+              <mxPoint x="735" y="430" />
+              <mxPoint x="242.5" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edgeH_L" edge="1" parent="1" source="nodeH" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=classic;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="sec5">
+          <mxGeometry relative="1" x="0.4106" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

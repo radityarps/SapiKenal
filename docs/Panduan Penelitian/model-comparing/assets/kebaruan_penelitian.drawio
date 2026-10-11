@@ -1,0 +1,25 @@
+<mxfile host="Electron" agent="Mozilla/5.0">
+  <diagram id="diagram_kebaruan" name="Kebaruan Penelitian">
+    <mxGraphModel dx="1134" dy="717" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="container" parent="1" style="swimlane;startSize=40;fontStyle=1;align=center;verticalAlign=middle;fontSize=14;fontColor=#1e293b;fillColor=#f8fafc;strokeColor=#94a3b8;strokeWidth=1.5;rounded=1;arcSize=8;collapsible=0;html=1;" value="&lt;b style=&quot;font-size:14px;color:#1e293b;&quot;&gt;Kontribusi Ilmiah &amp;amp; Kebaruan Penelitian SapiKenal&lt;/b&gt;" vertex="1">
+          <mxGeometry height="320" width="740" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="k1" parent="container" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;align=left;spacingLeft=12;spacingRight=12;" value="&lt;b style=&quot;font-size: 12px; color: rgb(26, 26, 26);&quot;&gt;1. Komparasi 6 Arsitektur CNN&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;color: rgb(71, 85, 105); font-size: 11px;&quot;&gt;Lintas paradigma desain spasial (MobileNetV3, MobileNetV2, EfficientNetB0, EfficientNetV2S, ConvNeXtTiny, ResNet50) pada 4 ras sapi Boyolali.&lt;/span&gt;" vertex="1">
+          <mxGeometry height="105" width="320" x="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="k2" parent="container" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;align=left;spacingLeft=12;spacingRight=12;" value="&lt;b style=&quot;font-size: 12px; color: rgb(26, 26, 26);&quot;&gt;2. Protokol Evaluasi Rigor &amp;amp; Fair&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;color: rgb(71, 85, 105); font-size: 11px;&quot;&gt;Validasi silang Stratified 5-Fold Cross-Validation terisolasi + Transfer Learning 2-Fase (Feature Extraction &amp;amp; Fine-Tuning terkalibrasi).&lt;/span&gt;" vertex="1">
+          <mxGeometry height="105" width="320" x="390" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="k3" parent="container" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;align=left;spacingLeft=12;spacingRight=12;" value="&lt;b style=&quot;font-size: 12px; color: rgb(26, 26, 26);&quot;&gt;3. Pembuktian Statistik Formal&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;color: rgb(71, 85, 105); font-size: 11px;&quot;&gt;Uji McNemar berpasangan (α = 0.05, p ≥ 0.5000) yang melegitimasi prinsip ilmiah Occam&#39;s Razor terhadap model berbobot raksasa.&lt;/span&gt;" vertex="1">
+          <mxGeometry height="105" width="320" x="30" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="k4" parent="container" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;align=left;spacingLeft=12;spacingRight=12;" value="&lt;span style=&quot;color: rgb(26, 26, 26);&quot;&gt;&lt;b style=&quot;font-size: 12px;&quot;&gt;4. Validasi XAI &amp;amp; Edge Deployment&lt;/b&gt;&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;color: rgb(71, 85, 105); font-size: 11px;&quot;&gt;Verifikasi representasi fenotipe biologis bebas bias via Grad-CAM + profiling inferensi CPU riil TFLite FP32 (11.40 ms, 12.3 MB / TKT 5).&lt;/span&gt;" vertex="1">
+          <mxGeometry height="105" width="320" x="390" y="185" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

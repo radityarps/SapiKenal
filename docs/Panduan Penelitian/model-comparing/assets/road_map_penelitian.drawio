@@ -1,0 +1,103 @@
+<mxfile host="Electron" agent="Mozilla/5.0">
+  <diagram id="diagram_roadmap" name="Road Map Penelitian SapiKenal">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Header Title Banner -->
+        <mxCell id="banner" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#1e293b;strokeColor=#0f172a;strokeWidth=1.5;fontColor=#ffffff;align=center;verticalAlign=middle;shadow=1;" value="&lt;b style=&quot;font-size:16px;&quot;&gt;ROAD MAP PENELITIAN SISTEM INFORMASI &amp;amp; INFERENSI DEEP LEARNING SAPIKENAL (2026)&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:12px;color:#94a3b8;&quot;&gt;Peta Jalan 8 Tahapan Riset Hibah PUP Polines (32 Minggu / Maret – Oktober 2026) Menuju TKT 5&lt;/span&gt;" vertex="1">
+          <mxGeometry x="40" y="30" width="1080" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Phase 1 Container -->
+        <mxCell id="phase1" parent="1" style="swimlane;startSize=36;fontStyle=1;align=left;spacingLeft=14;fontSize=13;fillColor=#f8fafc;strokeColor=#0284c7;strokeWidth=2;rounded=1;arcSize=6;collapsible=0;html=1;fontColor=#0369a1;" value="FASE 1 (Bulan 1–4 / M1–M16): Riset Fondasi, Kurasi Data &amp;amp; Benchmarking Model CNN" vertex="1">
+          <mxGeometry x="40" y="110" width="1080" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Tahap 1 -->
+        <mxCell id="t1" parent="phase1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#ffffff;strokeColor=#cbd5e1;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b style=&quot;color:#0f172a;&quot;&gt;Tahap 1: Studi Literatur &amp;amp; Masalah&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#64748b;font-size:10px;&quot;&gt;Maret (M1–M4)&lt;br/&gt;&amp;bull; Analisis kebutuhan peternak Boyolali&lt;br/&gt;&amp;bull; Telaah sistem informasi &amp;amp; CNN terkini&lt;br/&gt;&lt;b style=&quot;color:#0284c7;&quot;&gt;Luaran:&lt;/b&gt; Rumusan &amp;amp; State-of-the-art&lt;/span&gt;" vertex="1">
+          <mxGeometry x="20" y="46" width="235" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Tahap 2 -->
+        <mxCell id="t2" parent="phase1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#ffffff;strokeColor=#cbd5e1;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b style=&quot;color:#0f172a;&quot;&gt;Tahap 2: Akuisisi Citra Lapangan&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#64748b;font-size:10px;&quot;&gt;April (M5–M8)&lt;br/&gt;&amp;bull; Pengambilan citra di kandang Boyolali&lt;br/&gt;&amp;bull; Variasi pencahayaan &amp;amp; sudut pandang&lt;br/&gt;&lt;b style=&quot;color:#0284c7;&quot;&gt;Luaran:&lt;/b&gt; Dataset mentah teranotasi&lt;/span&gt;" vertex="1">
+          <mxGeometry x="285" y="46" width="235" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Tahap 3 -->
+        <mxCell id="t3" parent="phase1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#ffffff;strokeColor=#cbd5e1;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b style=&quot;color:#0f172a;&quot;&gt;Tahap 3: Preprocessing &amp;amp; Kurasi&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#64748b;font-size:10px;&quot;&gt;Mei (M9–M12)&lt;br/&gt;&amp;bull; Seleksi citra berkualitas &amp;amp; resize 224&amp;times;224&lt;br/&gt;&amp;bull; Stratified 5-Fold split &amp;amp; data augmentasi&lt;br/&gt;&lt;b style=&quot;color:#0284c7;&quot;&gt;Luaran:&lt;/b&gt; Dataset siap latih terisolasi&lt;/span&gt;" vertex="1">
+          <mxGeometry x="550" y="46" width="235" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Tahap 4 -->
+        <mxCell id="t4" parent="phase1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#eff6ff;strokeColor=#3b82f6;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b style=&quot;color:#1e40af;&quot;&gt;Tahap 4: Benchmarking 6 CNN&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#334155;font-size:10px;&quot;&gt;Juni (M13–M16)&lt;br/&gt;&amp;bull; Transfer Learning 2-Fase (4 Ras Pembeda)&lt;br/&gt;&amp;bull; Uji McNemar, Grad-CAM &amp;amp; Profiling TFLite&lt;br/&gt;&lt;b style=&quot;color:#1d4ed8;&quot;&gt;Luaran:&lt;/b&gt; Model Terbaik (MobileNetV3L)&lt;/span&gt;" vertex="1">
+          <mxGeometry x="815" y="46" width="245" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Phase 1 Edges -->
+        <mxCell id="e12" edge="1" parent="phase1" source="t1" target="t2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284c7;strokeWidth=2;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="phase1" source="t2" target="t3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284c7;strokeWidth=2;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e34" edge="1" parent="phase1" source="t3" target="t4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284c7;strokeWidth=2;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Transition Connector (T4 to T5) -->
+        <mxCell id="e45" edge="1" parent="1" source="t4" target="t5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=2.5;endArrow=classic;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="977" y="290" />
+              <mxPoint x="177" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Phase 2 Container -->
+        <mxCell id="phase2" parent="1" style="swimlane;startSize=36;fontStyle=1;align=left;spacingLeft=14;fontSize=13;fillColor=#f8fafc;strokeColor=#059669;strokeWidth=2;rounded=1;arcSize=6;collapsible=0;html=1;fontColor=#047857;" value="FASE 2 (Bulan 5–8 / M17–M32): Rekayasa Sistem Informasi, Ekspansi 6 Ras &amp;amp; Hilirisasi TKT 5" vertex="1">
+          <mxGeometry x="40" y="310" width="1080" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Tahap 5 -->
+        <mxCell id="t5" parent="phase2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#ffffff;strokeColor=#cbd5e1;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b style=&quot;color:#0f172a;&quot;&gt;Tahap 5: Desain Sistem Informasi&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#64748b;font-size:10px;&quot;&gt;Juli (M17–M20)&lt;br/&gt;&amp;bull; Arsitektur offline-first mobile &amp;amp; web portal&lt;br/&gt;&amp;bull; Desain UI/UX Material Icons &amp;amp; skema DB&lt;br/&gt;&lt;b style=&quot;color:#059669;&quot;&gt;Luaran:&lt;/b&gt; Cetak biru &amp;amp; purwarupa antarmuka&lt;/span&gt;" vertex="1">
+          <mxGeometry x="20" y="46" width="235" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Tahap 6 -->
+        <mxCell id="t6" parent="phase2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#ffffff;strokeColor=#cbd5e1;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b style=&quot;color:#0f172a;&quot;&gt;Tahap 6: Integrasi Edge &amp;amp; Sistem&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#64748b;font-size:10px;&quot;&gt;Agustus (M21–M24)&lt;br/&gt;&amp;bull; Embedding TFLite MobileNetV3L ke Android&lt;br/&gt;&amp;bull; Sinkronisasi data cloud saat online&lt;br/&gt;&lt;b style=&quot;color:#059669;&quot;&gt;Luaran:&lt;/b&gt; Aplikasi SapiKenal Terintegrasi&lt;/span&gt;" vertex="1">
+          <mxGeometry x="285" y="46" width="235" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Tahap 7 -->
+        <mxCell id="t7" parent="phase2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#ffffff;strokeColor=#cbd5e1;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b style=&quot;color:#0f172a;&quot;&gt;Tahap 7: Uji Lapangan &amp;amp; Evaluasi&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#64748b;font-size:10px;&quot;&gt;September (M25–M28)&lt;br/&gt;&amp;bull; Pengujian 6 ras sapi (inklusi Jawa &amp;amp; Madura)&lt;br/&gt;&amp;bull; Uji akurasi, SUS usability &amp;amp; black-box&lt;br/&gt;&lt;b style=&quot;color:#059669;&quot;&gt;Luaran:&lt;/b&gt; Laporan evaluasi komprehensif&lt;/span&gt;" vertex="1">
+          <mxGeometry x="550" y="46" width="235" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Tahap 8 -->
+        <mxCell id="t8" parent="phase2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.5;shadow=1;fontSize=11;fillColor=#f0fdf4;strokeColor=#16a34a;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b style=&quot;color:#15803d;&quot;&gt;Tahap 8: Publikasi &amp;amp; Hilirisasi&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#334155;font-size:10px;&quot;&gt;Oktober (M29–M32)&lt;br/&gt;&amp;bull; Penyusunan artikel jurnal terindeks Sinta 2&lt;br/&gt;&amp;bull; Pendaftaran HKI Hak Cipta perangkat lunak&lt;br/&gt;&lt;b style=&quot;color:#16a34a;&quot;&gt;Luaran:&lt;/b&gt; Publikasi, HKI &amp;amp; Sistem TKT 5&lt;/span&gt;" vertex="1">
+          <mxGeometry x="815" y="46" width="245" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Phase 2 Edges -->
+        <mxCell id="e56" edge="1" parent="phase2" source="t5" target="t6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=2;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e67" edge="1" parent="phase2" source="t6" target="t7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=2;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e78" edge="1" parent="phase2" source="t7" target="t8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=2;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Strategic Highlights Footer -->
+        <mxCell id="box_highlight" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f1f5f9;strokeColor=#cbd5e1;strokeWidth=1.5;align=left;spacingLeft=16;spacingRight=16;" value="&lt;b style=&quot;font-size:12px;color:#0f172a;&quot;&gt;Penyelarasan Strategis Peta Jalan Hibah PUP Polines:&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#475569;&quot;&gt;&amp;bull; &lt;b&gt;Jembatan Fase 1 ke Fase 2:&lt;/b&gt; Eksperimen Tahap 4 menghasilkan arsitektur CNN tervalidasi (MobileNetV3Large: akurasi 93.00%, TFLite 12.30 MB, latensi 11.40 ms) yang menjadi mesin inferensi luring (*core offline-first engine*) bagi sistem informasi SapiKenal.&lt;br/&gt;&amp;bull; &lt;b&gt;Target Kesiapterapan Teknologi (TKT 5):&lt;/b&gt; Prototipe sistem informasi mobile dan web terintegrasi divalidasi langsung pada peternakan rakyat di Kabupaten Boyolali dengan luaran wajib artikel ilmiah berkualifikasi Sinta 2 dan sertifikat HKI Hak Cipta perangkat lunak.&lt;/span&gt;" vertex="1">
+          <mxGeometry x="40" y="490" width="1080" height="80" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

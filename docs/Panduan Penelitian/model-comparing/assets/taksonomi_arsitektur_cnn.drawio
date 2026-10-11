@@ -1,0 +1,37 @@
+<mxfile host="Electron" agent="Mozilla/5.0">
+  <diagram id="diagram_taksonomi" name="Taksonomi Arsitektur CNN">
+    <mxGraphModel dx="1361" dy="860" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="grp1" parent="1" style="swimlane;startSize=35;fontStyle=1;align=center;verticalAlign=middle;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;rounded=1;arcSize=8;collapsible=0;html=1;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 12px;&quot;&gt;Arsitektur Ringan (Mobile/Edge)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="200" width="240" x="30" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="m1" parent="grp1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;shadow=1;fontSize=11;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size:12px;&quot;&gt;MobileNetV2&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px;&quot;&gt;2.59M Parameter&lt;br&gt;9.72 MB TFLite (12.8 ms)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="m2" parent="grp1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;shadow=1;fontSize=11;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 12px;&quot;&gt;MobileNetV3Large&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px;&quot;&gt;&lt;b&gt;3.24M Parameter (Sweet Spot)&lt;/b&gt;&lt;br&gt;12.30 MB TFLite (11.4 ms)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="grp2" parent="1" style="swimlane;startSize=35;fontStyle=1;align=center;verticalAlign=middle;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;rounded=1;arcSize=8;collapsible=0;html=1;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 12px;&quot;&gt;Arsitektur Efisien (Compound Scaling)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="200" width="240" x="300" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" parent="grp2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;shadow=1;fontSize=11;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size:12px;&quot;&gt;EfficientNetB0&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px;&quot;&gt;4.38M Parameter&lt;br&gt;16.56 MB TFLite (19.3 ms)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" parent="grp2" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;shadow=1;fontSize=11;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size:12px;&quot;&gt;EfficientNetV2S&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px;&quot;&gt;20.66M Parameter&lt;br&gt;78.12 MB TFLite (83.7 ms)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="grp3" parent="1" style="swimlane;startSize=35;fontStyle=1;align=center;verticalAlign=middle;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;rounded=1;arcSize=8;collapsible=0;html=1;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size: 12px;&quot;&gt;Arsitektur Dalam (High Capacity)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="200" width="240" x="570" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" parent="grp3" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;shadow=1;fontSize=11;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size:12px;&quot;&gt;ResNet50&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px;&quot;&gt;24.11M Parameter&lt;br&gt;91.63 MB TFLite (103.3 ms)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c1" parent="grp3" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;shadow=1;fontSize=11;fontColor=#1A1A1A;" value="&lt;b style=&quot;font-size:12px;&quot;&gt;ConvNeXtTiny&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px;&quot;&gt;28.02M Parameter&lt;br&gt;106.96 MB TFLite (206.1 ms)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="125" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

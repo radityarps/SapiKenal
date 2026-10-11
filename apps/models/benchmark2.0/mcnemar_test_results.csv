@@ -1,0 +1,16 @@
+Model A,Model B,"b (A correct, B wrong)","c (A wrong, B correct)",p-value,Significant (p < 0.05)
+MobileNetV3Large,MobileNetV2,2,0,0.5000,No
+MobileNetV3Large,EfficientNetB0,1,1,1.0000,No
+MobileNetV3Large,EfficientNetV2S,1,1,1.0000,No
+MobileNetV3Large,ConvNeXtTiny,1,1,1.0000,No
+MobileNetV3Large,ResNet50,4,2,0.6875,No
+MobileNetV2,EfficientNetB0,0,2,0.5000,No
+MobileNetV2,EfficientNetV2S,0,2,0.5000,No
+MobileNetV2,ConvNeXtTiny,0,2,0.5000,No
+MobileNetV2,ResNet50,3,3,1.0000,No
+EfficientNetB0,EfficientNetV2S,2,2,1.0000,No
+EfficientNetB0,ConvNeXtTiny,1,1,1.0000,No
+EfficientNetB0,ResNet50,4,2,0.6875,No
+EfficientNetV2S,ConvNeXtTiny,2,2,1.0000,No
+EfficientNetV2S,ResNet50,5,3,0.7266,No
+ConvNeXtTiny,ResNet50,3,1,0.6250,No

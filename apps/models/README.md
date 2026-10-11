@@ -67,4 +67,5 @@ Simpan folder output ke direktori `benchmark2.0/` di repository ini.
 | Direktori | Keterangan |
 |---|---|
 | [`benchmark1.0/`](./benchmark1.0/) | Hasil Benchmark v1.0 (4 model, single split) — referensi |
-| `benchmark2.0/` | Hasil Benchmark v2.0 (6 model, 5-fold CV) — _belum dijalankan_ |
+| [`benchmark2.0/`](./benchmark2.0/) | Hasil Benchmark v2.0 (6 model, 5-Fold Stratified CV, 2-Phase Training, TFLite Deployment, McNemar Test, Grad-CAM) — **Selesai** |
+

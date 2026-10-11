@@ -48,7 +48,8 @@ docs/Panduan Penelitian/*
 .~lock.*#
 
 # ─── Model experiment artifacts (large files — share out-of-band) ────────────
-apps/models/benchmark1.0/
+apps/models/benchmark1.0/*.keras
+apps/models/benchmark1.0/*.tflite
 apps/models/benchmark*.keras
 apps/models/benchmark*.tflite
 apps/models/benchmark*.zip

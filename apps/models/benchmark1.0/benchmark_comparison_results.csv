@@ -1,0 +1,5 @@
+Model,Test Accuracy (%),Macro F1-Score,Total Params (M),Keras Size (MB),TFLite Size (MB),Latency CPU (ms),Training Time (s)
+MobileNetV3Large,100.0,1.0,3.12,13.5,11.83,11.5,115.7
+MobileNetV2,88.89,0.754,2.42,11.06,9.09,8.84,61.5
+EfficientNetB0,100.0,1.0,4.21,18.14,15.93,24.27,118.0
+ResNet50,88.89,0.791,23.85,93.62,90.62,111.19,118.6

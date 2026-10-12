@@ -85,3 +85,25 @@ Tersedia opsi eksekusi paralel untuk menghemat waktu komputasi, serta notebook t
 | `tradeoff_chart_8models.png` | Scatter plot Pareto trade-off: Macro F1 vs Latensi CPU vs Ukuran TFLite |
 | `all_results_merged.pkl` | Checkpoint mentah seluruh probabilitas dan prediksi per fold |
 | `deployment_merged.pkl` | Data profil latensi CPU dan ukuran model TFLite |
+
+---
+
+## 🏆 Hasil Empiris & Temuan Utama (Final)
+
+### Tabel Master Komparasi 8 Model (5-Fold Stratified CV, Phase 2 Fine-Tuning)
+
+| Rank | Model | Paradigma | Params (M) | Macro F1-Score | Akurasi (%) | Macro Precision | Macro Recall | TFLite (MB) | Latensi CPU (ms) |
+|:---:|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 🥇 | **MobileNetV3Large** | NAS Edge CNN | 3.24 | **$0.7997 \pm 0.0753$** | **$93.29 \pm 1.88$** | $0.8272 \pm 0.0862$ | $0.8006 \pm 0.0672$ | 12.28 | **6.68** |
+| 🥈 | **ResNet50** | Residual CNN | 24.11 | **$0.7821 \pm 0.0798$** | $92.02 \pm 3.61$ | $0.8233 \pm 0.0484$ | $0.7726 \pm 0.0898$ | 91.61 | 103.22 |
+| 🥉 | **EfficientNetB0** | Compound Scaling v1 | 4.38 | **$0.7731 \pm 0.0990$** | $92.97 \pm 2.37$ | $0.7897 \pm 0.1194$ | $0.7779 \pm 0.0896$ | 16.54 | 18.24 |
+| 4 | **DenseNet121** | Dense Feature Reuse | 7.30 | **$0.7480 \pm 0.0952$** | $92.00 \pm 3.78$ | $0.7931 \pm 0.0884$ | $0.7513 \pm 0.0952$ | 27.61 | 68.84 |
+| 5 | **EfficientNetV2S** | Fused-MBConv | 20.66 | **$0.7471 \pm 0.0416$** | $91.69 \pm 1.22$ | $0.7943 \pm 0.0464$ | $0.7546 \pm 0.0452$ | 78.09 | 83.40 |
+| 6 | **MobileNetV2** | Inverted Residuals | 2.59 | **$0.7438 \pm 0.0930$** | $91.06 \pm 2.13$ | $0.7875 \pm 0.0861$ | $0.7488 \pm 0.0924$ | 9.71 | 7.08 |
+| 7 | **ConvNeXtTiny** | Modern 7x7 CNN | 28.02 | **$0.7097 \pm 0.0356$** | $91.05 \pm 2.15$ | $0.7259 \pm 0.0257$ | $0.7307 \pm 0.0590$ | 106.95 | 242.76 |
+| 8 | **MobileViT-XS** | Hybrid Edge ViT | **1.94** | **$0.6924 \pm 0.0683$** | $85.95 \pm 2.07$ | $0.6911 \pm 0.0816$ | $0.7369 \pm 0.0639$ | 9.40 | 49.65 |
+
+### Kesimpulan Riset Kritis:
+1. **Juara Mutlak Komputasi Tepi:** MobileNetV3Large unggul di kedua dimensi utama: Macro F1 tertinggi ($0.7997$) dan Latensi CPU tercepat ($6.68\text{ ms}$).
+2. **Validasi Hipotesis Inductive Bias:** MobileViT-XS secara statistik kalah signifikan dari *seluruh* arsitektur CNN pada uji McNemar ($p < 0.05$ pada seluruh pasangan uji), membuktikan bahwa ketiadaan bias induktif lokal pada mekanisme self-attention merugikan performa pada dataset ukuran terbatas ($N = 313$).
+3. **Kerentanan Kelas Minoritas pada ConvNeXt:** ConvNeXtTiny mengalami kolaps total pada kelas minoritas ekstrem `aceh` ($F1 = 0.0$), serta memiliki latensi CPU tertinggi ($242.76\text{ ms}$).
